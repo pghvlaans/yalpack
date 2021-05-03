@@ -1,0 +1,88 @@
+#!/bin/sh
+#
+# pkgmake: making a package from compiled source for LFS systems
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Making a package from source elements
+
+STAGING=/var/yalpack/packages
+TMP=/tmp
+BUILDDIR=$TMP/$1
+BUILDDEST="$BUILDDIR"/dest
+NAME=$(cat "$BUILDDIR"/NAME)
+
+echo
+echo Making a package for "$1"
+echo
+set -e
+cd "$BUILDDEST"
+
+# Move all files in etc and home (if any) to .new; exclude symlinks and directories
+for z in etc home
+do
+if [ -d "$BUILDDEST/$z" ]; then
+	# Copy the original directory out for safekeeping
+	rm -rf $TMP/"$1"-$z
+	cp -r "$BUILDDEST"/$z $TMP/"$1"-$z
+	# Now the renaming can proceed
+	find "$(pwd)"/$z/ -type f -exec mv '{}' '{}'.new \;
+fi
+done
+
+# Making the package tree document
+echo "$1" > "$BUILDDIR"/TREE
+
+find "$BUILDDEST"/ | while read -r file;
+do
+	i="${file##$BUILDDEST/}"
+	echo /"$i" >> "$BUILDDIR"/TREE
+done
+
+# Adding version information
+VER="${1##$NAME-}"
+echo "$VER" > "$BUILDDIR"/VER
+
+# Compression and move to the correct place
+cd $TMP
+tar -czvf "$1".tar.xz "$1"
+mkdir -p $STAGING
+mv "$1".tar.xz $STAGING
+
+# Check for the existence of an executable install.sh file
+if [ -x "$BUILDDIR/install.sh" ]; then
+	echo
+	echo Executable install.sh file found.
+else
+	echo
+	echo NOTE: No install.sh file was found, or it is not executable.
+	echo Please confirm before installation.
+fi
+
+# Restoring the original files to the compiled source
+for z in etc home
+do
+if [ -d "$TMP/$1-$z" ]; then
+	rm -rf "${BUILDDEST:?}"/$z
+	mv $TMP/"$1"-$z "$BUILDDEST"/$z
+fi
+done
+echo

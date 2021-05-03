@@ -1,0 +1,145 @@
+#!/bin/sh
+#
+# pkgcheck: to update information about installed packages on LFS systems
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Checking for a package's installed binaries/executables (and hence, libraries)
+
+STAGING=/var/yalpack/packages
+PKGDATA=/var/yalpack/pkgdata
+PKGDIR=$STAGING/"$1"
+PKGDEST=$PKGDIR/dest
+BINDEPS=/var/yalpack/BIN-DEPS
+
+echo
+echo Preparing to check for information about "$1"
+echo
+set -e
+cd $STAGING
+[ ! -d "$1" ] && tar -xf "$1".tar.xz
+NAME=$(cat "$PKGDIR"/NAME)
+
+PKGBIN=$PKGDATA/PKG-BINS/"$NAME"
+PKGDEP=$PKGDATA/PKG-DEPS/"$NAME"
+PKGLIB=$PKGDATA/PKG-LIBS/"$NAME"
+
+mkdir -p "$BINDEPS"
+mkdir -p "$PKGBIN"
+mkdir -p "$PKGDEP"
+mkdir -p "$PKGLIB"
+
+# Backing up any previous list of binaries
+[ -f "$PKGBIN/instbins" ] && mv "$PKGBIN"/instbins "$PKGBIN"/.instbins.old
+[ -f "$PKGDEP/libdeps" ] && mv "$PKGDEP"/libdeps "$PKGDEP"/.libdeps.old
+[ -f "$PKGLIB/libs" ] && mv "$PKGLIB"/libs "$PKGLIB"/.libs.old
+echo Backed up data lists.
+echo
+# Looking in bin and sbin (special handling for usr)
+for z in bin sbin
+do
+[ -d "$PKGDEST"/$z ] && find "$PKGDEST"/$z/* -type f,l | while read -r f;
+do	
+	g="$(basename "$f")"
+	echo Found "$g"
+	echo "$g" >> "$PKGBIN"/instbins
+	echo Wrote "$g" to package data
+	# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
+	set +e
+	liblist "${f##$PKGDEST}" > /dev/null 2>&1
+	set -e
+	[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
+	echo Used libraries written in, if any.
+	echo
+done
+done
+	
+# Looking in /usr and /opt prefixed locations
+for z in usr opt
+do
+[ -d "$PKGDEST"/"$z" ] && find "$PKGDEST"/"$z"/* -executable -type f | while read -r f;
+do
+	g="$(basename "$f")"
+	# Not interested in libraries here
+	if [ -z "$(echo "$f" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ]; then
+		echo Found "$g"
+		echo "$g" >> "$PKGBIN"/instbins
+		echo Wrote "$g" to package data
+		set +e
+		liblist "${f##$PKGDEST}" > /dev/null 2>&1
+		set -e
+		[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
+		echo Used libraries written in, if any.
+		echo
+	fi
+done
+done
+
+# Adding information about anything installed to libraries.
+for z in lib lib64 usr/lib usr/libexec usr/include
+do
+[ -d "$PKGDEST"/$z ] && find "$PKGDEST"/$z/* -type f,l | while read -r f;
+do
+	g="${f##$PKGDEST/}"
+	echo Found library /"$g"
+	echo "$g" >> "$PKGLIB"/libs
+	echo
+done
+done
+
+if [ -f "$PKGBIN"/instbins ]; then
+	echo These programs were installed by "$1":
+	cat "$PKGBIN"/instbins
+	echo
+fi
+if [ -f "$PKGDEP"/libdeps ]; then
+	echo The following libraries are used by "$1":
+	cat "$PKGDEP"/libdeps
+	echo
+fi
+if [ -f "$PKGLIB"/libs ]; then
+	echo Installed library information for "$1":
+	cat "$PKGLIB"/libs
+	echo
+	# Called with CHECK=no from pkginst and pkgup; step is skipped otherwise.
+	if [ "${CHECK:-yes}" != yes ]; then
+		echo Libraries appear to have been installed. Now using liblist -n to update all library information. Please wait.
+		set +e
+		liblist -n > /dev/null 2>&1
+		set -e
+		echo Library information update done.
+		echo
+	fi
+fi
+
+if [ "$NAME" = "yalpack"  ]; then
+	echo This is an installation or upgrade of yalpack. If this is a new installation, it would be a good idea to run liblist -n now to make a collection of library information.
+	echo Enter \"y\" to do so. \(This may take some time.\)
+	read -r INPUT
+	echo
+	[ "$INPUT" = "y" ] && liblist -n > /dev/null 2>&1 && echo Library information for yalpack updated && echo
+fi	
+
+# Cleaning up
+cd "$STAGING"
+rm -rf "$PKGDIR"
+echo Check complete.
+echo

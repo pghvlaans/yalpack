@@ -1,0 +1,91 @@
+#!/bin/sh
+#
+# pkgup: used to upgrade packages (made by pkgmake and installed by pkginst) on LFS systems
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Used to upgrade packages to a new version. HANDLE WITH CARE.
+
+STAGING=/var/yalpack/packages
+OLDDIR=$STAGING/"$1"
+OLDDEST="$OLDDIR"/dest
+NEWDIR=$STAGING/"$2"
+PKGTREES=/var/yalpack/pkgdata/TREES
+
+echo
+echo It is advised to run pkgcheck on the old package first.
+echo
+echo Upgrade from "$1" to "$2" has been requested. To proceed, press \"y\". IF YOU HAVE ANY DOUBTS, TERMINATE THE PROCESS NOW.
+read -r INPUT
+echo
+[ "$INPUT" != "y" ] && exit
+
+set -e
+cd $STAGING
+
+# pkginst can use its own error handling
+set +e
+UPGRADE=yes /sbin/pkginst "$2"
+set -e
+tar -xf $STAGING/"$1".tar.xz
+# Sanity check
+[ -z "$OLDDEST" ] && echo WARNING! Old package not found. Ending process now. && exit
+
+# The user/administrator is responsible for their own home partition; upgrade will not delete anything from the home directory. Removing from the package directory here will prevent the check for later deletion.
+[ -d "$OLDDEST/home" ] && rm -rf "${OLDDEST:?}/home"
+
+# Checking original package for matches in other installed packages... including the newly installed upgrade. Should be safe on a package-oriented system.
+for f in $(find "$OLDDEST"/* -type f,l)
+do
+	i="${f##$OLDDEST/}"
+	# If grep -x turns up nothing, other installed packages don't need the file
+	if [ -z "$(grep -x /"$i" "$PKGTREES"/*)" ]; then
+		rm -fv /"$i"
+		# Deleting unneeded non-.new version
+		[ -f /"${i%.new}" ] && rm -fv /"${i%.new}"
+	fi
+done
+
+# Process for directories
+for d in $(find "$OLDDEST"/* -type d)
+do
+	i="${d##$OLDDEST/}"
+	if [ -d "$d" ]; then
+		x="$(ls -A /"$i")"
+		[ -z "$x" ] && rmdir -v --ignore-fail-on-non-empty /"$i"
+	fi
+done
+
+# Symlinks could theoretically get knocked out by accident. Run the install script again to be sure.
+[ -x "$NEWDIR"/install.sh ] && "$NEWDIR"/install.sh
+
+# In case of library changes
+echo Running ldconfig now...
+/sbin/ldconfig || true
+echo Done running ldconfig.
+CHECK=no pkgcheck "$2"
+
+# Cleaning up
+cd $STAGING
+rm -rf "$NEWDIR" "$OLDDIR"
+
+echo The upgrade from "$1" to "$2" is complete.
+echo
