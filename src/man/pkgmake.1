@@ -1,0 +1,45 @@
+.\" Manpage for pkgmake
+.\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
+.TH man 1 "3 May 2021" "0.1.0" "pkgmake man page"
+.SH NAME
+pkgmake \- make a package from compiled source in LFS
+.SH SYNOPSIS
+pkgmake NAME-VERSION
+.SH DESCRIPTION
+pkgmake is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for making a package out of compiled source, by default in /tmp/[NAME]-[VERSION].
+
+The directory structure of the package is as follows:
+
+[NAME]-[VERSION] ->
+
+\t NAME VER TREE dest ->
+
+\t \t (package contents)
+
+When compiling from source to produce a package with yalpack, ensure that the "installation" portion uses an option similar to:
+
+\t make install DESTDIR=/tmp/[NAME]-VERSION]/dest
+
+In addition, a file called "NAME" with the package's name is needed in /tmp/[NAME]-[VERSION]. The other files will be generated automatically by pkgmake. For an example of how LFS-centric build instructions might be wrapped in a script for semi-automation purposes, see sample-dewit.sh in the doc directory for yalpack.
+
+pkgmake will designate all package files in /etc and /home as .new. If other files in the package should be designated .new as well, rename them manually before making the package. pkginst(1) will handle the renaming and removal of .new files from here, regardless of location.
+
+If anything should be done after all files have been installed and all symlinks have been made, pkginst(1) will execute a file at the following location, if any:
+
+\t /tmp/NAME-VERSION/install.sh
+
+If an executable install.sh file is not present, pkgmake will issue a warning to that effect.
+
+The end result is a package in tar.xz format at /var/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation.
+
+The working directory (/tmp) and package tarball destination (/var/yalpack/packages) can be changed by editing the pkgmake script to suit user preferences. This is best done before installation and in conjunction with the other yalpack scripts.
+.SH OPTIONS
+NAME - the intended name of the package
+
+VERSION - the package's version number
+.SH SEE ALSO
+pkginst(1), pkgremove(1), pkgup(1), pkgcheck(1)
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+K. Eugene Carlson (kvngncrlsn@gmail.com)

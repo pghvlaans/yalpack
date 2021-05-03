@@ -1,0 +1,32 @@
+.\" Manpage for liblist
+.\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
+.TH man 1 "3 May 2021" "0.1.0" "liblist man page"
+.SH NAME
+liblist \- generate dynamic library usage information for system binaries
+.SH SYNOPSIS
+liblist [-n|--new] [file]
+.SH DESCRIPTION
+liblist is a shell program provided by yalpack (Yet Anotehr Lfs PACKage manager) for collecting information about dynamic library usage by programs in the following locations:
+
+\t /bin
+\t /usr/*
+\t /opt/*
+\t /sbin
+
+Running liblist as root will perform ldd on all such programs; information will be written to the following directory on a per-file basis:
+
+\t /var/yalpack/BINDEPS/[NAME]/[NAME].libinfo
+
+These data are used by liblist(1) and libprecise(1) to reveal which programs use a particular dynamic library. liblist is called in the course of executing pkgcheck(1), pkgup(1) and pkginst(1). These scripts will only call liblist to refresh the entire data collection when a package appears to have installed a library.
+
+The liblist script can be edited to change any of these default locations to suit user preferences. This is best done before installation; all other yalpack scripts should be changed accordingly.
+.SH OPTIONS
+-n|--new - Make a new directory tree in /var/yalpack/BINDEPS (default)
+
+file - Add library usage information for the specified file. A full path is needed.
+.SH SEE ALSO
+pkginst(1), pkgup(1), pkgcheck(1), liblist(1), libprecise(1)
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+K. Eugene Carlson (kvngncrlsn@gmail.com)
