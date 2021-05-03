@@ -1,21 +1,25 @@
 **yalpack-0.1.0**
 
-This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
+This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
 
-yalpack is intended to make managing upgrades and trying new software easier on a Linux From Scratch installation; it requires only a POSIX-compliant shell, util-linux, findutils, grep and tar to operate. gzip is needed for installation. Dependency resolution is not provided, and packages are still meant to be built from source. pkgcheck, libcheck, liblist and libprecise are intended as aids to dependency management, however.
+yalpack is intended to make managing upgrades and trying new software easier on a Linux From Scratch installation: 
+* Install compiled software as packages
+* Easily remove unwanted packages (no need to worry about "make uninstall")
+* Simple(r) pacakge upgrades
+* Handle and log ".new" files automatically
+* List installed packages and versions
+* Gather, store and check information about dynamic library usage 
+
+yalpack requires only a POSIX-compliant shell, util-linux, findutils, grep and tar to operate. gzip is needed for installation. Dependency resolution is not provided, and packages are still meant to be built from source. pkgcheck, libcheck, liblist and libprecise are intended as aids to dependency management, however.
 
 Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could conceivably be used to
 manage every package once the temporary toolchain has been completed.
 
 For installation and upgrades of yalpack, see INSTALL or run 'make all' for details.
 
- *********************************************************************************
-   USING YALPACK OUTSIDE OF AN LFS BOOT OR CHROOT CONTEXT WOULD INSTALL AND/OR  
-            REMOVE PACKAGES ON THE HOST SYSTEM, RESULTING IN MAYHEM.            
- *********************************************************************************
+**USING YALPACK OUTSIDE OF AN LFS BOOT OR CHROOT CONTEXT WOULD INSTALL AND/OR REMOVE PACKAGES ON THE HOST SYSTEM, RESULTING IN MAYHEM.**
 
 yalpack provides the following tools for package management on LFS-based systems:
-
 * For root:
 	* pkgmake: Making yalpack packages
 	* pkginst: Installing yalpack packages
@@ -27,8 +31,8 @@ yalpack provides the following tools for package management on LFS-based systems
 		* `/sbin`
 		* `/usr/*`
 		* `/opt/*`
-	   
-	   To add more locations, edit the shell script at `/sbin/liblist`. A full file path can be passed to liblist to update information about a single library.
+	  
+	  To add more locations, edit the shell script at `/sbin/liblist`. A full file path can be passed to liblist to update information about a single library.
 * For all users:
 	* libcheck: Checking for binaries and yalpack packages using dynamic libraries matching a search term
 	* libprecise: Checking for binaries and yalpack packages using a particular dynamic library
@@ -70,4 +74,4 @@ yalpack makes use of the following directories, which will be made when the bina
 		binaries checked by liblist.
 
 Any and all of the target directories (including /tmp for the original "install" destination) can be changed by editing the shell scripts in `/sbin` or 
-`/usr/bin`.
+`/usr/bin`. Please ensure that these variables match across each script.
