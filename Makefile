@@ -64,7 +64,6 @@ package:
 	@echo yalpack > $(PKGDIR)/NAME
 	@pkgmake yalpack-$(VER)
 	@pkginst yalpack-$(VER)
-	@echo
 	@echo yalpack should now be installed as a package. Run pkglist to confirm.
 
 clean:
