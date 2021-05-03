@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+# libcheck: a "fuzzy" reverse library usage check for LFS systems; see libprecise for more exact results
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Checking for information about a particular library.
+
+DATA=/var/yalpack/pkgdata
+PKGLIBS=$DATA/PKG-LIBS
+PKGDEPS=$DATA/PKG-DEPS
+# If BINDEPS is changed, alter the "cut" instructions below accordingly.
+BINDEPS=/var/yalpack/BIN-DEPS
+TEMPDIR=~/.yalpack
+TEMP=$TEMPDIR/temp-for-libs
+
+mkdir -p "$TEMPDIR"
+# On the off chance that ~/.yalpack/temp-for-libs exists for some reason.
+[ -f "$TEMP" ] && mv "$TEMP" "$TEMP".yarglebargle
+mkdir -p $DATA
+
+echo
+echo Checking for information about "$1".
+rm -f "$TEMP" "$TEMP".new
+for f in /usr/lib/* /lib/* /lib64/* /usr/include/*
+do 
+	find "$f" -maxdepth 0 -type f -exec basename '{}' \; | grep "$1" | cut -d'.' -f-1 >> "$TEMP"
+done
+sort "$TEMP" | uniq > "$TEMP".new
+echo
+echo Matches with any of the following libraries will be displayed:
+cat "$TEMP".new
+echo
+
+for PKG in "$PKGLIBS"/*
+do
+	if [ -f "$PKG/libs" ]; then
+		x=$(grep "$1" "$PKG"/libs)
+		PKG=$(basename "$PKG")
+		[ -n "$x" ] && echo One of these libraries appears to have been installed by the "$PKG" package.
+	fi
+done
+
+echo
+echo The following packages use one of these libraries:
+grep "$1" "$PKGDEPS"/*/* | cut -d'/' -f6- | cut -d'/' -f-1 | uniq
+echo
+echo The following programs use one of these libraries:
+grep "$1" "$BINDEPS"/*/* | cut -d'/' -f5- | cut -d'/' -f-1 | uniq
+echo
+echo If closer matches are needed, consider using libprecise with one of these libraries:
+cat $TEMP.new
+echo
+
+rm -f "$TEMP" "$TEMP".new
+[ -f "$TEMP.yarglebargle" ] && mv "$TEMP".yarglebargle "$TEMP"
