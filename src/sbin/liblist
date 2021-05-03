@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# liblist: for library check support on LFS systems
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Checking dynamic libraries called in by all binaries. Must be run as root or there will be no information about /sbin and /usr/sbin.
+
+BINDEPS=/var/yalpack/BIN-DEPS
+mkdir -p "$BINDEPS"
+
+# The function to check libraries for an individual binary
+populate() {
+BIN="$(basename "$1")"
+# An empty variable name here would be really bad
+[ -z "$BIN" ] && return
+# Not interested in library files here
+[ -n "$(echo "$BIN" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ] && return
+BINDIR="$BINDEPS/$BIN"
+mkdir -p "$BINDIR"
+echo "$BIN" checked "$(date)" > "$BINDIR/$BIN.libinfo"
+ldd "$1" >> "$BINDIR/$BIN.libinfo"
+# Don't need empty entries
+x=$(wc -l "$BINDIR/$BIN.libinfo" | cut -d' ' -f-1)
+[ "$x" = 1 ] && rm -rf "$BINDIR"
+}
+
+# A new dynamic library usage data collection
+new() {
+[ -d "$BINDEPS".old ]; rm -rf "$BINDEPS.old"
+[ -d "$BINDEPS" ] && mv "$BINDEPS" "$BINDEPS.old"
+mkdir -p "$BINDEPS"
+for d in /bin /usr /sbin /opt; do
+	if [ -d "$d" ]; then
+		echo Checking $d
+		find $d/* -executable -type f | while read -r file; do populate "$file"; done
+	fi
+done
+}
+
+if [ -z "$1" ]; then
+	new
+else
+	for arg in "$@"; do
+		case "$arg" in
+			-n|--new)
+			new
+			;;
+			*)
+			[ -n "$arg" ] && populate "$arg"
+		esac
+	done
+fi
