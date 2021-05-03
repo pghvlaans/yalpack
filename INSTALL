@@ -1,0 +1,29 @@
+yalpack-0.1.0 Installation Guide
+
+To install yalpack to your LFS-type system, run the Makefile as root. The following targets are available:
+
+	make install: Install yalpack under the chosen DESTDIR. A package for yalpack will not be created. This is the recommended method for upgrades; DESTDIR should be /tmp/yalpack-0.1.1/dest. From here, make the NAME file and use pkgmake and pkgup as usual.
+
+	make package: Recommended for initial installations. Install the yalpack binaries; these binaries are then used to make and install a package for yalpack.
+
+	make clean: Removes compressed man pages from the source directory.
+	
+	make uninstall: Remove the yalpack binaries, man pages and documentation from under DESTDIR. The yalpack directory (/var/yalpack by default) is made by running yalpack scripts for the first time, and so it must be removed manually if desired.
+
+The following parameters can be set with the make call:
+
+	DESTDIR: should be set to /tmp/yalpack-0.1.0/dest for upgrades
+	PREFIX (/usr): the prefix for the bin, doc and man directories
+	SBINDIR (/sbin): the installation directory for root-only binaries
+	BINDIR (PREFIX/bin): the destination directory for other binaries
+	MANDIR (PREFIX/share/man): the destination directory for man files
+	DOCDIR (PREFIX/share/doc): the destination directory for other documentation
+
+All yalpack binaries are POSIX-compliant shell scripts, so feel free to edit them to make changes to default working and data directories. The defaults are as follows:
+
+	/var/yalpack/pkgdata: contains information on all yalpack packages installed on the system
+	/var/yalpack/packages: package tarballs are stored here; tarballs should be retained until upgraded or removed
+	/var/yalpack/BIN-DEPS: contains files outlining the dynamic libraries used by each binary on the system
+	/tmp/[NAME]-[VERSION]/dest: when compiling from source, the output goes here; the target of pkgmake in package construction.
+
+If the value for /tmp/[NAME]-[VERSION]/dest has been changed, the PKGDIR and PKGDEST parameters in Makefile should be edited to reflect the changes.
