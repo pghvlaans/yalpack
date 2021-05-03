@@ -32,7 +32,7 @@ yalpack provides the following tools for package management on LFS-based systems
 		* `/usr/*`
 		* `/opt/*`
 	  
-	  To add more locations, edit the shell script at `/sbin/liblist`. A full file path can be passed to liblist to update information about a single library.
+	  To add more locations, edit the shell script at `/sbin/liblist`. A full file path can be passed to liblist to update information about a single binary.
 * For all users:
 	* libcheck: Checking for binaries and yalpack packages using dynamic libraries matching a search term
 	* libprecise: Checking for binaries and yalpack packages using a particular dynamic library
