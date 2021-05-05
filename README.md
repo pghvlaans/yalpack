@@ -24,7 +24,7 @@ yalpack provides the following tools for package management on LFS-based systems
 	* pkgmake: Making yalpack packages
 	* pkginst: Installing yalpack packages
 	* pkgup: Upgrading yalpack packages
-	* pkgremove: Removing yalpack packages; for proper operation, retain a copy of all installed package tarballs in `/var/yalpack/packages`.
+	* pkgremove: Removing yalpack packages
 	* pkgcheck: Checking for information about yalpack packages
 	* liblist: Generating information about dynamic libraries used by all binaries in the following directories:
 		* `/bin`
@@ -49,6 +49,8 @@ When building from source with the objective of installing a yalpack package, pl
 * All installed files in /etc and /home are marked as .new by pkgmake. If other .new files are needed, they should be renamed manually prior to making the package.
 
 * Any executable file at `/tmp/[NAME]-[VERSION]/install.sh` will be executed by pkginst after all new files, directories and symlinks have been created. install.sh could be used to make or rename symlinks and files, for example.
+
+* At times, it may be desirable to keep more than one version of a package installed on the system (e.g. the kernel and kernel modules). In such cases, the NAME file should be a string with the version information included: `echo linux-5.12.1 > /tmp/linux/5.12.1/NAME`. In case of conflicting files, the more recently-installed package will 'win.' When calling yalpack scripts that take the package name as the input, the proper version information will also be required: `pkgup linux-5.12.0 linux-5.12.1`.
 
 **The directory structure of a yalpack package:**
 
