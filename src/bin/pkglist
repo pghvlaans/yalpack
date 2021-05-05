@@ -28,17 +28,48 @@ DATA=/var/yalpack/pkgdata
 VERS=$DATA/VER
 TREES=$DATA/TREES
 
-if [ -z "$1" ]; then
+full() {
 echo
 find $TREES/* -maxdepth 0 | while read -r file;
 do
-	g="${file##$TREES/}"
+	g="$(basename "$file")"
 	if [ -n "$g" ]; then
-		echo "$g"-"$(cat $VERS/"$g")"
+		if [ -n "$(cat $VERS/"$g")" ]; then
+			[ -n "$1" ] && echo "$g"-"$(cat $VERS/"$g")" | grep "$1"
+			[ -z "$1" ] && echo "$g"-"$(cat $VERS/"$g")"
+		else
+			[ -n "$1" ] && echo "$g" | grep "$1"
+			[ -z "$1" ] && echo "$g"
+		fi
 	fi
 done
-else
-	echo
-	pkglist | grep "$1"
-fi
 echo
+}
+
+nameonly() {
+echo
+find $TREES/* -maxdepth 0 | while read -r file;
+do
+	g="$(basename "$file")"
+	if [ -n "$g" ]; then
+		[ -z "$1" ] && echo "$g"
+		[ -n "$1" ] && echo "$g" | grep "$1"
+	fi
+done
+echo
+}
+
+[ -z "$1" ] && full && exit
+for arg in "$@"; do
+	case "$arg" in
+		-n|--name)
+		[ -n "$2" ] && nameonly "$2" && exit
+		[ -z "$2" ] && nameonly && exit
+		
+		;;
+		*)
+		full "$1"
+	esac
+done
+
+
