@@ -1,4 +1,4 @@
-yalpack-0.1.0 Installation Guide
+yalpack-0.1.1 Installation Guide
 
 To install yalpack to your LFS-type system, run the Makefile as root. The following targets are available:
 
@@ -12,7 +12,7 @@ To install yalpack to your LFS-type system, run the Makefile as root. The follow
 
 The following parameters can be set with the make call:
 
-	DESTDIR: should be set to /tmp/yalpack-0.1.0/dest for upgrades
+	DESTDIR: should be set to /tmp/yalpack-0.1.1/dest for upgrades
 	PREFIX (/usr): the prefix for the bin, doc and man directories
 	SBINDIR (/sbin): the installation directory for root-only binaries
 	BINDIR (PREFIX/bin): the destination directory for other binaries

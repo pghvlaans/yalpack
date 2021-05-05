@@ -1,4 +1,4 @@
-yalpack-0.1.0
+yalpack-0.1.1
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package
 management tools for LFS-based systems. yalpack was inspired by pkgtools from
@@ -35,9 +35,7 @@ systems:
 		* pkgup 
 			Upgrading yalpack packages
 		* pkgremove
-			Removing yalpack packages; for proper operation,
-			retain a copy of the package tarball in
-			/var/yalpack/packages.
+			Removing yalpack packages
 		* pkgcheck
 			Checking for information about yalpack packages
 		* liblist
@@ -84,6 +82,16 @@ please remember the following considerations:
 	  executed by pkginst after all new files, directories and symlinks
 	  have been created. install.sh could be used to make or rename
   	  symlinks and files, for example.
+
+	* At times, it may be desirable to keep more than one version of a package
+	  installed on the system (e.g. the kernel and kernel modules). In such
+	  cases, the NAME file should be a string with the version information
+	  included:
+		echo linux-5.12.1 > /tmp/linux-5.12.1/NAME
+	  In case of conflicting files, the more recently-installed package will
+	  'win.' When calling yalpack scripts that take the package name as the
+	  input, the version information will also be required:
+		pkgup linux-5.12.0 linux-5.12.1
 
 The directory structure of a yalpack package:
 
