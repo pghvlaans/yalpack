@@ -5,7 +5,7 @@
 
 TMP=/tmp
 PKGNAME= #package name
-VER= #version number
+VER= #version number (leave blank if more than one version of the package should exist on the system)
 SOURCEDEST=$(pwd)
 PKGDIR=$TMP/"$PKGNAME"-"$VER"
 PKGDEST="$PKGDIR"/dest
