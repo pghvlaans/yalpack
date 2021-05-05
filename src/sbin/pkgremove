@@ -24,76 +24,91 @@
 #
 # Used to remove packages. HANDLE WITH CARE.
 
-STAGING=/var/yalpack/packages
-PKGDIR=$STAGING/"$1"
-PKGDEST=$PKGDIR/dest
 DATA=/var/yalpack/pkgdata
 PKGTREES=$DATA/TREES
+OLDTREE=$PKGTREES/"$1"
 BINS=$DATA/PKG-BINS
 DEPS=$DATA/PKG-DEPS
 LIBS=$DATA/PKG-LIBS
 VERS=$DATA/VER
+RMDOC=$DATA/RMDOC
+RMTEMP=$DATA/RMTEMP
 
-echo
-echo It is advised to run pkgcheck on the package first.
-echo
-echo Removal of package "$1" has been requested. To proceed, press \"y\". IF YOU HAVE ANY DOUBTS, TERMINATE THE PROCESS NOW.
-read -r INPUT
-echo
-[ "$INPUT" != "y" ] && exit
+if [ "${UPGRADE:-no}" != yes ]; then
+	echo
+	echo It is advised to run pkgcheck on the package first.
+	echo
+	echo Removal of package "$1" has been requested. To proceed, press \"y\". IF YOU HAVE ANY DOUBTS, TERMINATE THE PROCESS NOW.
+	read -r INPUT
+	echo
+	[ "$INPUT" != "y" ] && exit
+fi
 
 set -e
-mkdir -p "$DATA"
-cd $STAGING
-[ ! -d $STAGING/"$1" ] && tar -xf $STAGING/"$1".tar.xz
-NAME=$(cat "$PKGDIR"/NAME)
+rm -rf "$RMTEMP"
+mkdir -p "$RMTEMP"
+NAME="$1"
+VER="$(cat $VERS/"$1")"
+[ -z "$(find "$OLDTREE")" ] && echo Requested package not found. Check for the package name with pkglist. Exiting now. && exit
 
-# Sanity check for existence of NAME file
-[ -z "$NAME" ] && echo WARNING! Make a file in "$PKGDIR"/NAME with the name of the package. Process terminating now for safety. && exit
+# Removing any previous RMDOC
+rm -f $RMDOC
+# Producing RMDOC; it will exclude the package title and the home directory.
+while read -r line;
+do
+	[ "$line" != "$NAME-$VER" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
+done < "$OLDTREE"
 
-# The user/administrator is responsible for their own home partition; upgrade will not delete anything from the home directory. Removing from the package directory here will prevent the check for later deletion.
-[ -d "$PKGDEST/home" ] && rm -rf "${PKGDEST:?}"/home
-# Obviously, don't want to check the package to be removed; reinstall or run pkgcheck again to get data back.
-rm -f $PKGTREES/"$NAME"
-rm -f $VERS/"$NAME"
-echo TREE and VER removed.
+# Obviously, don't want to check the package to be removed.
+mkdir -p "$RMTEMP"/TREE "$RMTEMP"/VER "$RMTEMP"/BIN "$RMTEMP"/DEP "$RMTEMP"/LIB
+mv "$OLDTREE" "$RMTEMP"/TREE/
+mv  $VERS/"$NAME" "$RMTEMP"/VER/
+echo TREE and VER moved to "$RMTEMP"
 # Other housekeeping
-rm -rf ${BINS:?}/"$NAME"
-rm -rf ${DEPS:?}/"$NAME"
-rm -rf ${LIBS:?}/"$NAME"
-echo Other data files removed.
+mv  ${BINS:?}/"$NAME" "$RMTEMP"/BIN/
+mv ${DEPS:?}/"$NAME" "$RMTEMP"/DEP/
+mv ${LIBS:?}/"$NAME" "$RMTEMP"/LIB/
+echo Other data files moved to "$RMTEMP"
 echo
 
 # Checking package for matches in other installed packages. Should be safe on a package-oriented system.
-for f in $(find "$PKGDEST"/* -type f,l)
+while read -r line;
 do
-	echo "$f"
-	i="${f##$PKGDEST/}"
-	# If grep -x turns up nothing, other installed packages don't need the file
-	if [ -z "$(grep -x /"$i" "$PKGTREES"/*)" ]; then
-		rm -fv /"$i"
-		# Deleting unneeded non-.new version
-		[ -f /"${i%.new}" ] && rm -fv /"${i%.new}"
+	# If grep -x turns up nothing, not needed by remaining packages
+	if [ -z "$(grep -x "$line" "$PKGTREES"/*)" ]; then
+		# For files
+		[ -f "$line" ] && rm -fv "$line"
+		# For symlinks
+		[ -h "$line" ] && rm -fv "$line"
 	fi
-done
+done < "$RMDOC"
 
-# Process for directories
-for d in $(find "$PKGDEST"/* -type d)
+# Directories go afterwards to catch the empty ones properly.
+while read -r line;
 do
-	i="${d##$PKGDEST/}"
-	[ -d /"$i" ] && x="$(ls -A /"$i")"
-	[ -z "$x" ] && rmdir -v --ignore-fail-on-non-empty /"$i"
-done
+	# If grep -x turns up nothing, not needed by remaining packages
+	if [ -z "$(grep -x "$line" "$PKGTREES"/*)" ]; then
+		# For directories
+		[ -d "$line" ] && x=$(ls -A "$line") && [ -z "$x" ] && rmdir -v --ignore-fail-on-non-empty "$line"
+	fi
+done < "$RMDOC"
+
 
 # In case of library changes
+echo
 echo Running ldconfig now...
 /sbin/ldconfig || true
 echo Done running ldconfig.
 echo
 # Cleaning up
-cd "$STAGING"
-rm -rf "$PKGDIR"
+rm -f "$RMDOC"
+rm -rf "$RMTEMP"
 
-echo The package "$1" has been removed. 
-[ "$NAME" != "yalpack" ] && echo Consider running \"liblist -n\" to update yalpack\'s dynamic library information.
-echo
+if [ "${UPGRADE:-no}" != yes ]; then
+	echo The package "$1" has been removed. 
+	[ "$NAME" != "yalpack" ] && echo Consider running \"liblist -n\" to update yalpack\'s dynamic library information.
+	echo
+else
+	echo Extraneous files from "$NAME"-"$VER" have been removed. Proceeding with the upgrade process.
+	echo
+fi

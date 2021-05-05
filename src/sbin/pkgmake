@@ -28,7 +28,7 @@ STAGING=/var/yalpack/packages
 TMP=/tmp
 BUILDDIR=$TMP/$1
 BUILDDEST="$BUILDDIR"/dest
-NAME=$(cat "$BUILDDIR"/NAME)
+NAME="$(cat "$BUILDDIR"/NAME)"
 
 echo
 echo Making a package for "$1"
@@ -59,7 +59,12 @@ done
 
 # Adding version information
 VER="${1##$NAME-}"
-echo "$VER" > "$BUILDDIR"/VER
+# Properly handling no-version packages (like the kernel, if the user wants more than one installed)
+if [ "$VER" != "$NAME" ]; then
+	echo "$VER" > "$BUILDDIR"/VER
+else
+	touch "$BUILDDIR"/VER
+fi
 
 # Compression and move to the correct place
 cd $TMP

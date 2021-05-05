@@ -26,9 +26,9 @@
 
 STAGING=/var/yalpack/packages
 TMP=/tmp
-PKGDIR=$STAGING/$1
+PKGDIR=$STAGING/"$1"
 PKGDATA=/var/yalpack/pkgdata
-BUILDDEST=$TMP/$1/dest
+BUILDDEST=$TMP/"$1"/dest
 PKGDEST=$PKGDIR/dest
 PKGTREES=$PKGDATA/TREES
 PKGVER=$PKGDATA/VER
@@ -59,10 +59,15 @@ do
 		j="${f%.new}"
 		# If file exists, check for differences
 		if [ -f "/$i" ]; then
-			DIFF=$(diff "$f" "/$i")
+			#DIFF="$(diff "$f" "/$i")"
+			md5f=$(md5sum "$f" | cut -d' ' -f-1)
+			md5i=$(md5sum "/$i" | cut -d' ' -f-1)
 			# If not different, new file is not needed
-			if [ -z "$DIFF" ]; then
+			if [ "$md5f" = "$md5i" ]; then
 				rm -fv "$f"
+				echo
+			else
+				echo "/$h" >> "$PKGDIR"/NEWFILES
 				echo
 			fi
 		# If file DNE, don't call the new one .new
@@ -72,11 +77,12 @@ do
 			echo
 		fi
 		# Finally, make a log with any .new files to check afterwards.	
-		[ -f "$f" ] && echo /"$i.new" >> "$PKGDIR"/NEWFILES
-		echo Done checking the .new files
-		echo
+		#[ -f "$f" ] && echo "/$h" >> "$PKGDIR"/NEWFILES
+		#echo
 	fi
 done
+echo Done copying the .new files, if any.
+echo
 
 # Copying over
 find "$PKGDEST"/ -type f,d | while read -r f;
@@ -132,6 +138,20 @@ echo Now running ldconfig...
 echo Done running ldconfig.
 echo
 
+# For the installer's edification and to update library use info
+echo
+# pkgcheck should use its own error handling instead.
+set +e
+CHECK=no pkgcheck "$NAME"
+set -e
+# Clean up afterwards
+cd "$STAGING"
+rm -rf "${PKGDIR:?}"
+echo Almost done. To retain the package tarball, enter \"y\" now.
+read -r INPUT
+echo
+[ "$INPUT" != "y" ] && rm -vf $STAGING/"$1".tar.xz && echo
+
 # Inform about any symlinks
 if [ -f "$PKGDIR"/SYMLINKS ]; then 
 	echo The following symlinks were created by the build process:
@@ -148,19 +168,8 @@ if [ -f "$PKGDIR"/NEWFILES ]; then
 	echo "$1" installed on "$(date)" >> "$PKGDATA"/NEWFILE-LOG
 	cat "$PKGDIR"/NEWFILES >> "$PKGDATA"/NEWFILE-LOG
 	echo The list has been added to "$PKGDATA"/NEWFILE-LOG for convenience.
+	echo
 fi
 
-# Should be called with UPGRADE=yes only if from within /sbin/pkgup
-if [ "${UPGRADE:-no}" != yes ]; then
-	# For the installer's edification and to update library use info
-	echo
-	# pkgcheck should use its own error handling instead.
-	set +e
-	CHECK=no pkgcheck "$1"
-	set -e
-	# Clean up afterwards
-	cd "$STAGING"
-	rm -rf "${PKGDIR:?}"
-fi
 echo Installation of "$1" complete.
 echo

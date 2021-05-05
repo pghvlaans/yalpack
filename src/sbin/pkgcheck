@@ -26,8 +26,8 @@
 
 STAGING=/var/yalpack/packages
 PKGDATA=/var/yalpack/pkgdata
-PKGDIR=$STAGING/"$1"
-PKGDEST=$PKGDIR/dest
+PKGTREES=$PKGDATA/TREES
+PKGTREE=$PKGTREES/"$1"
 BINDEPS=/var/yalpack/BIN-DEPS
 
 echo
@@ -35,8 +35,10 @@ echo Preparing to check for information about "$1"
 echo
 set -e
 cd $STAGING
-[ ! -d "$1" ] && tar -xf "$1".tar.xz
-NAME=$(cat "$PKGDIR"/NAME)
+
+# Sanity check
+[ ! -f "$PKGTREE" ] && echo Warning! Package not found. Exiting now. && exit
+NAME=$(basename "$PKGTREE")
 
 PKGBIN=$PKGDATA/PKG-BINS/"$NAME"
 PKGDEP=$PKGDATA/PKG-DEPS/"$NAME"
@@ -53,56 +55,60 @@ mkdir -p "$PKGLIB"
 [ -f "$PKGLIB/libs" ] && mv "$PKGLIB"/libs "$PKGLIB"/.libs.old
 echo Backed up data lists.
 echo
-# Looking in bin and sbin (special handling for usr)
-for z in bin sbin
-do
-[ -d "$PKGDEST"/$z ] && find "$PKGDEST"/$z/* -type f,l | while read -r f;
-do	
-	g="$(basename "$f")"
-	echo Found "$g"
-	echo "$g" >> "$PKGBIN"/instbins
-	echo Wrote "$g" to package data
-	# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
-	set +e
-	liblist "${f##$PKGDEST}" > /dev/null 2>&1
-	set -e
-	[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
-	echo Used libraries written in, if any.
-	echo
-done
-done
-	
-# Looking in /usr and /opt prefixed locations
-for z in usr opt
-do
-[ -d "$PKGDEST"/"$z" ] && find "$PKGDEST"/"$z"/* -executable -type f | while read -r f;
-do
-	g="$(basename "$f")"
-	# Not interested in libraries here
-	if [ -z "$(echo "$f" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ]; then
-		echo Found "$g"
-		echo "$g" >> "$PKGBIN"/instbins
-		echo Wrote "$g" to package data
-		set +e
-		liblist "${f##$PKGDEST}" > /dev/null 2>&1
-		set -e
-		[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
-		echo Used libraries written in, if any.
-		echo
+# Looking for executables
+while read -r f; do
+	if [ -x "$f" ] && [ -f "$f" ]; then
+		g="$(basename "$f")"
+		# Not interested in libraries here
+		if [ -z "$(echo "$f" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ]; then
+			echo Found "$f"
+			echo "$f" >> "$PKGBIN"/instbins
+			echo Wrote "$f" to package data
+			# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
+			set +e
+			liblist "$f" > /dev/null 2>&1
+			set -e
+			[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
+			echo Used libraries written in, if any.
+			echo
+		fi
 	fi
-done
-done
+done < "$PKGTREE"
+# Also interested in symlinks to programs
+while read -r f; do
+	if [ -h "$f" ]; then
+		h="$(readlink "$f")"
+		if [ -z "$(echo "$h" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ] && [ -x "$h" ] && [ -f "$h" ]; then
+			echo Found "$f"
+			echo "$f" >> "$PKGBIN"/instbins
+			echo Wrote "$f" to package data
+			# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
+			set +e
+			liblist "$f" > /dev/null 2>&1
+			set -e
+			[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
+			echo Used libraries written in, if any.
+			echo
+		fi
+	fi
+done < "$PKGTREE"
 
 # Adding information about anything installed to libraries.
-for z in lib lib64 usr/lib usr/libexec usr/include
+for z in /lib /lib64 /usr/lib /usr/libexec /usr/include
 do
-[ -d "$PKGDEST"/$z ] && find "$PKGDEST"/$z/* -type f,l | while read -r f;
+y="$(echo "$z" | wc -c)"
+y=$((y - 1))
+while read -r f
 do
-	g="${f##$PKGDEST/}"
-	echo Found library /"$g"
-	echo "$g" >> "$PKGLIB"/libs
-	echo
-done
+	if [ -f "$f" ] || [ -h "$f" ]; then
+		if [ "$(echo "$f" | cut -c1-"$y")" = "$z" ]; then
+			g="$(basename "$f")"
+			echo Found library "$f"
+			echo "$f" >> "$PKGLIB/libs"
+			echo
+		fi
+	fi
+done < "$PKGTREE"
 done
 
 if [ -f "$PKGBIN"/instbins ]; then
@@ -132,14 +138,11 @@ fi
 
 if [ "$NAME" = "yalpack"  ]; then
 	echo This is an installation or upgrade of yalpack. If this is a new installation, it would be a good idea to run liblist -n now to make a collection of library information.
-	echo Enter \"y\" to do so. \(This may take some time.\)
+	echo Enter \"y\" to "do" so. \(This may take some time.\)
 	read -r INPUT
 	echo
 	[ "$INPUT" = "y" ] && liblist -n > /dev/null 2>&1 && echo Library information for yalpack updated && echo
 fi	
 
-# Cleaning up
-cd "$STAGING"
-rm -rf "$PKGDIR"
 echo Check complete.
 echo
