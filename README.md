@@ -1,4 +1,4 @@
-**yalpack-0.1.0**
+**yalpack-0.1.1**
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
 
