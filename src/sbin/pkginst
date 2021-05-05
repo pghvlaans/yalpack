@@ -67,6 +67,7 @@ do
 				rm -fv "$f"
 				echo
 			else
+				# If .new file will be installed, log it and show the user afterwards.
 				echo "/$h" >> "$PKGDIR"/NEWFILES
 				echo
 			fi
@@ -76,9 +77,6 @@ do
 			mv -v "$f" "$j"
 			echo
 		fi
-		# Finally, make a log with any .new files to check afterwards.	
-		#[ -f "$f" ] && echo "/$h" >> "$PKGDIR"/NEWFILES
-		#echo
 	fi
 done
 echo Done copying the .new files, if any.
