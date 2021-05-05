@@ -1,10 +1,10 @@
 .\" Manpage for pkgcheck
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "3 May 2021" "0.1.0" "pkgcheck man page"
+.TH man 1 "5 May 2021" "0.1.1" "pkgcheck man page"
 .SH NAME
 pkgcheck \- generate and display information about a yalpack package
 .SH SYNOPSIS
-pkgcheck NAME-VERSION
+pkgcheck NAME
 .SH DESCRIPTION
 pkgcheck is a shell program provided by yalpack (Yet Anotehr Lfs PACKage manager) for generating, displaying and storing information about a yalpack package. pkgcheck is run during pkginst(1) and pkgup(1) to generate information about the new package, saved to the following locations:
 
@@ -14,13 +14,19 @@ pkgcheck is a shell program provided by yalpack (Yet Anotehr Lfs PACKage manager
 
 \t /var/yalpack/pkgdata/PKG-LIBS/[NAME]/libs (any installed libraries)
 
-pkgcheck invokes liblist(1) to generate dynamic library usage information, which entails calling ldd. Library usage information will not be available for packages that are not installed. If libraries appear to have been installed by the package, a new collection of dynamic library usage information will be generated (provided that pkgcheck was called by pkginst(1) or pkgup(1)). Otherwise, the existing collection will be updated with any new dynamic binaries.
+pkgcheck invokes liblist(1) to generate dynamic library usage information, which entails calling ldd. Library usage information will not be available for packages that are not installed. 
+
+If libraries appear to have been installed by the package, a new collection of dynamic library usage information will be generated (provided that pkgcheck was called by pkginst(1) or pkgup(1)). Otherwise, the existing collection will be updated with any new dynamic binaries. By default, a new collection will be triggered when files are installed under the following locations or their subdirectories:
+
+\t /lib
+\t /lib64
+\t /usr/lib
+\t /usr/libexec
+\t /usr/include
 
 The pkgcheck script can be edited to change any of these default locations to suit user preferences. This is best done before installation, and in conjunction with the other yalpack scripts.
 .SH OPTIONS
-NAME - the name of the package to be checked
-
-VERSION - the version number of the package to be checked
+NAME - the name of the package to be checked. Note that if the package name in the original NAME directory included versioning information, the call will be incomplete without it. Use "pkglist -n" to check full package names.
 .SH SEE ALSO
 pkginst(1), pkgup(1), liblist(1)
 .SH BUGS
