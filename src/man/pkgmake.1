@@ -4,9 +4,9 @@
 .SH NAME
 pkgmake \- make a package from compiled source in LFS
 .SH SYNOPSIS
-pkgmake NAME-VERSION
+pkgmake NAME1-VERSION1 [NAME2-VERSION2] ...
 .SH DESCRIPTION
-pkgmake is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for making a package out of compiled source, by default in /tmp/[NAME]-[VERSION].
+pkgmake is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for making one or more packages out of compiled source, by default in /tmp/[NAME]-[VERSION].
 
 The directory structure of the package is as follows:
 
@@ -32,13 +32,15 @@ If anything should be done after all files have been installed and all symlinks 
 
 If an executable install.sh file is not present, pkgmake will issue a warning to that effect.
 
-The end result is a package in tar.xz format at /var/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation.
+The end result is a package in tar.xz format at /var/yalpack/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation.
 
 The working directory (/tmp) and package tarball destination (/var/yalpack/packages) can be changed by editing the pkgmake script to suit user preferences. This is best done before installation and in conjunction with the other yalpack scripts.
 .SH OPTIONS
-NAME - the intended name of the package
+NAME - The intended name of the package.
 
-VERSION - the package's version number
+VERSION - The package's version number. Unnecessary if the NAME file contains the entire name-version string and it matches the build directory name.
+
+-h|--help - Display the help menu.
 .SH SEE ALSO
 pkginst(1), pkgremove(1), pkgup(1), pkgcheck(1)
 .SH BUGS

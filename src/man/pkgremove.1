@@ -4,7 +4,7 @@
 .SH NAME
 pkgremove \- remove a pkgmake-made and pkginst-installed package from LFS
 .SH SYNOPSIS
-pkgremove NAME
+pkgremove [-y] NAME1 [NAME2] ...
 .SH DESCRIPTION
 pkgremove is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to remove packages made by pkgmake and installed by pkginst. The tarball for the package must be present.
 
@@ -30,7 +30,11 @@ The following data files and directories will be removed:
 
 The pkgremove script can be edited to change any of these default locations to suit user preferences. This is best done prior to installation and in conjunction with the other yalpack scripts.
 .SH OPTIONS
-NAME - the name of the package to be removed. "pkglist -n" can be checked with a search term to verify exact package names. 
+NAME - The name of the package to be removed. "pkglist -n" can be checked with a search term to verify exact package names.
+
+-y|--yes - Disable manual confirmation.
+
+-h|--help - Display the help menu.
 .SH SEE ALSO
 pkgmake(1), pkginst(1), pkgcheck(1), pkgup(1)
 .SH BUGS

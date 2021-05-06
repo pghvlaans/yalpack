@@ -4,7 +4,7 @@
 .SH NAME
 liblist \- generate dynamic library usage information for system binaries
 .SH SYNOPSIS
-liblist [-n|--new] [file]
+liblist [-n] [file1] [file2] ...
 .SH DESCRIPTION
 liblist is a shell program provided by yalpack (Yet Anotehr Lfs PACKage manager) for collecting information about dynamic library usage by programs in the following locations:
 
@@ -21,9 +21,11 @@ These data are used by liblist(1) and libprecise(1) to reveal which programs use
 
 The liblist script can be edited to change any of these default locations to suit user preferences. This is best done before installation; all other yalpack scripts should be changed accordingly.
 .SH OPTIONS
--n|--new - Make a new directory tree in /var/yalpack/BINDEPS (default)
+-n|--new - Make a new directory tree in /var/yalpack/BINDEPS (default; if -n is called before the files, a new directory tree will be generated and then updated thereafter)
 
 file - Add library usage information for the specified file. A full path is needed.
+
+-h|--help - Display a help menu.
 .SH SEE ALSO
 pkginst(1), pkgup(1), pkgcheck(1), liblist(1), libprecise(1)
 .SH BUGS

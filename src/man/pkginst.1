@@ -4,9 +4,9 @@
 .SH NAME
 pkginst \- install a pkgmake-made package in LFS
 .SH SYNOPSIS
-pkginst NAME-VERSION
+pkginst -[k] NAME1-VERSION1 [NAME2-VERSION2] ...
 .SH DESCRIPTION
-pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing a package made by pkgmake in LFS. The files in the package are copied to the appropriate places relative to the root directory, missing directories are made, and any absolute symlinks are redirected relative to root. 
+pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing one or more packages made by pkgmake in LFS. The files in the package are copied to the appropriate places relative to the root directory, missing directories are made, and any absolute symlinks are redirected relative to root. 
 
 In addition, .new files (all files in /etc and /home; others can be designated .new before making the package) are renamed or removed as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILE-LOG for administrator convenience.
 
@@ -32,9 +32,11 @@ When called in the course of pkginst, pkgcheck(1) will invoke liblist(1) to make
 
 The pkginst script can be edited to change any of these default locations to suit user preferences. This is best done before installation, and in conjunction with the other yalpack scripts.
 .SH OPTIONS
-NAME - the name of the package
+NAME - The name of the package.
 
-VERSION - the package's version number. NAME alone is sufficient if the package name includes versioning information and matches the tarball.
+VERSION - The package's version number. NAME alone is sufficient if the package name includes versioning information and matches the tarball.
+
+-k|--keep - Retain the package tarball after installation.
 .SH SEE ALSO
 pkgmake(1), pkgremove(1), pkgup(1), pkgcheck(1), liblist(1)
 .SH BUGS

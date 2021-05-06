@@ -4,7 +4,7 @@
 .SH NAME
 pkgup \- upgrade a pkgmake-made and pkginst-installed package in LFS
 .SH SYNOPSIS
-pkgup NAME NAME-NEWVERSION
+pkgup [-yk] OLDNAME NEWNAME-NEWVERSION
 .SH DESCRIPTION
 pkgup is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to upgrade packages made by pkgmake and installed by pkginst. The tarballs for both versions must be present.
 
@@ -36,9 +36,17 @@ In cases where versioning information is included in the name,
 
 would be appropriate. Check "pkglist -n" with a search term to find the exact package name.
 .SH OPTIONS
-NAME - the name of the package
+OLDNAME - The name of the outgoing package.
 
-NEWVERSION - the incoming package's version number
+NEWNAME - The name of the incoming package (in most cases, this will be the same).
+
+NEWVERSION - The incoming package's version number. Not needed if NEWNAME contains versioning information and matches the name of the package tarball.
+
+-k|--keep - Retain the incoming package tarball after installation.
+
+-y|--yes - Disable manual confirmation.
+
+-h|--help - Display the help menu.
 .SH SEE ALSO
 pkgmake(1), pkginst(1), pkgcheck(1), pkgremove(1)
 .SH BUGS

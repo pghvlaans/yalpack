@@ -4,7 +4,7 @@
 .SH NAME
 pkglist \- return a list of installed yalpack packages
 .SH SYNOPSIS
-pkglist [-n|--new] [NAME]
+pkglist [-n|--name] [SEARCHTERM1] [SEARCHTERM2] ...
 .SH DESCRIPTION
 pkglist is a shell program provided by yalpack (Yet Anotehr Lfs PACKage manager) for listing installed packages. pkglist references the following directories:
 
@@ -16,10 +16,10 @@ Calling pkglist with a search term is supported, providing an easy way to get th
 .SH OPTIONS
 -n|--name - Return a list with package names only (no version).
 
-NAME - pkglist will return only those packages matching NAME as a search term.
+SEARCHTERM - pkglist will return only those packages matching one or more search terms. Note that packages conforming to more than one search term will appear multiple times.
 .SH SEE ALSO
 pkginst(1), pkgup(1)
 .SH BUGS
-No known bugs.
+None known.
 .SH AUTHOR
 K. Eugene Carlson (kvngncrlsn@gmail.com)
