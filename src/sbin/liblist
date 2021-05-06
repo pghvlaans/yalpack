@@ -61,6 +61,23 @@ if [ -z "$1" ]; then
 else
 	for arg in "$@"; do
 		case "$arg" in
+			-h|--help)
+			echo
+			echo liblist: Generate dynamic library information, separated by binary and stored in
+			echo /var/yalpack/BINDEPS
+			echo
+			echo Syntax: liblist \(options\) \(PATH1 PATH2 ... \)
+			echo
+			echo A PATH input is the full path to a binary. If one or more PATH variables is used,
+			echo liblist will add information for these binaries only. Starting with the \-n flag
+			echo will generate a fresh collection once, and then update thereafter.
+			echo
+			echo Flags:
+			echo "  -n | --new : Make a new collection at /var/yalpack/bindeps (default behavior)"
+			echo "  -h | --help : Display this help menu"
+			echo
+			exit
+			;;
 			-n|--new)
 			new
 			;;
