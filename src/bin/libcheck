@@ -24,6 +24,20 @@
 #
 # Checking for information about a particular library.
 
+if [ "$1" = "-h" ] || [ "$1" = "--help"]; then
+        echo
+        echo libcheck: Check for details about dynamic libraries matching
+	echo a search term.
+        echo
+        echo Syntax: libcheck SEARCHTERM
+        echo
+        echo Flag:
+        echo "  -h | --help : Display this help menu."
+        echo
+        exit
+fi
+
+
 DATA=/var/yalpack/pkgdata
 PKGLIBS=$DATA/PKG-LIBS
 PKGDEPS=$DATA/PKG-DEPS

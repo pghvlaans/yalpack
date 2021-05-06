@@ -24,6 +24,22 @@
 #
 # Checking for information about a particular library.
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        echo
+        echo libprecise: Check for details about a particular dynamic library.
+        echo
+        echo Syntax: libprecise LIBRARY
+        echo
+	echo The library must exist in the form LIBRARY.*, or information will
+	echo be innacurate or incomplete.
+	echo
+        echo Flag:
+        echo "  -h | --help : Display this help menu."
+        echo
+        exit
+fi
+
+
 DATA=/var/yalpack/pkgdata
 PKGLIBS=$DATA/PKG-LIBS
 PKGDEPS=$DATA/PKG-DEPS
@@ -33,7 +49,9 @@ BINDEPS=/var/yalpack/BIN-DEPS
 y="$1[.]"
 
 echo
-echo Checking for information about the library "$1". If the intended library does not exist in the form "$1".*, results will be incomplete or inaccurate.
+echo Checking for information about the library "$1". If the intended 
+echo library does not exist in the form "$1".*, results will be
+echo incomplete or inaccurate.
 echo
 
 for PKG in "$PKGLIBS"/*
