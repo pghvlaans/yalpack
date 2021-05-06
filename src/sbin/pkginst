@@ -24,23 +24,24 @@
 #
 # Installing a package from a source tarball
 
+main () {
 STAGING=/var/yalpack/packages
 TMP=/tmp
-PKGDIR=$STAGING/"$1"
+PKGDIR=$STAGING/"$PACK"
 PKGDATA=/var/yalpack/pkgdata
-BUILDDEST=$TMP/"$1"/dest
+BUILDDEST=$TMP/"$PACK"/dest
 PKGDEST=$PKGDIR/dest
 PKGTREES=$PKGDATA/TREES
 PKGVER=$PKGDATA/VER
 
 echo
-echo Installing package "$1"
+echo Installing package "$PACK".
 echo
 set -e
 mkdir -p $STAGING
 mkdir -p "$PKGDATA" "$PKGTREES" "$PKGVER"
 cd $STAGING
-tar -xf "$1".tar.xz
+tar -xf "$PACK".tar.xz
 NAME=$(cat "$PKGDIR"/NAME)
 
 cd "$PKGDEST"
@@ -54,7 +55,7 @@ do
 	i="${h%.new}"
 	# Proceed if the file is .new
 	if [ "$i" != "$h" ]; then
-		echo Checking "$f"
+		echo Checking "$f".
 		# The non-.new version will be called this, if needed
 		j="${f%.new}"
 		# If file exists, check for differences
@@ -73,7 +74,7 @@ do
 			fi
 		# If file DNE, don't call the new one .new
 		else
-			echo File does not exist on this system
+			echo File does not exist on this system.
 			mv -v "$f" "$j"
 			echo
 		fi
@@ -125,7 +126,7 @@ cat "$PKGDIR"/VER > "$PKGVER"/"$NAME"
 
 # Run the install script, if any
 if [ -f "$PKGDIR/install.sh" ]; then 
-	echo Now running install.sh
+	echo Now running install.sh.
 	"$PKGDIR"/install.sh
 	echo
 fi
@@ -140,16 +141,17 @@ echo
 echo
 # pkgcheck should use its own error handling instead.
 set +e
-CHECK=no pkgcheck "$NAME"
+CHECK=no /sbin/pkgcheck "$NAME"
 set -e
 # Clean up afterwards
 cd "$STAGING"
 rm -rf "${PKGDIR:?}"
-echo Almost done. To retain the package tarball, enter \"y\" now.
-read -r INPUT
-echo
-[ "$INPUT" != "y" ] && rm -vf $STAGING/"$1".tar.xz && echo
-
+if [ "$2" != "KEEP" ]; then
+	rm -vf $STAGING/"$PACK".tar.xz
+	echo The package tarball has been removed. See $PKGTREES/"$NAME"
+	echo for a list of installed files.
+	echo
+fi
 # Inform about any symlinks
 if [ -f "$PKGDIR"/SYMLINKS ]; then 
 	echo The following symlinks were created by the build process:
@@ -163,11 +165,39 @@ if [ -f "$PKGDIR"/NEWFILES ]; then
 	cat "$PKGDIR"/NEWFILES
 	echo
 	echo '' >> "$PKGDATA"/NEWFILE-LOG
-	echo "$1" installed on "$(date)" >> "$PKGDATA"/NEWFILE-LOG
+	echo "$PACK" installed on "$(date)" >> "$PKGDATA"/NEWFILE-LOG
 	cat "$PKGDIR"/NEWFILES >> "$PKGDATA"/NEWFILE-LOG
 	echo The list has been added to "$PKGDATA"/NEWFILE-LOG for convenience.
 	echo
 fi
 
-echo Installation of "$1" complete.
+echo Installation of "$PACK" complete.
 echo
+}
+unset KEEP
+unset PACK
+for arg in "$@"; do
+	case "$arg" in
+		-h|--help)
+		echo
+		echo pkginst: Install a yalpack package from a package tarball in /var/yalpack/packages
+		echo
+		echo Syntax: pkginst \(options\) NAME1-VER1 NAME2-VER2 ...
+		echo 
+		echo The package version should not be included if the NAME file contains the entire name-
+		echo version string.
+		echo
+		echo Flags:
+		echo "  -k | --keep : Retain the package tarball in /var/yalpack/packages after installation"
+		echo "  -h | --help : Display this help menu"
+		echo
+		exit
+		;;
+		-k|--keep)
+		KEEP=KEEP
+		;;
+		*)
+		PACK="$arg"
+		main "$PACK" "$KEEP"
+	esac
+done
