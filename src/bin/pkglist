@@ -29,7 +29,6 @@ VERS=$DATA/VER
 TREES=$DATA/TREES
 
 full() {
-echo
 find $TREES/* -maxdepth 0 | while read -r file;
 do
 	g="$(basename "$file")"
@@ -47,7 +46,6 @@ echo
 }
 
 nameonly() {
-echo
 find $TREES/* -maxdepth 0 | while read -r file;
 do
 	g="$(basename "$file")"
@@ -59,17 +57,31 @@ done
 echo
 }
 
+unset NAME
+echo
 [ -z "$1" ] && full && exit
 for arg in "$@"; do
 	case "$arg" in
+		-h|--help)
+		echo
+		echo pkglist: Show a list of installed yalpack packages \(search functionality available\).
+		echo
+		echo Syntax: pkglist \(options\) \(SEARCHTERM1 SEARCHTERM2 ... \)
+		echo
+		echo If SEARCHTERM is used, pkglist will filter results through grep automatically.
+		echo
+		echo Flags:
+		echo " -n | --name : Return names only, rather than names and version numbers."
+		echo " -h | --help : Display this help menu."
+		echo
+		exit
+		;;
 		-n|--name)
-		[ -n "$2" ] && nameonly "$2" && exit
+		[ -n "$2" ] && NAME=NAME
 		[ -z "$2" ] && nameonly && exit
-		
 		;;
 		*)
-		full "$1"
+		[ "$NAME" != "NAME" ] && full "$arg"
+		[ "$NAME" = "NAME" ] && nameonly "$arg"
 	esac
 done
-
-
