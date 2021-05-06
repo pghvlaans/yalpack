@@ -22,7 +22,7 @@ The following parameters can be set with the make call:
 All yalpack binaries are POSIX-compliant shell scripts, so feel free to edit them to make changes to default working and data directories. The defaults are as follows:
 
 	/var/yalpack/pkgdata: contains information on all yalpack packages installed on the system
-	/var/yalpack/packages: package tarballs are stored here; tarballs should be retained until upgraded or removed
+	/var/yalpack/packages: package tarballs are stored here if retained; all operations except for package installation can be done without them, however
 	/var/yalpack/BIN-DEPS: contains files outlining the dynamic libraries used by each binary on the system
 	/tmp/[NAME]-[VERSION]/dest: when compiling from source, the output goes here; the target of pkgmake in package construction.
 
