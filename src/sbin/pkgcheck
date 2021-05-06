@@ -24,6 +24,18 @@
 
 # Checking for a package's installed binaries/executables (and hence, libraries)
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	echo
+	echo pkgcheck: Check for details about a yalpack package.
+	echo
+	echo Syntax: pkgcheck NAME
+	echo
+	echo Flag:
+	echo "  -h | --help : Display this help menu."
+	echo
+	exit
+fi
+
 STAGING=/var/yalpack/packages
 PKGDATA=/var/yalpack/pkgdata
 PKGTREES=$PKGDATA/TREES
@@ -31,10 +43,11 @@ PKGTREE=$PKGTREES/"$1"
 BINDEPS=/var/yalpack/BIN-DEPS
 
 echo
-echo Preparing to check for information about "$1"
+echo Preparing to check for information about "$1".
 echo
 set -e
 cd $STAGING
+unset NAME
 
 # Sanity check
 [ ! -f "$PKGTREE" ] && echo Warning! Package not found. Exiting now. && exit
@@ -61,9 +74,9 @@ while read -r f; do
 		g="$(basename "$f")"
 		# Not interested in libraries here
 		if [ -z "$(echo "$f" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ]; then
-			echo Found "$f"
+			echo Found "$f".
 			echo "$f" >> "$PKGBIN"/instbins
-			echo Wrote "$f" to package data
+			echo Wrote "$f" to package data.
 			# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
 			set +e
 			liblist "$f" > /dev/null 2>&1
@@ -79,9 +92,9 @@ while read -r f; do
 	if [ -h "$f" ]; then
 		h="$(readlink "$f")"
 		if [ -z "$(echo "$h" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ] && [ -x "$h" ] && [ -f "$h" ]; then
-			echo Found "$f"
+			echo Found "$f".
 			echo "$f" >> "$PKGBIN"/instbins
-			echo Wrote "$f" to package data
+			echo Wrote "$f" to package data.
 			# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
 			set +e
 			liblist "$f" > /dev/null 2>&1
@@ -103,7 +116,7 @@ do
 	if [ -f "$f" ] || [ -h "$f" ]; then
 		if [ "$(echo "$f" | cut -c1-"$y")" = "$z" ]; then
 			g="$(basename "$f")"
-			echo Found library "$f"
+			echo Found library "$f".
 			echo "$f" >> "$PKGLIB/libs"
 			echo
 		fi
@@ -127,7 +140,8 @@ if [ -f "$PKGLIB"/libs ]; then
 	echo
 	# Called with CHECK=no from pkginst and pkgup; step is skipped otherwise.
 	if [ "${CHECK:-yes}" != yes ]; then
-		echo Libraries appear to have been installed. Now using liblist -n to update all library information. Please wait.
+		echo Libraries appear to have been installed. Now using liblist -n to update all
+		echo library information. Please wait.
 		set +e
 		liblist -n > /dev/null 2>&1
 		set -e
@@ -136,12 +150,12 @@ if [ -f "$PKGLIB"/libs ]; then
 	fi
 fi
 
-if [ "$NAME" = "yalpack"  ]; then
-	echo This is an installation or upgrade of yalpack. If this is a new installation, it would be a good idea to run liblist -n now to make a collection of library information.
-	echo Enter \"y\" to "do" so. \(This may take some time.\)
-	read -r INPUT
+if [ "$NAME" = "yalpack" ] ; then
+	echo This is an installation or upgrade of yalpack. Running liblist -n now to make a
+	echo collection of library information.
+	/sbin/liblist -n > /dev/null 2>&1
+	echo Library information for yalpack updated.
 	echo
-	[ "$INPUT" = "y" ] && liblist -n > /dev/null 2>&1 && echo Library information for yalpack updated && echo
 fi	
 
 echo Check complete.
