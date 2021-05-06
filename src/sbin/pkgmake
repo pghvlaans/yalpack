@@ -24,6 +24,7 @@
 #
 # Making a package from source elements
 
+main() {
 STAGING=/var/yalpack/packages
 TMP=/tmp
 BUILDDIR=$TMP/$1
@@ -31,7 +32,7 @@ BUILDDEST="$BUILDDIR"/dest
 NAME="$(cat "$BUILDDIR"/NAME)"
 
 echo
-echo Making a package for "$1"
+echo Making a package for "$1".
 echo
 set -e
 cd "$BUILDDEST"
@@ -91,3 +92,25 @@ if [ -d "$TMP/$1-$z" ]; then
 fi
 done
 echo
+}
+for arg in "$@"; do
+	case "$arg" in
+		-h|--help)
+		echo
+		echo pkgmake: Make a yalpack package from software compiled to a directory at /tmp/NAME-VER/dest
+		echo
+		echo Syntax: pkgmake NAME1-VER1 NAME2-VER2 ...
+		echo
+		echo Before making the package, ensure a file called \"NAME\" with the package name exists 
+		echo above dest. If \"NAME\" contains the entire package-version string, NAME is sufficient
+		echo when calling pkgmake.
+		echo 
+		echo An executable \"install.sh\" above dest will be run before the package checks at the
+		echo end of the installation process.
+		echo
+		exit
+		;;
+		*)
+		main "$arg"
+	esac
+done
