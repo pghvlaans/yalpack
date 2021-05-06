@@ -25,16 +25,22 @@
 # Used to upgrade packages to a new version. HANDLE WITH CARE.
 
 STAGING=/var/yalpack/packages
-NEWDIR=$STAGING/"$2"
 PKGTREES=/var/yalpack/pkgdata/TREES
 
+main() {
+NEWDIR=$STAGING/"$2"
+
+if [ "$4" != "NOCONFIRM" ]; then
+	echo
+	echo It is advised to run pkgcheck on the old package first.
+	echo
+	echo Upgrade of "$1" to "$2" has been requested. To proceed, press \"y\". IF YOU HAVE ANY DOUBTS, TERMINATE THE PROCESS NOW.
+	read -r INPUT
+	[ "$INPUT" != "y" ] && exit
+else
+	echo Upgrade of "$1" to "$2" is underway.
+fi
 echo
-echo It is advised to run pkgcheck on the old package first.
-echo
-echo Upgrade of "$1" to "$2" has been requested. To proceed, press \"y\". IF YOU HAVE ANY DOUBTS, TERMINATE THE PROCESS NOW.
-read -r INPUT
-echo
-[ "$INPUT" != "y" ] && exit
 
 set -e
 cd $STAGING
@@ -48,13 +54,60 @@ rm -r "$NEWDIR"
 
 # pkgremove and pkginst can use their own error handling
 set +e
-UPGRADE=yes /sbin/pkgremove "$1"
-/sbin/pkginst "$2"
+UPGRADE=yes /sbin/pkgremove -y "$1"
+if [ "$3" != "KEEP" ]; then
+	/sbin/pkginst "$2"
+else
+	/sbin/pkginst -k "$2"
+fi
 set -e
 
 # Cleaning up
 cd $STAGING
 rm -f "$PKGTREES/YALPACK-INCOMING"
 
-echo The upgrade from "$1" to "$2" is complete.
+echo The upgrade of "$1" to "$2" is complete.
 echo
+}
+unset OUTGOING
+unset INCOMING
+unset KEEP
+unset NOCONFIRM
+for arg in "$@"; do
+	case "$arg" in
+		-h|--help)
+		echo
+		echo pkgup: Upgrade from one yalpack package to another.
+		echo
+		echo Syntax: pkgup \(options\) OLDNAME NEWNAME-NEWVER
+		echo
+		echo Flags:
+		echo "  -k | --keep : Retain the package tarball of the incoming package in /var/yalpack/packages."
+		echo "  -y | --yes : Disable manual confirmation."
+		echo "  -h | --help : Display this help menu."
+		echo
+		exit
+		;;
+		-k|--keep)
+		KEEP=KEEP
+		;;
+		-y|--yes)
+		NOCONFIRM=NOCONFIRM
+		;;
+		-ky)
+		KEEP=KEEP
+		NOCONFIRM=NOCONFIRM
+		;;
+		-yk)
+		KEEP=KEEP
+		NOCONFIRM=NOCONFIRM
+		;;
+		*)
+		[ -n "$OUTGOING" ] && [ -n "$INCOMING" ] && echo &&  echo Too many arguments\; only one package can be upgraded at a time. && echo && exit 
+		[ -f $PKGTREES/"$arg" ] && OUTGOING="$arg"
+		[ ! -f $PKGTREES/"$arg" ] && INCOMING="$arg"
+	esac
+done
+[ -z "$OUTGOING" ] && echo Outgoing package not found! Use pkglist -n to search for the correct package name. Exiting now. && exit
+[ -z "$INCOMING" ] && echo Incoming package not specified! Exiting now. && exit
+main "$OUTGOING" "$INCOMING" "$KEEP" "$NOCONFIRM"
