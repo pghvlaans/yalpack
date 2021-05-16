@@ -5,7 +5,10 @@
 
 TMP=/tmp
 PKGNAME= #package name
-VER= #version number (leave blank if more than one version of the package should exist on the system)
+# If more than one version of a package should exist on the system at the 
+# same time, leave VER blank and delete all references to VER, along with 
+# their preceding hyphens.
+VER= #version number
 SOURCEDEST=$(pwd)
 PKGDIR=$TMP/"$PKGNAME"-"$VER"
 PKGDEST="$PKGDIR"/dest
@@ -19,8 +22,8 @@ echo "$PKGNAME" > "$PKGDIR"/NAME
 
 # e.g.
 # make clean
-# make $JOB
-# make install DESTDIR="$PKGDEST"
+# make "$JOB"
+# make DESTDIR="$PKGDEST" install
 # DESTDIR="$PKGDEST" ninja install
 
 # And then make and install the package
