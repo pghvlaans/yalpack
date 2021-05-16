@@ -24,7 +24,7 @@
 #
 # Checking for information about a particular library.
 
-if [ "$1" = "-h" ] || [ "$1" = "--help"]; then
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         echo
         echo libcheck: Check for details about dynamic libraries matching
 	echo a search term.
