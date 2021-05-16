@@ -14,7 +14,7 @@ yalpack requires only a POSIX-compliant shell, util-linux, findutils, grep and t
 
 Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could also be used to manage every package once the temporary toolchain has been completed. This has been tested successfully for LFS 10.1 (x86_64, linux kernel 5.12.3, gcc 10.3).
 
-For installation and upgrades of yalpack, see INSTALL or run 'make all' for details.
+For installation and upgrades of yalpack, see INSTALL or run `make all` for details.
 
 **USING YALPACK OUTSIDE OF AN LFS BOOT OR CHROOT CONTEXT WOULD INSTALL AND/OR REMOVE PACKAGES ON THE HOST SYSTEM, RESULTING IN MAYHEM.**
 
