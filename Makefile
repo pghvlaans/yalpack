@@ -24,13 +24,13 @@ install:
 	@mkdir -pv man-gz
 	@mkdir -pv $(DESTDIR)$(MANDIR)/man1
 	@mkdir -pv $(DESTDIR)$(DOCDIR)/yalpack-$(VER)
-	@cp -pv ./{LICENSE,README} src/doc/
-	@cp -pv src/doc/* $(DESTDIR)$(DOCDIR)/yalpack-$(VER)/
-	@cp -pv src/bin/* $(DESTDIR)$(PREFIX)/bin/
-	@cp -pv src/sbin/* $(DESTDIR)$(SBINDIR)/
-	@cp -pv src/man/* man-gz/
+	@cp -v --preserve=mode,timestamps ./{LICENSE,README} src/doc/
+	@cp -v --preserve=mode,timestamps src/doc/* $(DESTDIR)$(DOCDIR)/yalpack-$(VER)/
+	@cp -v --preserve=mode,timestamps src/bin/* $(DESTDIR)$(PREFIX)/bin/
+	@cp -v --preserve=mode,timestamps src/sbin/* $(DESTDIR)$(SBINDIR)/
+	@cp -v --preserve=mode,timestamps src/man/* man-gz/
 	@gzip man-gz/*
-	@cp -pv man-gz/* $(DESTDIR)$(MANDIR)/man1
+	@cp -v --preserve=mode,timestamps man-gz/* $(DESTDIR)$(MANDIR)/man1
 	@chmod 744 $(DESTDIR)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
 	@chmod 755 $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist}
 	@echo
@@ -42,8 +42,8 @@ package:
 	@rm -rf man-gz
 	@mkdir -pv $(DESTDIR)$(PREFIX)/bin
 	@mkdir -pv $(DESTDIR)$(SBINDIR)
-	@cp -pv src/bin/* $(DESTDIR)$(PREFIX)/bin/
-	@cp -pv src/sbin/* $(DESTDIR)$(SBINDIR)/
+	@cp -v --preserve=mode,timestamps src/bin/* $(DESTDIR)$(PREFIX)/bin/
+	@cp -v --preserve=mode,timestamps src/sbin/* $(DESTDIR)$(SBINDIR)/
 	@chmod 744 $(DESTDIR)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
 	@chmod 755 $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist}
 	@mkdir -pv $(PKGDEST)
@@ -52,13 +52,13 @@ package:
 	@mkdir -pv $(PKGDEST)$(MANDIR)/man1
 	@mkdir -pv $(PKGDEST)$(DOCDIR)/yalpack-$(VER)
 	@mkdir -pv man-gz
-	@cp -pv ./{LICENSE,README} src/doc/
-	@cp -pv src/doc/* $(PKGDEST)$(DOCDIR)/yalpack-$(VER)/
-	@cp -pv src/bin/* $(PKGDEST)$(PREFIX)/bin/
-	@cp -pv src/sbin/* $(PKGDEST)$(SBINDIR)/
-	@cp -pv src/man/* man-gz/
+	@cp -v --preserve=mode,timestamps ./{LICENSE,README} src/doc/
+	@cp -v --preserve=mode,timestamps src/doc/* $(PKGDEST)$(DOCDIR)/yalpack-$(VER)/
+	@cp -v --preserve=mode,timestamps src/bin/* $(PKGDEST)$(PREFIX)/bin/
+	@cp -v --preserve=mode,timestamps src/sbin/* $(PKGDEST)$(SBINDIR)/
+	@cp -v --preserve=mode,timestamps src/man/* man-gz/
 	@gzip man-gz/*
-	@cp -pv man-gz/* $(PKGDEST)$(MANDIR)/man1
+	@cp -v --preserve=mode,timestamps man-gz/* $(PKGDEST)$(MANDIR)/man1
 	@chmod 744 $(PKGDEST)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
 	@chmod 755 $(PKGDEST)$(PREFIX)/bin/{libcheck,libprecise,pkglist}
 	@echo yalpack > $(PKGDIR)/NAME
