@@ -87,12 +87,14 @@ echo
 find "$PKGDEST"/ -type f,d | while read -r f;
 do
 	i="${f##$PKGDEST/}"
+	j="$(basename "$i")"
+	j="${i%$j}"
 	if [ -n "$i" ]; then
 		echo /"$i"
 		if [ -d "$i" ]; then
 			mkdir -vp /"$i"
 		else
-			cp -v --preserve=mode,ownership,timestamps,xattr "$i" "/$i"
+			install -m "$(stat -c "%a" "$f")" "$f" "/$j"
 		fi 
 	fi
 done

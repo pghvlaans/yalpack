@@ -49,7 +49,8 @@ new() {
 [ -d "$BINDEPS" ] && mv "$BINDEPS" "$BINDEPS.old"
 mkdir -p "$BINDEPS"
 for d in /bin /usr /sbin /opt; do
-	if [ -d "$d" ]; then
+	# Only look in if directory exists and is non-empty
+	if [ -d "$d" ] && [ -n "$(ls -A "$d")" ]; then
 		echo Checking $d
 		find $d/* -executable -type f | while read -r file; do populate "$file"; done
 	fi

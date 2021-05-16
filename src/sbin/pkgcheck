@@ -116,9 +116,12 @@ do
 	if [ -f "$f" ] || [ -h "$f" ]; then
 		if [ "$(echo "$f" | cut -c1-"$y")" = "$z" ]; then
 			g="$(basename "$f")"
-			echo Found library "$f".
-			echo "$f" >> "$PKGLIB/libs"
-			echo
+			# Restrict to actual libraries
+			if [ -n "$(echo "$f" | grep -e "[.]so[.]" -e "[.]la[.]" -e "[.]a[.]" -e "[.]so\$" -e "[.]la\$" -e "[.]a\$")" ]; then
+				# Not interested in doubles (can happen in /usr/libexec)
+				[ ! -f "$PKGLIB/libs" ] && touch "$PKGLIB/libs"
+				[ -z "$(grep "$f" "$PKGLIB/libs")" ] && echo Found library "$f". && echo "$f" >> "$PKGLIB/libs" && echo
+			fi
 		fi
 	fi
 done < "$PKGTREE"
