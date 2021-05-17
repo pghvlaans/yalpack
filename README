@@ -1,4 +1,4 @@
-yalpack-0.1.1
+yalpack-0.1.2
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package
 management tools for LFS-based systems. yalpack was inspired by pkgtools from
@@ -15,7 +15,7 @@ as aids to dependency management, however.
 Although the envisioned use case of yalpack is to add, upgrade and remove
 packages from on top of a "core" LFS system, it could also be used to manage
 every package once the temporary toolchain has been completed. This has been
-tested successfully for LFS 10.1 (x86_64, linux kernel 5.12.3, gcc 10.3).
+tested successfully for LFS 10.1 (SysVinit) (x86_64, Linx 5.12.3, gcc 10.3).
 
 For installation and upgrades of yalpack, see INSTALL or run 'make all' for
 details.

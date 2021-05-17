@@ -1,4 +1,4 @@
-VER = 0.1.1
+VER = 0.1.2
 
 PREFIX ?= /usr
 MANDIR ?= $(PREFIX)/share/man

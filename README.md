@@ -1,4 +1,4 @@
-**yalpack-0.1.1**
+**yalpack-0.1.2**
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
 
@@ -12,7 +12,7 @@ yalpack is intended to make managing upgrades and trying new software easier on 
 
 yalpack requires only a POSIX-compliant shell, util-linux, findutils, grep and tar to operate. gzip is needed for installation. Dependency resolution is not provided, and packages are still meant to be built from source. pkgcheck, libcheck, liblist and libprecise are intended as aids to dependency management, however.
 
-Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could also be used to manage every package once the temporary toolchain has been completed. This has been tested successfully for LFS 10.1 (x86_64, linux kernel 5.12.3, gcc 10.3).
+Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could also be used to manage every package once the temporary toolchain has been completed. This has been tested successfully for LFS 10.1 (SysVinit) (x86_64, Linux 5.12.3, gcc 10.3).
 
 For installation and upgrades of yalpack, see INSTALL or run `make all` for details.
 
