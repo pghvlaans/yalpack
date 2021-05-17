@@ -63,7 +63,7 @@ When building from source with the objective of installing a yalpack package, pl
 
 Everything under `dest/` is installed relative to root. `NAME` (and `install.sh`, if needed) must be supplied by the administrator; all other files are generated automatically.
 
-yalpack makes use of the following directories, which will be made when the binary in parentheses is run for the first time:
+yalpack makes use of the following directories, which will be made when the script in parentheses is run for the first time:
 
 	/var/yalpack/packages	(pkgmake)
 		Holds package tarballs; tarballs for all currently-installed
