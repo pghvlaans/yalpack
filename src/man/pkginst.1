@@ -1,16 +1,18 @@
 .\" Manpage for pkginst
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "5 May 2021" "0.1.1" "pkginst man page"
+.TH man 1 "17 May 2021" "0.1.2" "pkginst man page"
 .SH NAME
 pkginst \- install a pkgmake-made package in LFS
 .SH SYNOPSIS
-pkginst -[k] NAME1-VERSION1 [NAME2-VERSION2] ...
+pkginst [-k|--keep] NAME1-VERSION1 [NAME2-VERSION2] ...
 .SH DESCRIPTION
-pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing one or more packages made by pkgmake in LFS. The files in the package are copied to the appropriate places relative to the root directory, missing directories are made, and any absolute symlinks are redirected relative to root. 
+pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing one or more packages made by pkgmake in LFS. The files in the package are installed to the appropriate places relative to the root directory, missing directories are made, and any absolute symlinks are redirected relative to root. 
 
 In addition, .new files (all files in /etc and /home; others can be designated .new before making the package) are renamed or removed as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILE-LOG for administrator convenience.
 
-pkginst calls pkgcheck(1) to return information about installed programs, installed libraries, and any dynamic libraries used by the binaries in the package. By default, pkginst makes use of the following files for data recording:
+pkginst will run any executable install.sh file in the top level of the package tarball once the .new files, symlinks, name and versioning information have been documented.
+
+From here, pkginst calls pkgcheck(1) to return information about installed programs, installed libraries, and any dynamic libraries used by the binaries in the package. By default, pkginst makes use of the following files for data recording:
 
 \t /var/yalpack/pkgdata/TREES/[NAME] (a copy of the package tree is written here for reference)
 
@@ -22,7 +24,7 @@ pkginst calls pkgcheck(1) to return information about installed programs, instal
 
 \t /var/yalpack/pkgdata/PKG-LIBS/[NAME]/libs (any installed libraries)
 
-When called in the course of pkginst, pkgcheck(1) will invoke liblist(1) to make a new collection of dynamic library information if files have been installed under any of the following locations or their subdirectories:
+When called in the course of pkginst, pkgcheck(1) will invoke liblist(1) to make a new collection of dynamic library information if recognized library files have been installed under any of the following locations or their subdirectories:
 
 \t /lib
 \t /lib64
@@ -30,7 +32,7 @@ When called in the course of pkginst, pkgcheck(1) will invoke liblist(1) to make
 \t /usr/libexec
 \t /usr/include
 
-The pkginst script can be edited to change any of these default locations to suit user preferences. This is best done before installation, and in conjunction with the other yalpack scripts.
+The pkginst and pkgcheck(1) scripts can be edited to change any of these default locations to suit user preferences. This is best done before installation, and in conjunction with the other yalpack scripts.
 .SH OPTIONS
 NAME - The name of the package.
 

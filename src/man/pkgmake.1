@@ -1,6 +1,6 @@
 .\" Manpage for pkgmake
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "5 May 2021" "0.1.1" "pkgmake man page"
+.TH man 1 "17 May 2021" "0.1.2" "pkgmake man page"
 .SH NAME
 pkgmake \- make a package from compiled source in LFS
 .SH SYNOPSIS
@@ -18,7 +18,7 @@ The directory structure of the package is as follows:
 
 When compiling from source to produce a package with yalpack, ensure that the "installation" portion uses an option similar to:
 
-\t make install DESTDIR=/tmp/[NAME]-VERSION]/dest
+\t DESTDIR=/tmp/[NAME]-VERSION]/dest
 
 In addition, a file called "NAME" with the package's name is needed in /tmp/[NAME]-[VERSION]. The other files will be generated automatically by pkgmake. For an example of how LFS-centric build instructions might be wrapped in a script for semi-automation purposes, see sample-dewit.sh in the doc directory for yalpack.
 
@@ -30,7 +30,7 @@ If anything should be done after all files have been installed and all symlinks 
 
 \t /tmp/NAME-VERSION/install.sh
 
-If an executable install.sh file is not present, pkgmake will issue a warning to that effect.
+If an executable install.sh file is not present, pkgmake will issue a notice to that effect.
 
 The end result is a package in tar.xz format at /var/yalpack/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation.
 

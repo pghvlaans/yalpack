@@ -1,12 +1,12 @@
 .\" Manpage for pkgremove
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "5 May 2021" "0.1.1" "pkgremove man page"
+.TH man 1 "17 May 2021" "0.1.2" "pkgremove man page"
 .SH NAME
 pkgremove \- remove a pkgmake-made and pkginst-installed package from LFS
 .SH SYNOPSIS
-pkgremove [-y] NAME1 [NAME2] ...
+pkgremove [-y|--yes] NAME1 [NAME2] ...
 .SH DESCRIPTION
-pkgremove is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to remove packages made by pkgmake and installed by pkginst. The tarball for the package must be present.
+pkgremove is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to remove packages made by pkgmake and installed by pkginst. The TREE and VER (if applicable) files must be present in /var/yalpack/pkgdata.
 
 pkgremove references /var/yalpack/pkgdata/TREES to remove any unneeded files, symlinks or directories installed by the package. Because the home directory is the responsibility of the user/administrator, pkgremove will never remove anything from /home. All files and directories related to the removed package will be deleted from /var/yalpack/pkgdata.
 
@@ -22,17 +22,17 @@ The following data files and directories will be removed:
 
 \t /var/yalpack/pkgdata/VER/[NAME] (a file with the package's version number)
 
-\t /var/yalpack/pkgdata/PKG-DEPS/[NAME]/libdeps (any libraries used by installed binaries)
+\t /var/yalpack/pkgdata/PKG-DEPS/[NAME] (any libraries used by installed binaries)
 
-\t /var/yalpack/pkgdata/PKG-BINS/[NAME]/instbins (any installed programs)
+\t /var/yalpack/pkgdata/PKG-BINS/[NAME] (any installed programs)
 
-\t /var/yalpack/pkgdata/PKG-LIBS/[NAME]/libs (any installed libraries)
+\t /var/yalpack/pkgdata/PKG-LIBS/[NAME] (any installed libraries)
 
 The pkgremove script can be edited to change any of these default locations to suit user preferences. This is best done prior to installation and in conjunction with the other yalpack scripts.
 .SH OPTIONS
 NAME - The name of the package to be removed. "pkglist -n" can be checked with a search term to verify exact package names.
 
--y|--yes - Disable manual confirmation.
+-y|--yes - Disable the manual confirmation prompt.
 
 -h|--help - Display the help menu.
 .SH SEE ALSO

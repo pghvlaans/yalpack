@@ -1,6 +1,6 @@
 .\" Manpage for pkgcheck
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "5 May 2021" "0.1.1" "pkgcheck man page"
+.TH man 1 "17 May 2021" "0.1.2" "pkgcheck man page"
 .SH NAME
 pkgcheck \- generate and display information about a yalpack package
 .SH SYNOPSIS
@@ -16,7 +16,7 @@ pkgcheck is a shell program provided by yalpack (Yet Anotehr Lfs PACKage manager
 
 pkgcheck invokes liblist(1) to generate dynamic library usage information, which entails calling ldd. Library usage information will not be available for packages that are not installed. 
 
-If libraries appear to have been installed by the package, a new collection of dynamic library usage information will be generated (provided that pkgcheck was called by pkginst(1) or pkgup(1)). Otherwise, the existing collection will be updated with any new dynamic binaries. By default, a new collection will be triggered when files are installed under the following locations or their subdirectories:
+If libraries appear to have been installed by the package, a new collection of dynamic library usage information will be generated (provided that pkgcheck was called by pkginst(1) or pkgup(1)). Otherwise, the existing collection will be updated with any new dynamic binaries. By default, a new collection will be triggered when recognized library files are installed under the following locations or their subdirectories:
 
 \t /lib
 \t /lib64
