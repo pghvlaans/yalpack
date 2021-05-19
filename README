@@ -123,4 +123,5 @@ script in parentheses is run for the first time:
 
 Any and all of the target directories (including /tmp for the original
 "install" destination) can be changed by editing the shell scripts in /sbin or 
-/usr/bin.
+/usr/bin. See "Customization" for details and ensure that any edits are 
+consistent.

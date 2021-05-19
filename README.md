@@ -75,4 +75,4 @@ yalpack makes use of the following directories, which will be made when the scri
 		binaries checked by liblist.
 
 Any and all of the target directories (including /tmp for the original "install" destination) can be changed by editing the shell scripts in `/sbin` or 
-`/usr/bin`. Please ensure that these variables match across each script.
+`/usr/bin`. See "Customization" for details and ensure that any edits are consistent.

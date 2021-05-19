@@ -24,7 +24,7 @@ install:
 	@mkdir -pv man-gz
 	@mkdir -pv $(DESTDIR)$(MANDIR)/man1
 	@mkdir -pv $(DESTDIR)$(DOCDIR)/yalpack-$(VER)
-	@cp -v --preserve=mode,timestamps ./{LICENSE,README} src/doc/
+	@cp -v --preserve=mode,timestamps ./{LICENSE,README,Customization} src/doc/
 	@cp -v --preserve=mode,timestamps src/doc/* $(DESTDIR)$(DOCDIR)/yalpack-$(VER)/
 	@cp -v --preserve=mode,timestamps src/bin/* $(DESTDIR)$(PREFIX)/bin/
 	@cp -v --preserve=mode,timestamps src/sbin/* $(DESTDIR)$(SBINDIR)/
@@ -52,7 +52,7 @@ package:
 	@mkdir -pv $(PKGDEST)$(MANDIR)/man1
 	@mkdir -pv $(PKGDEST)$(DOCDIR)/yalpack-$(VER)
 	@mkdir -pv man-gz
-	@cp -v --preserve=mode,timestamps ./{LICENSE,README} src/doc/
+	@cp -v --preserve=mode,timestamps ./{LICENSE,README,Customization} src/doc/
 	@cp -v --preserve=mode,timestamps src/doc/* $(PKGDEST)$(DOCDIR)/yalpack-$(VER)/
 	@cp -v --preserve=mode,timestamps src/bin/* $(PKGDEST)$(PREFIX)/bin/
 	@cp -v --preserve=mode,timestamps src/sbin/* $(PKGDEST)$(SBINDIR)/
