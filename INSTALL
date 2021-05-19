@@ -51,6 +51,5 @@ defaults are as follows:
 				    output goes here; the target of 
 				    pkgmake in package construction.
 
-If the value for /tmp/[NAME]-[VERSION]/dest has been changed, the PKGDIR
-and PKGDEST parameters in Makefile should be edited to reflect the
-changes.
+Any changes are most conveniently made before yalpack is installed or
+upgraded. Please see "Customization" for details.
