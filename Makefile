@@ -1,11 +1,12 @@
-VER = 0.1.2
+VER = 0.1.3
 
+TMP ?= /tmp
 PREFIX ?= /usr
 MANDIR ?= $(PREFIX)/share/man
 DOCDIR ?= $(PREFIX)/share/doc
 BINDIR ?= $(PREFIX)/bin
 SBINDIR ?= /sbin
-PKGDIR = /tmp/yalpack-$(VER)
+PKGDIR = $(TMP)/yalpack-$(VER)
 PKGDEST = $(PKGDIR)/dest
 
 all:
@@ -68,7 +69,7 @@ package:
 
 clean:
 	@rm -rvf man-gz
-	@rm -vf src/doc/{LICENSE,README}
+	@rm -vf src/doc/{LICENSE,README,Customization}
 
 uninstall:
 	@rm -vf $(DESTDIR)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
