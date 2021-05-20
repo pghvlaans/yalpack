@@ -37,12 +37,11 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         exit
 fi
 
-
-DATA=/var/yalpack/pkgdata
+HEAD=/var/yalpack
+DATA=$HEAD/pkgdata
 PKGLIBS=$DATA/PKG-LIBS
 PKGDEPS=$DATA/PKG-DEPS
-# If BINDEPS is changed, alter the "cut" instructions below accordingly.
-BINDEPS=/var/yalpack/BIN-DEPS
+BINDEPS=$HEAD/BIN-DEPS
 TEMPDIR=~/.yalpack
 TEMP=$TEMPDIR/temp-for-libs
 
@@ -74,11 +73,17 @@ do
 done
 
 echo
+# Determining the correct number of cut backslashes
+DEPSNUM=$(echo "$PKGDEPS" | tr -cd '/' | wc -c)
+BINSNUM=$(echo "$BINDEPS" | tr -cd '/' | wc -c)
+# Adjusting
+DEPSNUM=$((DEPSNUM + 2))
+BINSNUM=$((BINSNUM + 2))
 echo The following packages use one of these libraries:
-grep "$1" "$PKGDEPS"/*/* | cut -d'/' -f6- | cut -d'/' -f-1 | uniq
+grep "$1" "$PKGDEPS"/*/* | cut -d'/' -f"$DEPSNUM"- | cut -d'/' -f-1 | uniq
 echo
 echo The following programs use one of these libraries:
-grep "$1" "$BINDEPS"/*/* | cut -d'/' -f5- | cut -d'/' -f-1 | uniq
+grep "$1" "$BINDEPS"/*/* | cut -d'/' -f"$BINSNUM"- | cut -d'/' -f-1 | uniq
 echo
 echo If closer matches are needed, consider using libprecise with one of these libraries:
 cat $TEMP.new

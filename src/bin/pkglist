@@ -24,7 +24,8 @@
 #
 # Providing a list of installed packages with versioning information
 
-DATA=/var/yalpack/pkgdata
+HEAD=/var/yalpack
+DATA=$HEAD/pkgdata
 VERS=$DATA/VER
 TREES=$DATA/TREES
 

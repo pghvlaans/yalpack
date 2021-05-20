@@ -39,12 +39,11 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         exit
 fi
 
-
-DATA=/var/yalpack/pkgdata
+HEAD=/var/yalpack
+DATA=$HEAD/pkgdata
 PKGLIBS=$DATA/PKG-LIBS
 PKGDEPS=$DATA/PKG-DEPS
-# If BINDEPS is changed, alter the "cut" instructions below accordingly.
-BINDEPS=/var/yalpack/BIN-DEPS
+BINDEPS=$HEAD/BIN-DEPS
 
 y="$1[.]"
 
@@ -64,10 +63,16 @@ do
 done
 
 echo
+# Determining the correct number of cut backslashes
+DEPSNUM=$(echo "$PKGDEPS" | tr -cd '/' | wc -c)
+BINSNUM=$(echo "$BINDEPS" | tr -cd '/' | wc -c)
+# Adjusting
+DEPSNUM=$((DEPSNUM + 2))
+BINSNUM=$((BINSNUM + 2))
 echo The following packages use this library:
-grep "$y" "$PKGDEPS"/*/* | cut -d'/' -f6- | cut -d'/' -f-1 | uniq
+grep "$y" "$PKGDEPS"/*/* | cut -d'/' -f"$DEPSNUM"- | cut -d'/' -f-1 | uniq
 
 echo
 echo The following binaries use this library:
-grep "$y" $BINDEPS/*/* | cut -d'/' -f5- | cut -d'/' -f-1 | uniq
+grep "$y" $BINDEPS/*/* | cut -d'/' -f"$BINSNUM"- | cut -d'/' -f-1 | uniq
 echo
