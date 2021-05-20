@@ -41,10 +41,10 @@ recommended. Additionally, everything under /var/yalpack should stay
 under the same directory structure.
 
 In order to store yalpack-related data and package tarballs under a
-directory other than /var, change the following variable in all scripts
-in src/bin and src/sbin:
+directory other than /var/yalpack, change the following variable in all
+scripts in src/bin and src/sbin:
 
-  HEAD=/var
+  HEAD=/var/yalpack
 
 libcheck and libprecise are special cases, in that they rely on "cut"
 instructions to display results. If, against recommendations, the
