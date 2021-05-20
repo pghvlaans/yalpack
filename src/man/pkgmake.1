@@ -1,6 +1,6 @@
 .\" Manpage for pkgmake
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "17 May 2021" "0.1.2" "pkgmake man page"
+.TH man 1 "21 May 2021" "0.1.3" "pkgmake man page"
 .SH NAME
 pkgmake \- make a package from compiled source in LFS
 .SH SYNOPSIS
@@ -32,7 +32,7 @@ If anything should be done after all files have been installed and all symlinks 
 
 If an executable install.sh file is not present, pkgmake will issue a notice to that effect.
 
-The end result is a package in tar.xz format at /var/yalpack/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation.
+The end result is a package in tar.xz format at /var/yalpack/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation. pkgmake retains the ownership and permissions of the compiled package contents; if installation in this state is not desirable (for example, if an unprivileged user still owns the package contents when pkgmake is run), pkginst(1) can be run with the --root-own (-r) option to change the ownership of the package contents to root:root before installation.
 
 The working directory (/tmp) and package tarball destination (/var/yalpack/packages) can be changed by editing the pkgmake script to suit user preferences. This is best done before installation and in conjunction with the other yalpack scripts.
 .SH OPTIONS

@@ -1,14 +1,16 @@
 .\" Manpage for pkginst
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "17 May 2021" "0.1.2" "pkginst man page"
+.TH man 1 "21 May 2021" "0.1.3" "pkginst man page"
 .SH NAME
 pkginst \- install a pkgmake-made package in LFS
 .SH SYNOPSIS
-pkginst [-k|--keep] NAME1-VERSION1 [NAME2-VERSION2] ...
+pkginst [-kr|--keep --root-own] NAME1-VERSION1 [NAME2-VERSION2] ...
 .SH DESCRIPTION
 pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing one or more packages made by pkgmake in LFS. The files in the package are installed to the appropriate places relative to the root directory, missing directories are made, and any absolute symlinks are redirected relative to root. 
 
-In addition, .new files (all files in /etc and /home; others can be designated .new before making the package) are renamed or removed as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILE-LOG for administrator convenience.
+In addition, .new files (all files in /etc and /home; others can be designated .new before making the package) are renamed or removed as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILE-LOG for administrator convenience. When installed, such .new files will have the same ownership and permissions as the existing file on the system.
+
+The default behavior of pkginst is to preserve the ownership of all package contents. If this is not desirable (for example, an unprivileged user built the package contents and still owns them), the --root-own option will change ownership of all package contents to root before installation actually occurs. Regardless of the ownership of any directories in the package tarball, the names and permissions of previously-existing directories will not be changed.
 
 pkginst will run any executable install.sh file in the top level of the package tarball once the .new files, symlinks, name and versioning information have been documented.
 
@@ -39,6 +41,8 @@ NAME - The name of the package.
 VERSION - The package's version number. NAME alone is sufficient if the package name includes versioning information and matches the tarball.
 
 -k|--keep - Retain the package tarball after installation.
+
+-r|--root-own - Set the ownership of all package contents to root:root before installation. Useful for package contents that were built and are owned by a non-privileged user.
 .SH SEE ALSO
 pkgmake(1), pkgremove(1), pkgup(1), pkgcheck(1), liblist(1)
 .SH BUGS
