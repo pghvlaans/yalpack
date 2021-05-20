@@ -24,7 +24,8 @@
 
 # Checking dynamic libraries called in by all binaries. Must be run as root or there will be no information about /sbin and /usr/sbin.
 
-BINDEPS=/var/yalpack/BIN-DEPS
+HEAD=/var/yalpack
+BINDEPS=$HEAD/BIN-DEPS
 mkdir -p "$BINDEPS"
 
 # The function to check libraries for an individual binary

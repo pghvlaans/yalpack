@@ -25,10 +25,11 @@
 # Installing a package from a source tarball
 
 main () {
-STAGING=/var/yalpack/packages
+HEAD=/var/yalpack
 TMP=/tmp
+STAGING=$HEAD/packages
 PKGDIR=$STAGING/"$PACK"
-PKGDATA=/var/yalpack/pkgdata
+PKGDATA=$HEAD/pkgdata
 BUILDDEST=$TMP/"$PACK"/dest
 PKGDEST=$PKGDIR/dest
 PKGTREES=$PKGDATA/TREES
@@ -44,9 +45,12 @@ cd $STAGING
 tar -xf "$PACK".tar.xz
 NAME=$(cat "$PKGDIR"/NAME)
 
+[ ! -d "$PKGDEST" ] && echo Warning! "$PKGDEST" was not found. Exiting. && exit
 cd "$PKGDEST"
 # Pat Volkerding says non-755 root is dangerous, so it can't hurt.
 chmod 755 "$PKGDEST"
+# If --root-own was passed in, change ownership to root:root. Ownership is preserved at the actual install stage.
+[ "$3" = "CHOWN" ] && chown -R root:root "$PKGDEST"
 
 # Non-symlinks in etc and home will be .new; check for identical/unique. Doing nothing means .new installed. (Any other file named .new manually will be checked similarly.)
 find "$PKGDEST"/ -type f | while read -r f;	
@@ -60,7 +64,6 @@ do
 		j="${f%.new}"
 		# If file exists, check for differences
 		if [ -f "/$i" ]; then
-			#DIFF="$(diff "$f" "/$i")"
 			md5f=$(md5sum "$f" | cut -d' ' -f-1)
 			md5i=$(md5sum "/$i" | cut -d' ' -f-1)
 			# If not different, new file is not needed
@@ -70,6 +73,9 @@ do
 			else
 				# If .new file will be installed, log it and show the user afterwards.
 				echo "/$h" >> "$PKGDIR"/NEWFILES
+				# Change the .new file ownership and mode to match the existing file (mostly relevant for rc files)
+				chown "$(stat -c "%U:%G" "/$i")" "$f"
+				chmod "$(stat -c "%a" "/$i")" "$f"
 				echo
 			fi
 		# If file DNE, don't call the new one .new
@@ -80,7 +86,7 @@ do
 		fi
 	fi
 done
-echo Done copying the .new files, if any.
+echo Done evaluating the .new files, if any.
 echo
 
 # Copying over
@@ -91,11 +97,17 @@ do
 	j="${i%$j}"
 	if [ -n "$i" ]; then
 		echo /"$i"
+		# Change ownership and mode only of directories that didn't previously exist
+		[ ! -d "/$i" ] && CHANGE=yes
 		if [ -d "$i" ]; then
 			mkdir -vp /"$i"
+			# Change ownership and mode only of directories that didn't previously exist
+			[ "$CHANGE" = yes ] && chown "$(stat -c "%U:%G" "$i")" "/$i"
+			[ "$CHANGE" = yes ] && chmod "$(stat -c "%a" "$i")" "/$i"
 		else
-			install -m "$(stat -c "%a" "$f")" "$f" "/$j"
-		fi 
+			install -m "$(stat -c "%a" "$f")" -o "$(stat -c "%U" "$f")" -g "$(stat -c "%G" "$f")" "$f" "/$j"
+		fi
+	        unset CHANGE	
 	fi
 done
 
@@ -122,7 +134,7 @@ echo
 # Populate the TREE entry for future updating
 cat "$PKGDIR"/TREE > $PKGTREES/"$NAME"
 
-# Add version information to /var/pkgdata
+# Add version information to /var/yalpack/pkgdata
 mkdir -p "$PKGVER"
 cat "$PKGDIR"/VER > "$PKGVER"/"$NAME"
 
@@ -141,9 +153,9 @@ echo
 
 # For the installer's edification and to update library use info
 echo
-# pkgcheck should use its own error handling instead.
+# pkgcheck should use its own error handling instead. pkgup handles pkgcheck for upgrades.
 set +e
-CHECK=no /sbin/pkgcheck "$NAME"
+[ "${UPGRADE:-no}" != yes ] && CHECK=no /sbin/pkgcheck "$NAME"
 set -e
 # Clean up afterwards
 cd "$STAGING"
@@ -178,6 +190,8 @@ echo
 }
 unset KEEP
 unset PACK
+unset CHANGE
+unset CHOWN
 for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
@@ -191,6 +205,9 @@ for arg in "$@"; do
 		echo
 		echo Flags:
 		echo "  -k | --keep : Retain the package tarball in /var/yalpack/packages after installation"
+		echo "  -r | --root-own : Change the ownership of the contents of the package to" 
+		echo "  root:root before installation. Useful for packages that were built and are owned by"
+		echo "  a non-privileged user."
 		echo "  -h | --help : Display this help menu"
 		echo
 		exit
@@ -198,8 +215,15 @@ for arg in "$@"; do
 		-k|--keep)
 		KEEP=KEEP
 		;;
+		-r|--root-own)
+		CHOWN=CHOWN
+		;;
+		-kr|-rk)
+		KEEP=KEEP
+		CHOWN=CHOWN
+		;;
 		*)
 		PACK="$arg"
-		main "$PACK" "$KEEP"
+		main "$PACK" "$KEEP" "$CHOWN"
 	esac
 done

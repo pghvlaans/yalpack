@@ -36,11 +36,12 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 	exit
 fi
 
-STAGING=/var/yalpack/packages
-PKGDATA=/var/yalpack/pkgdata
+HEAD=/var/yalpack
+STAGING=$HEAD/packages
+PKGDATA=$HEAD/pkgdata
 PKGTREES=$PKGDATA/TREES
 PKGTREE=$PKGTREES/"$1"
-BINDEPS=/var/yalpack/BIN-DEPS
+BINDEPS=$HEAD/BIN-DEPS
 
 echo
 echo Preparing to check for information about "$1".
@@ -153,13 +154,15 @@ if [ -f "$PKGLIB"/libs ]; then
 	fi
 fi
 
-if [ "$NAME" = "yalpack" ] ; then
-	echo This is an installation or upgrade of yalpack. Running liblist -n now to make a
-	echo collection of library information.
-	/sbin/liblist -n > /dev/null 2>&1
-	echo Library information for yalpack updated.
-	echo
-fi	
+if [ "${CHECK:-yes}" != yes ]; then
+	if [ "$NAME" = "yalpack" ] ; then
+		echo This is an installation or upgrade of yalpack. Running liblist -n now to make a
+		echo collection of library information.
+		/sbin/liblist -n > /dev/null 2>&1
+		echo Library information for yalpack updated.
+		echo
+	fi	
+fi
 
 echo Check complete.
 echo

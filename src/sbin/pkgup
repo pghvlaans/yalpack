@@ -24,8 +24,10 @@
 #
 # Used to upgrade packages to a new version. HANDLE WITH CARE.
 
-STAGING=/var/yalpack/packages
-PKGTREES=/var/yalpack/pkgdata/TREES
+HEAD=/var/yalpack
+STAGING=$HEAD/packages
+PKGTREES=$HEAD/pkgdata/TREES
+PKGVERS=$HEAD/pkgdata/VER
 
 main() {
 NEWDIR=$STAGING/"$2"
@@ -45,26 +47,25 @@ echo
 set -e
 cd $STAGING
 [ ! -d "$NEWDIR" ] && tar -xf $STAGING/"$2".tar.xz
-# Sanity check
+# Sanity checks
 [ ! -f "$NEWDIR/TREE" ] && echo Warning! The TREE file for "$2" could not be found. Try running pkgmake again. Exiting now. && exit
+[ ! -f "$NEWDIR/NAME" ] && echo Warning! The NAME file for "$2" could not be found. Try running pkgmake again. Exiting now. && exit
+NAME="$(cat "$NEWDIR/NAME")"
 
-# To save time, don't want to delete files from the old package unless they're unneeded; those shared with the new package will be overwritten in any case.
-cat "$NEWDIR"/TREE > "$PKGTREES/YALPACK-INCOMING"
-rm -r "$NEWDIR"
+# The new version will overwrite the outgoing TREE and VER, but they need to be saved for comparison.
+cp -v "$PKGTREES"/"$1" "$PKGTREES/YALPACK-OUTGOING"
+cp -v "$PKGVERS"/"$1" "$PKGVERS/YALPACK-OUTGOING"
 
-# pkgremove and pkginst can use their own error handling
+# pkgremove, pkginst and pkgcheck can use their own error handling
 set +e
+[ "$3" = "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes /sbin/pkginst -kr "$2"
+[ "$3" = "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes /sbin/pkginst -k "$2"
+[ "$3" != "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes /sbin/pkginst -r "$2"
+[ "$3" != "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes /sbin/pkginst "$2"
+# UPGRADE=yes protects the newly-installed version from interference.
 UPGRADE=yes /sbin/pkgremove -y "$1"
-if [ "$3" != "KEEP" ]; then
-	/sbin/pkginst "$2"
-else
-	/sbin/pkginst -k "$2"
-fi
+CHECK=no /sbin/pkgcheck "$NAME"
 set -e
-
-# Cleaning up
-cd $STAGING
-rm -f "$PKGTREES/YALPACK-INCOMING"
 
 echo The upgrade of "$1" to "$2" is complete.
 echo
@@ -73,6 +74,7 @@ unset OUTGOING
 unset INCOMING
 unset KEEP
 unset NOCONFIRM
+unset CHOWN
 for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
@@ -84,6 +86,8 @@ for arg in "$@"; do
 		echo Flags:
 		echo "  -k | --keep : Retain the package tarball of the incoming package in /var/yalpack/packages."
 		echo "  -y | --yes : Disable manual confirmation."
+		echo "  -r | --root-own : Change ownership of the incoming package contents to root:root. Useful"
+		echo "  if an unprivileged user built and still owns the contents."
 		echo "  -h | --help : Display this help menu."
 		echo
 		exit
@@ -94,13 +98,25 @@ for arg in "$@"; do
 		-y|--yes)
 		NOCONFIRM=NOCONFIRM
 		;;
-		-ky)
+		-r|--root-own)
+		CHOWN=CHROOT
+		;;
+		-kr|-rk)
+		KEEP=KEEP
+		CHOWN=CHOWN
+		;;
+		-ry|-yr)
+		CHOWN=CHOWN
+		NOCONFIRM=NOCONFIRM
+		;;
+		-ky|-yk)
 		KEEP=KEEP
 		NOCONFIRM=NOCONFIRM
 		;;
-		-yk)
+		-ryk|-rky|-kyr|-kry|-yrk|-ykr)
 		KEEP=KEEP
 		NOCONFIRM=NOCONFIRM
+		CHOWN=CHOWN
 		;;
 		*)
 		[ -n "$OUTGOING" ] && [ -n "$INCOMING" ] && echo &&  echo Too many arguments\; only one package can be upgraded at a time. && echo && exit 
@@ -110,4 +126,4 @@ for arg in "$@"; do
 done
 [ -z "$OUTGOING" ] && echo Outgoing package not found! Use pkglist -n to search for the correct package name. Exiting now. && exit
 [ -z "$INCOMING" ] && echo Incoming package not specified! Exiting now. && exit
-main "$OUTGOING" "$INCOMING" "$KEEP" "$NOCONFIRM"
+main "$OUTGOING" "$INCOMING" "$KEEP" "$NOCONFIRM" "$CHOWN"

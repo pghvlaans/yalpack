@@ -25,14 +25,18 @@
 # Used to remove packages. HANDLE WITH CARE.
 
 main() {
-STAGING=/var/yalpack/packages
-DATA=/var/yalpack/pkgdata
+HEAD=/var/yalpack
+STAGING=$HEAD/packages
+DATA=$HEAD/pkgdata
 PKGTREES=$DATA/TREES
 OLDTREE=$PKGTREES/"$1"
+[ "${UPGRADE:-no}" = yes ] && OLDTREE="$PKGTREES/YALPACK-OUTGOING"
 BINS=$DATA/PKG-BINS
 DEPS=$DATA/PKG-DEPS
 LIBS=$DATA/PKG-LIBS
 VERS=$DATA/VER
+OLDVER=$VERS/"$1"
+[ "${UPGRADE:-no}" = yes ] && OLDVER="$VERS/YALPACK-OUTGOING"
 RMDOC=$DATA/RMDOC
 RMTEMP=$DATA/RMTEMP
 
@@ -49,9 +53,15 @@ fi
 
 set -e
 rm -rf "$RMTEMP"
-mkdir -p "$RMTEMP"
+mkdir -p "$RMTEMP"/VER
+mkdir -p "$RMTEMP"/NAME
+
 NAME="$1"
-VER="$(cat $VERS/"$1")"
+if [ -f "$OLDVER" ]; then
+	VER="$(cat "$OLDVER")"
+	mv "$OLDVER" "$RMTEMP"/VER
+fi
+
 [ -z "$(find "$OLDTREE")" ] && echo Requested package not found. Check for the package name with pkglist. Exiting now. && exit
 
 # Removing any previous RMDOC
@@ -62,18 +72,17 @@ do
 	[ -n "$VER" ] && [ "$line" != "$NAME"-"$VER" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
 	[ -z "$VER" ] && [ "$line" != "$NAME" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
 done < "$OLDTREE"
+mv "$OLDTREE" "$RMTEMP"/TREE
 
-# Obviously, don't want to check the package to be removed.
-mkdir -p "$RMTEMP"/TREE "$RMTEMP"/VER "$RMTEMP"/BIN "$RMTEMP"/DEP "$RMTEMP"/LIB
-mv "$OLDTREE" "$RMTEMP"/TREE/
-mv  $VERS/"$NAME" "$RMTEMP"/VER/
-echo TREE and VER moved to "$RMTEMP".
-# Other housekeeping
-mv  ${BINS:?}/"$NAME" "$RMTEMP"/BIN/
-mv ${DEPS:?}/"$NAME" "$RMTEMP"/DEP/
-mv ${LIBS:?}/"$NAME" "$RMTEMP"/LIB/
-echo Other data files moved to "$RMTEMP".
-echo
+# This is not done in case of upgrades, as these files will already belong to the new version of the package.
+if [ "${UPGRADE:-no}" != yes ]; then
+	mkdir -p "$RMTEMP"/BIN "$RMTEMP"/DEP "$RMTEMP"/LIB
+	mv  ${BINS:?}/"$NAME" "$RMTEMP"/BIN/
+	mv ${DEPS:?}/"$NAME" "$RMTEMP"/DEP/
+	mv ${LIBS:?}/"$NAME" "$RMTEMP"/LIB/
+	echo Binary and library information moved to "$RMTEMP".
+	echo
+fi
 
 # Checking package for matches in other installed packages. Should be safe on a package-oriented system.
 while read -r line;
@@ -115,8 +124,8 @@ if [ "${UPGRADE:-no}" != yes ]; then
 	[ "$NAME" != "yalpack" ] && echo Consider running \"liblist -n\" to update yalpack\'s dynamic library information.
 	echo
 else
-	[ -n "$VER" ] && echo Extraneous files from "$NAME"-"$VER" have been removed. Proceeding with the upgrade process.
-	[ -z "$VER" ] && echo Extraneous files from "$NAME" have been removed. Proceeding with the upgrade process.
+	[ -n "$VER" ] && echo Extraneous files from "$NAME"-"$VER" have been removed.
+	[ -z "$VER" ] && echo Extraneous files from "$NAME" have been removed.
 	echo
 fi
 }
