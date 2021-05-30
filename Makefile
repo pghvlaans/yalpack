@@ -33,7 +33,7 @@ install:
 	@gzip man-gz/*
 	@cp -v --preserve=mode,timestamps man-gz/* $(DESTDIR)$(MANDIR)/man1
 	@chmod 744 $(DESTDIR)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
-	@chmod 755 $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist}
+	@chmod 755 $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist,pkgfind}
 	@echo
 	@echo Files moved to $(DESTDIR)
 	@echo
@@ -46,7 +46,7 @@ package:
 	@cp -v --preserve=mode,timestamps src/bin/* $(DESTDIR)$(PREFIX)/bin/
 	@cp -v --preserve=mode,timestamps src/sbin/* $(DESTDIR)$(SBINDIR)/
 	@chmod 744 $(DESTDIR)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
-	@chmod 755 $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist}
+	@chmod 755 $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist,pkgfind}
 	@mkdir -pv $(PKGDEST)
 	@mkdir -pv $(PKGDEST)$(PREFIX)/bin
 	@mkdir -pv $(PKGDEST)$(SBINDIR)
@@ -61,7 +61,7 @@ package:
 	@gzip man-gz/*
 	@cp -v --preserve=mode,timestamps man-gz/* $(PKGDEST)$(MANDIR)/man1
 	@chmod 744 $(PKGDEST)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
-	@chmod 755 $(PKGDEST)$(PREFIX)/bin/{libcheck,libprecise,pkglist}
+	@chmod 755 $(PKGDEST)$(PREFIX)/bin/{libcheck,libprecise,pkglist,pkgfind}
 	@echo yalpack > $(PKGDIR)/NAME
 	@pkgmake yalpack-$(VER)
 	@pkginst yalpack-$(VER)
@@ -73,8 +73,8 @@ clean:
 
 uninstall:
 	@rm -vf $(DESTDIR)$(SBINDIR)/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist}
-	@rm -vf $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist}
-	@rm -vf $(DESTDIR)$(MANDIR)/man1/{pkgcheck,pkginst,pkgmake,pkgremove,pkgup,liblist,libcheck,libprecise}.1*
+	@rm -vf $(DESTDIR)$(PREFIX)/bin/{libcheck,libprecise,pkglist,pkgfind}
+	@rm -vf $(DESTDIR)$(MANDIR)/man1/{pkgcheck,pkgfind,pkginst,pkglist,pkgmake,pkgremove,pkgup,liblist,libcheck,libprecise}.1*
 	@rm -vf $(DESTDIR)$(DOCDIR)/yalpack-$(VER)
 	@echo
 	@echo Complete. The yalpack directory in /var \(which includes package and library information\) can be removed by administrator discretion if it exists.
