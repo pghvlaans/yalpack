@@ -8,7 +8,8 @@ yalpack is intended to make managing upgrades and trying new software easier on 
 * Simple(r) pacakge upgrades
 * Handle and log ".new" files automatically
 * List installed packages and versions
-* Gather, store and check information about dynamic library usage 
+* Gather, store and check information about dynamic library usage
+* Search for which package provided which file/directory/symlink
 
 yalpack requires only a POSIX-compliant shell, util-linux, findutils, grep and tar to operate. gzip is needed for installation. Dependency resolution is not provided, and packages are still meant to be built from source. pkgcheck, libcheck, liblist and libprecise are intended as aids to dependency management, however.
 
@@ -36,6 +37,7 @@ yalpack provides the following tools for package management on LFS-based systems
 	* libcheck: Checking for binaries and yalpack packages using dynamic libraries matching a search term
 	* libprecise: Checking for binaries and yalpack packages using a particular dynamic library
 	* pkglist: Providing a list of yalpack-installed packages
+	* pkgfind: Use search terms or exact file paths to determine which package provided matching files, directories and symlinks
 
 When building from source with the objective of installing a yalpack package, please remember the following considerations:
 
