@@ -58,6 +58,9 @@ systems:
 			particular dynamic library
 		* pkglist
 			Providing a list of yalpack-installed packages
+		* pkgfind
+			Searching for which package provided matching files/
+			symlinks/directories.
 
 When building from source with the objective of installing a yalpack package,
 please remember the following considerations:
