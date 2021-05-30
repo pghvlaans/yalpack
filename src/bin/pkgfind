@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# pkgfind: Use a search term or full file path to find the package providing any matching item or items.
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Checking for which yalpack package provided items matching a search term.
+
+HEAD=/var/yalpack
+DATA="$HEAD"/pkgdata
+TREES="$DATA"/TREES
+
+TREESNUM="$(echo "$TREES" | tr -cd '/' | wc -c)"
+TREESNUM=$((TREESNUM + 2))
+
+main() {
+unset SEARCH
+unset SEARCHNEW
+SEARCH="$1"
+# Enables detection of .new files for "--exact" calls.
+SEARCHNEW="$SEARCH".new
+echo "$SEARCH":
+echo
+
+if [ "$EXACT" = "EXACT" ] && [ "$FILE" = "FILE" ]; then
+	grep -x "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"-
+	grep -x "$SEARCHNEW" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"-
+	echo
+	return
+fi
+
+[ "$FILE" = "FILE" ] && grep "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- && echo && return
+
+if [ "$EXACT" = "EXACT" ]; then
+	grep -x "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+	grep -x "$SEARCHNEW" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+	echo
+	return
+fi
+
+grep "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+echo
+return
+}
+
+unset FILE
+unset EXACT
+echo
+for arg in "$@"; do
+case "$arg" in
+	-h|--help)
+	echo pkgfind: Use a search term or full file path to find the yalpack package providing it.
+	echo
+	echo Syntax: pkgfind \(options\) SEARCHTERM1 ...
+	echo
+	echo Flags:
+	echo " -f | --showfiles : Show the file names matching the search term\(s\)."
+	echo " -x | --exact : Search for an exact match of a full file or directory path."
+	echo " -h | --help : Display this help menu."
+	echo
+	exit
+	;;
+	-f|--showfiles)
+	FILE="FILE"
+	;;
+	-x|--exact)
+	EXACT="EXACT"
+	;;
+	-fx|-xf)
+	FILE="FILE"
+	EXACT="EXACT"
+	;;
+	*)
+	main "$arg" $FILE $EXACT
+esac
+done
