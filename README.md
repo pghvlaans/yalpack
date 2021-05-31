@@ -53,6 +53,22 @@ When building from source with the objective of installing a yalpack package, pl
 
 * At times, it may be desirable to keep more than one version of a package installed on the system (e.g. the kernel and kernel modules). In such cases, the NAME file should be a string with the version information included: `echo linux-5.12.3 > /tmp/linux-5.12.3/NAME`. In case of conflicting files, the more recently-installed package will 'win.' When calling yalpack scripts that take the package name as the input, the proper version information will also be required: `pkgup linux-5.12.2 linux-5.12.3`.
 
+**Library upgrades**
+
+Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgrade process involves the following libraries:
+
+* libacl.so.1	(acl)
+* libattr.so.1	(attr)
+* libc.so.6 	(glibc)
+* libm.so.6	(glibc) (library upgrades only)
+
+*Testing Results*
+
+* attr: In-place upgrade successful (2.4.48 > 2.5.1)
+* acl: In-place upgrade successful (2.2.53 > 2.3.1)
+
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. An in-place yalpack upgrade of glibc is **untested** and would most likely fail.
+
 **The directory structure of a yalpack package:**
 
 	[NAME]-[VERSION].tar.xz
