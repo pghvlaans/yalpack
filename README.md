@@ -67,7 +67,7 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 * attr: package upgrade successful (2.4.48 > 2.5.1)
 * acl: package upgrade successful (2.2.53 > 2.3.1)
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. An yalpack upgrade of glibc is **untested** and would most likely fail.
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. A yalpack upgrade of glibc is **untested** and would most likely fail.
 
 **The directory structure of a yalpack package:**
 
