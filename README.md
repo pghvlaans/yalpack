@@ -60,7 +60,7 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 * libacl.so.1	(acl)
 * libattr.so.1	(attr)
 * libc.so.6 	(glibc)
-* libm.so.6	(glibc) (library installations and upgrades only)
+* libm.so.6	(glibc)
 
 *Testing Results*
 
