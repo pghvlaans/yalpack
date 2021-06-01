@@ -60,14 +60,16 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 * libacl.so.1	(acl)
 * libattr.so.1	(attr)
 * libc.so.6 	(glibc)
-* libm.so.6	(glibc) (library upgrades only)
+* libm.so.6	(glibc) (library installations and upgrades only)
 
 *Testing Results*
 
 * attr: package upgrade successful (2.4.48 > 2.5.1)
 * acl: package upgrade successful (2.2.53 > 2.3.1)
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. A yalpack upgrade of glibc is **untested** and would most likely fail.
+*Upgrading glibc*
+
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Except in the specific case of replacing the temporary toolchain version of glibc, yalpack upgrades of glibc are currently **untested** and would most likely fail. 
 
 **The directory structure of a yalpack package:**
 
