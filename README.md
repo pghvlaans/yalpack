@@ -80,6 +80,7 @@ A rewrite of pkginst appears to solve the glibc problem. If further testing is s
 * gcc upgrade under boot: pending
 * Permission and ownership handling: successful
 * New directory behavior: successful
+* Absolute symlink repair: pending
 * New documentation: pending
 
 **The directory structure of a yalpack package:**
