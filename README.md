@@ -69,7 +69,9 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 
 *Upgrading glibc*
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Except in the specific case of replacing the temporary toolchain version of glibc, yalpack upgrades of glibc are currently **untested** and would most likely fail. 
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Except in the specific case of replacing the temporary toolchain version of glibc, yalpack upgrades of glibc have been tested to fail.
+
+A rewrite of pkginst appears to solve the glibc problem. If further testing is successful, the new pkginst and updated documentation will appear in yalpack 0.1.4.
 
 **The directory structure of a yalpack package:**
 
