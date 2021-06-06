@@ -76,11 +76,11 @@ A rewrite of pkginst appears to solve the glibc problem. If further testing is s
 * Full 10.1 build from toolchain: successful (with glibc 2.32 for upgrade testing purposes)
 * glibc upgrade under chroot (2.32 > 2.33): successful
 * gcc upgrade under chroot (10.2 > 11.1.0): successful
-* glibc upgrade under boot: pending
-* gcc upgrade under boot: pending
+* glibc upgrade under boot: successful
+* gcc upgrade under boot: successful
 * Permission and ownership handling: successful
 * New directory behavior: successful
-* Absolute symlink repair: pending
+* Absolute symlink repair: successful
 * New documentation: pending
 
 **The directory structure of a yalpack package:**
