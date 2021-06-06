@@ -71,7 +71,16 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 
 As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Except in the specific case of replacing the temporary toolchain version of glibc, yalpack upgrades of glibc have been tested to fail.
 
-A rewrite of pkginst appears to solve the glibc problem. If further testing is successful, the new pkginst and updated documentation will appear in yalpack 0.1.4.
+A rewrite of pkginst appears to solve the glibc problem. If further testing is successful, the new pkginst and updated documentation will appear in yalpack 0.1.4. The progress on the **new** version is as follows:
+
+* Full 10.1 build from toolchain: successful (with glibc 2.32 for upgrade testing purposes)
+* glibc upgrade under chroot (2.32 > 2.33): successful
+* gcc upgrade under chroot (10.2 > 11.1.0): successful
+* glibc upgrade under boot: pending
+* gcc upgrade under boot: pending
+* Permission and ownership handling: successful
+* New directory behavior: successful
+* New documentation: pending
 
 **The directory structure of a yalpack package:**
 
