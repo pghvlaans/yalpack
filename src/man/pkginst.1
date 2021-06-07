@@ -1,18 +1,22 @@
 .\" Manpage for pkginst
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "21 May 2021" "0.1.3" "pkginst man page"
+.TH man 1 "07 June 2021" "0.1.4" "pkginst man page"
 .SH NAME
 pkginst \- install a pkgmake-made package in LFS
 .SH SYNOPSIS
 pkginst [-kr|--keep --root-own] NAME1-VERSION1 [NAME2-VERSION2] ...
 .SH DESCRIPTION
-pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing one or more packages made by pkgmake in LFS. The files in the package are installed to the appropriate places relative to the root directory, missing directories are made, and any absolute symlinks are redirected relative to root. 
+pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing one or more packages made by pkgmake in LFS.
 
-In addition, .new files (all files in /etc and /home; others can be designated .new before making the package) are renamed or removed as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILE-LOG for administrator convenience. When installed, such .new files will have the same ownership and permissions as the existing file on the system.
+pkginst begins by evaluating .new files (all files in /etc and /home, by default; others can be designated .new before making the package). .new files are renamed or removed as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILE-LOG for administrator convenience. When the package is extracted to root, such .new files will have the same ownership and permissions as the existing file on the system.
+
+The handling of symlinks follows. Any absolute symlinks pointing to locations within the package tarball are redone relative to root. In addition, symlinks are logged.
 
 The default behavior of pkginst is to preserve the ownership of all package contents. If this is not desirable (for example, an unprivileged user built the package contents and still owns them), the --root-own option will change ownership of all package contents to root before installation actually occurs. Regardless of the ownership of any directories in the package tarball, the names and permissions of previously-existing directories will not be changed.
 
-pkginst will run any executable install.sh file in the top level of the package tarball once the .new files, symlinks, name and versioning information have been documented.
+Once these modifications to the package have been completed, the contents of [NAME]-[VERSION]/dest are re-archived as INPACKAGE.tar.xz and extracted over the root directory.
+
+pkginst will run any executable install.sh file in the top level of the package tarball once the .new files, symlinks, name and versioning information have been documented and the contents have been installed.
 
 From here, pkginst calls pkgcheck(1) to return information about installed programs, installed libraries, and any dynamic libraries used by the binaries in the package. By default, pkginst makes use of the following files for data recording:
 

@@ -1,6 +1,6 @@
 .\" Manpage for pkgup
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "21 May 2021" "0.1.3" "pkgup man page"
+.TH man 1 "07 June 2021" "0.1.4" "pkgup man page"
 .SH NAME
 pkgup \- upgrade a pkgmake-made and pkginst-installed package in LFS
 .SH SYNOPSIS
@@ -26,13 +26,19 @@ The pkgup script can be edited to change any of these default locations to suit 
 
 The first "NAME" field must include the name of the outgoing package in its entirety, e.g.
 
-\t pkgup yalpack yalpack-0.1.3 # If upgrading yalpack-* to yalpack-0.1.3
+\t pkgup yalpack yalpack-0.1.4 # If upgrading yalpack-* to yalpack-0.1.4
 
 In cases where versioning information is included in the name,
 
 \t pkgup kernel-5.12.0 kernel-5.12.1
 
 would be appropriate. Check "pkglist -n" with a search term to find the exact package name.
+.SH GLIBC AND INIT
+If /sbin/init or glibc has been upgraded, init may need to reload in order to reboot or halt safely. If such an upgrade is detected, 
+
+\t /sbin/telinit U 
+
+is used to reload init before the pkgup upgrade process concludes.
 .SH OPTIONS
 OLDNAME - The name of the outgoing package.
 
