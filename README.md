@@ -74,7 +74,6 @@ As the Linux From Scratch documentation indicates, glibc upgrades generally enta
 A rewrite of pkginst appears to solve the glibc problem. If further testing is successful, the new pkginst and updated documentation will appear in yalpack 0.1.4. The progress on the **new** version is as follows:
 
 * Full 10.1 build from toolchain: successful (with glibc 2.32 for upgrade testing purposes)
-* LFS 10.0 > LFS 10.1 (upgrade all packages): pending
 * glibc upgrade under chroot (2.32 > 2.33): successful
 * gcc upgrade under chroot (10.2 > 11.1.0): successful
 * glibc upgrade under boot: successful
@@ -82,6 +81,14 @@ A rewrite of pkginst appears to solve the glibc problem. If further testing is s
 * Permission and ownership handling: successful
 * New directory behavior: successful
 * Absolute symlink repair: successful
+* Other package upgrades: pending
+	* coreutils
+	* bash
+	* grep
+	* tar
+	* findutils
+	* util-linux
+	* sysvinit
 * New documentation: pending
 
 **The directory structure of a yalpack package:**
