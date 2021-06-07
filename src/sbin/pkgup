@@ -44,6 +44,10 @@ else
 fi
 echo
 
+# If init is upgraded, or in case of a glibc upgrade, it will need to reload before a halt or reboot
+# is attempted.
+INITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+
 set -e
 cd $STAGING
 [ ! -d "$NEWDIR" ] && tar -xf $STAGING/"$2".tar.xz
@@ -66,6 +70,12 @@ set +e
 UPGRADE=yes /sbin/pkgremove -y "$1"
 CHECK=no /sbin/pkgcheck "$NAME"
 set -e
+
+# Checking for a new version of init
+NEWINITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+
+# Reload init if new glibc or new sysvinit
+[ -n "$(grep /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && /sbin/telinit U && echo init has been reloaded. && echo
 
 echo The upgrade of "$1" to "$2" is complete.
 echo

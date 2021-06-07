@@ -62,6 +62,7 @@ if [ -f "$OLDVER" ]; then
 	mv "$OLDVER" "$RMTEMP"/VER
 fi
 
+# No exit code necessary because pkgup already checks for this.
 [ -z "$(find "$OLDTREE")" ] && echo Requested package not found. Check for the package name with pkglist. Exiting now. && exit
 
 # Removing any previous RMDOC

@@ -24,7 +24,7 @@
 #
 # Installing a package from a source tarball
 
-main () {
+main (){
 HEAD=/var/yalpack
 TMP=/tmp
 STAGING=$HEAD/packages
@@ -45,9 +45,11 @@ cd $STAGING
 tar -xf "$PACK".tar.xz
 NAME=$(cat "$PKGDIR"/NAME)
 
+# Exit code not necessary because pkgup already checks for TREE.
 [ ! -d "$PKGDEST" ] && echo Warning! "$PKGDEST" was not found. Exiting. && exit
+
 cd "$PKGDEST"
-# Pat Volkerding says non-755 root is dangerous, so it can't hurt.
+# Patrick Volkerding says non-755 root is dangerous, so it can't hurt (for safety when extracting the package to root).
 chmod 755 "$PKGDEST"
 # If --root-own was passed in, change ownership to root:root. Ownership is preserved at the actual install stage.
 [ "$3" = "CHOWN" ] && chown -R root:root "$PKGDEST"
@@ -89,29 +91,8 @@ done
 echo Done evaluating the .new files, if any.
 echo
 
-# Copying over
-find "$PKGDEST"/ -type f,d | while read -r f;
-do
-	i="${f##$PKGDEST/}"
-	j="$(basename "$i")"
-	j="${i%$j}"
-	if [ -n "$i" ]; then
-		echo /"$i"
-		# Change ownership and mode only of directories that didn't previously exist
-		[ ! -d "/$i" ] && CHANGE=yes
-		if [ -d "$i" ]; then
-			mkdir -vp /"$i"
-			# Change ownership and mode only of directories that didn't previously exist
-			[ "$CHANGE" = yes ] && chown "$(stat -c "%U:%G" "$i")" "/$i"
-			[ "$CHANGE" = yes ] && chmod "$(stat -c "%a" "$i")" "/$i"
-		else
-			install -m "$(stat -c "%a" "$f")" -o "$(stat -c "%U" "$f")" -g "$(stat -c "%G" "$f")" "$f" "/$j"
-		fi
-	        unset CHANGE	
-	fi
-done
-
-# Handling any symlinks
+# Preparing and reporting on symlinks; absolute symlinks can have been pointed at either the ultimate
+# destination or a file/directory in the build directory.
 find "$PKGDEST"/ -type l | while read -r f;
 do
 	i="${f##$PKGDEST/}"
@@ -121,14 +102,26 @@ do
 		# Pointing at BUILDDEST from time of building.
 		k="${j##$BUILDDEST/}"
 		echo /"$i" to /"$k" >> "$PKGDIR"/SYMLINKS
-		ln -sfv /"$k" /"$i"
+		ln -sfv /"$k" "$f"
+		echo
 	# If the symlink is relative
 	else
 		echo /"$i" to "$j" >> "$PKGDIR"/SYMLINKS
-		ln -sfv "$j" /"$i"
 	fi
 done
 
+# Now that changes have been made to dest, make a new tarball for extraction...
+tar -czf "$STAGING"/INPACKAGE.tar.xz ./*
+# And extract over root.
+cd /
+tar -xvf "$STAGING"/INPACKAGE.tar.xz --no-overwrite-dir
+cd "$PKGDIR"
+echo
+
+# Running ldconfig in case of new libraries
+echo Now running ldconfig...
+/sbin/ldconfig || true
+echo Done running ldconfig.
 echo
 
 # Populate the TREE entry for future updating
@@ -145,27 +138,11 @@ if [ -f "$PKGDIR/install.sh" ]; then
 	echo
 fi
 
-# Running ldconfig in case of new libraries
-echo Now running ldconfig...
-/sbin/ldconfig || true
-echo Done running ldconfig.
-echo
-
 # For the installer's edification and to update library use info
 echo
-# pkgcheck should use its own error handling instead. pkgup handles pkgcheck for upgrades.
-set +e
+# pkgup handles pkgcheck for upgrades.
 [ "${UPGRADE:-no}" != yes ] && CHECK=no /sbin/pkgcheck "$NAME"
-set -e
-# Clean up afterwards
-cd "$STAGING"
-rm -rf "${PKGDIR:?}"
-if [ "$2" != "KEEP" ]; then
-	rm -vf $STAGING/"$PACK".tar.xz
-	echo The package tarball has been removed. See $PKGTREES/"$NAME"
-	echo for a list of installed files.
-	echo
-fi
+
 # Inform about any symlinks
 if [ -f "$PKGDIR"/SYMLINKS ]; then 
 	echo The following symlinks were created by the build process:
@@ -182,6 +159,17 @@ if [ -f "$PKGDIR"/NEWFILES ]; then
 	echo "$PACK" installed on "$(date)" >> "$PKGDATA"/NEWFILE-LOG
 	cat "$PKGDIR"/NEWFILES >> "$PKGDATA"/NEWFILE-LOG
 	echo The list has been added to "$PKGDATA"/NEWFILE-LOG for convenience.
+	echo
+fi
+
+# Clean up afterwards (INPACKAGE is never retained)
+cd "$STAGING"
+rm -f "$STAGING"/INPACKAGE.tar.xz
+rm -rf "${PKGDIR:?}"
+if [ "$2" != "KEEP" ]; then
+	rm -vf $STAGING/"$PACK".tar.xz
+	echo The package tarball has been removed. See $PKGTREES/"$NAME"
+	echo for a list of installed files.
 	echo
 fi
 
