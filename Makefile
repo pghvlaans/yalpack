@@ -1,4 +1,4 @@
-VER = 0.1.3
+VER = 0.1.4
 
 TMP ?= /tmp
 PREFIX ?= /usr
@@ -37,7 +37,7 @@ install:
 	@echo
 	@echo Files moved to $(DESTDIR)
 	@echo
-	@echo If an existing yalpack installation is to be upgraded, make a NAME file at $(PKGDIR) before running pkgmake and pkgup.
+	@echo If an existing yalpack installation is to be upgraded, make a NAME file under $(PKGDIR) before running pkgmake and pkgup.
 
 package:
 	@rm -rf man-gz

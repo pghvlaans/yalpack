@@ -1,4 +1,4 @@
-**yalpack-0.1.3**
+**yalpack-0.1.4**
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
 
@@ -11,9 +11,9 @@ yalpack is intended to make managing upgrades and trying new software easier on 
 * Gather, store and check information about dynamic library usage
 * Search for which package provided which file/directory/symlink
 
-yalpack requires only a POSIX-compliant shell, util-linux, findutils, grep and tar to operate. gzip is needed for installation. Dependency resolution is not provided, and packages are still meant to be built from source. pkgcheck, libcheck, liblist and libprecise are intended as aids to dependency management, however.
+yalpack requires only a POSIX-compliant shell, coreutils, util-linux, findutils, grep and tar to operate. gzip is needed for installation. Dependency resolution is not provided, and packages are still meant to be built from source. A number of the included scripts are intended as aids to dependency management, however.
 
-Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could also be used to manage every package once the temporary toolchain has been completed. This has been tested successfully for LFS 10.1 (SysVinit) (x86_64, Linux 5.12.3, gcc 10.3).
+Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could also be used to manage every package once the temporary toolchain has been completed. This has been tested successfully for LFS 10.1 (SysVinit) (x86_64, Linux 5.12.3, host gcc 10.3).
 
 For installation and upgrades of yalpack, see INSTALL or run `make all` for details.
 
@@ -45,7 +45,7 @@ When building from source with the objective of installing a yalpack package, pl
 	
 * Before running pkgmake, supply a file at `/tmp/[NAME]-[VERSION]/NAME` containing the package's name, e.g. `echo frotz > /tmp/frotz-2.52/NAME`
 	
-* pkginst repairs absolute symlinks such that they are relative to the root directory once installed. LFS/BLFS instructions to make absolute symlinks should be done using `/tmp/[NAME]-[VERSION]/dest/` rather than `/`.
+* pkginst repairs absolute symlinks such that they are relative to the root directory once installed. LFS/BLFS instructions to make absolute symlinks can be done either as-is or by using `/tmp/[NAME]-[VERSION]/dest/` rather than `/`.
 
 * All installed files in /etc and /home are marked as .new by pkgmake. If other .new files are needed, they should be renamed manually prior to making the package.
 
@@ -66,39 +66,25 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 
 * attr: package upgrade successful (2.4.48 > 2.5.1)
 * acl: package upgrade successful (2.2.53 > 2.3.1)
+* glibc: package upgrade successful (2.32 > 2.33)
+* gcc: package upgrade successful (10.2.0 > 11.1.0)
 
-*Upgrading glibc*
+*Upgrading glibc and SysVinit*
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Except in the specific case of replacing the temporary toolchain version of glibc, yalpack upgrades of glibc have been tested to fail.
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Although yalpack 0.1.4 has been tested to upgrade glibc, this type of upgrade should be treated with care and is not necessarily advisable.
 
-A rewrite of pkginst appears to solve the glibc problem. If further testing is successful, the new pkginst and updated documentation will appear in yalpack 0.1.4. The progress on the **new** version is as follows:
+In order to avoid unmounting problems at the next halt or reboot, pkgup uses /sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected. *This procedure is untested on systemd-based installations.*
 
-* Full 10.1 build from toolchain: successful (with glibc 2.32 for upgrade testing purposes)
-* glibc upgrade under chroot (2.32 > 2.33): successful
-* gcc upgrade under chroot (10.2 > 11.1.0): successful
-* glibc upgrade under boot: successful
-* gcc upgrade under boot: successful
-* Permission and ownership handling: successful
-* New directory behavior: successful
-* Absolute symlink repair: successful
-* Other package upgrades: pending
-	* coreutils
-	* bash
-	* grep
-	* tar
-	* findutils
-	* util-linux
-	* sysvinit
-* New documentation: pending
+If upgrades to either of these packages are desired, please ensure that yalpack's version is **at least 0.1.4**.
 
 **The directory structure of a yalpack package:**
 
 	[NAME]-[VERSION].tar.xz
-	|
-	|
+ 	  |
+	  |
 	NAME VER TREE (install.sh) dest/
-		     		   |
-		                   |
+		     		     |
+		                     |
 				   (contents of package)
 
 Everything under `dest/` is installed relative to root. `NAME` (and `install.sh`, if needed) must be supplied by the administrator; all other files are generated automatically.
