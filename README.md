@@ -15,7 +15,7 @@ yalpack requires only a POSIX-compliant shell, coreutils, util-linux, findutils,
 
 Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could also be used to manage every package once the temporary toolchain has been completed. This has been tested successfully for LFS 10.1 (SysVinit) (x86_64, Linux 5.12.3, host gcc 10.3).
 
-Because the 10.1+ development version of Linux From Scratch has introduced `/usr/{s,}bin > {s,}bin` symlinks, yalpack will require a rework before safe usage is possible in the development version. This fix will be the main focus of yalpack 0.5.0. (Thanks to michaelpennington)  
+Because the 10.1+ development version of Linux From Scratch has introduced `/usr/{s,}bin > {s,}bin` symlinks, yalpack will require a rework before safe usage is possible in the development version. This fix will be the main focus of yalpack 0.1.5. (Thanks to michaelpennington)  
 
 For installation and upgrades of yalpack, see INSTALL or run `make all` for details.
 
