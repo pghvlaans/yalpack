@@ -1,0 +1,17 @@
+yalpack-related man pages
+
+For information about using yalpack, please feel free to refer to the
+following man pages:
+
+	* pkgmake(1)
+	* pkginst(1)
+	* pkgup(1)
+	* pkgremove(1)
+	* liblist(1)
+	* pkgcheck(1)
+	* pkglist(1)
+	* pkgfind(1)
+	* libcheck(1)
+	* libprecise(1)
+	* restore-yalpack(5)
+	* newfiles-yalpack(5)

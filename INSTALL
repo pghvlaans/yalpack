@@ -1,38 +1,45 @@
-yalpack-0.1.4 Installation Guide
+yalpack-0.1.5 Installation Guide
 
 To install yalpack to your LFS-type system, run the Makefile as root. 
 The following targets are available:
 
-	make install: Install yalpack under the chosen DESTDIR. A 
-	package for yalpack will not be created. This is the recommended
-	method for upgrades; DESTDIR should be /tmp/yalpack-0.1.4/dest.
-	From here, make the NAME file and use pkgmake and pkgup as
-	usual.
+	make install: Install yalpack under the chosen DESTDIR; install.sh
+	will run at this time, creating and populating 
+	/var/yalpack/pkgdata/SYMTREES if it does not already exist, as well
+	as package tree backup directories at /var/log/yalpack and
+	/root/.yalpack. A package for yalpack will not be created. This is
+	the recommended method for upgrades; DESTDIR should be 
+	/tmp/yalpack-0.1.5/dest. From here, make the NAME file and use 
+	pkgmake and pkgup as usual.
 
 	make package: Recommended for initial installations. Install the
-	yalpack binaries; these binaries are then used to make and 
-	install a package for yalpack.
+	yalpack scripts; these scripts are then used to make and install
+	a package for yalpack.
 
 	make clean: Removes compressed man pages from the source 
 	directory.
 	
 	make uninstall: Remove the yalpack binaries, man pages and
 	documentation from under DESTDIR. The yalpack directory
-	(/var/yalpack by default) is made by running yalpack scripts for 
-	the first time, and so it must be removed manually if desired.
+	(/var/yalpack by default) is made by install.sh and by running
+	yalpack scripts for the first time, and so it must be removed
+	manually if desired. The same applies for any yalpack package
+	tree backup directories.
 
 The following parameters can be set with the make call:
 
-	DESTDIR: should be set to /tmp/yalpack-0.1.4/dest for upgrades
-	PREFIX (/usr): the prefix for the bin, doc and man directories
-	SBINDIR (/sbin): the installation directory for root-only
-	  		 binaries
+	DESTDIR: should be set to /tmp/yalpack-0.1.5/dest for upgrades
+	PREFIX (/usr): the prefix for the bin, sbin, doc, share and man
+                       directories
+	SHAREDIR (PREFIX/share): yalpack's directory under share
+	SBINDIR (PREFIX/sbin): the installation directory for root-only
+	  		       scripts
 	BINDIR (PREFIX/bin): the destination directory for other
-			     binaries
-	MANDIR (PREFIX/share/man): the destination directory for man
-				   files
-	DOCDIR (PREFIX/share/doc): the destination directory for other
-				   documentation
+			     scripts
+	MANDIR (SHAREDIR/man): the destination directory for man
+			       files
+	DOCDIR (SHAREDIR/doc): the destination directory for other
+			       documentation
 	TMP (/tmp): the top directory level for the yalpack build
 		    destination.
 
@@ -54,4 +61,16 @@ defaults are as follows:
 				    pkgmake in package construction.
 
 Any changes are most conveniently made before yalpack is installed or
-upgraded. Please see "Customization" for details.
+upgraded. In other cases, run /usr/share/yalpack/restore-yalpack to
+regenerate the yalpack directory. Please see "Customization" for 
+details.
+
+As of Linux From Scratch 10.1, three packages in the base book use
+"make install," but do not have PKGDEST capabilities:
+	
+	bzip2
+	sysvinit
+	sysklogd
+
+For workarounds related to  managing these packages with yalpack, see
+README (/usr/share/doc/yalpack-0.1.5/README) or the pkgmake man page.
