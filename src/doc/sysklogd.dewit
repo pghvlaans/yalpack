@@ -1,0 +1,74 @@
+#!/bin/sh
+
+# This is a script that will take sysklogd from source directory to installed
+# yalpack package. Copy into the extracted source tarball, make executable and 
+# and run to install the package.
+#
+# Copyright 2021  K. Eugene Carlson  Tsukuba, Japan
+#
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+TMP=/tmp
+PKGNAME=sysklogd #package name
+VER=1.5.1 #version number
+SOURCEDEST=$(pwd)
+PKGDIR=$TMP/"$PKGNAME"-"$VER"
+PKGDEST="$PKGDIR"/dest
+# Feel free to change this; "make" will fail if the jobs tag variable here is empty.
+JOB=-j1 # desired job tag
+
+rm -rf "$PKGDIR"
+mkdir -p "$PKGDEST"
+echo "$PKGNAME" > "$PKGDIR"/NAME
+
+# Instructions go here
+sed -i '/Error loading kernel symbols/{n;n;d}' ksym_mod.c
+sed -i 's/union wait/int/' syslogd.c
+
+mkdir -p $PKGDEST/usr/share/man/man8
+mkdir -p $PKGDEST/usr/share/man/man5
+# For merged-usr setups, pkginst will follow the symlink and install under /usr/sbin.
+mkdir -p $PKGDEST/sbin
+
+make "$JOB"
+
+# No DESTDIR. BINDIR doesn't seem to like /tmp.
+cat klogd > $PKGDEST/sbin/klogd
+cat syslogd > $PKGDEST/sbin/syslogd
+chmod 500 $PKGDEST/sbin/*
+
+for f in klogd sysklogd syslogd; do
+	cat $f.8 > $PKGDEST/usr/share/man/man8/$f.8
+done
+cat syslog.conf.5 > $PKGDEST/usr/share/man/man5/syslog.conf.5
+chmod 644 $PKGDEST/usr/share/man/man8/*
+chmod 644 $PKGDEST/usr/share/man/man5/*
+
+# Uncomment these lines if the post-installation instructions in the LFS book have been
+# written in to an install.sh script. Otherwise, simply follow the instructions after
+# installing the package.
+#cat install.sh > $PKGDIR/install.sh
+#chmod a+x $PKGDIR/install.sh
+
+pkgmake "$PKGNAME"-"$VER"
+# Comment the pkginst line and uncomment the pkgup line to upgrade.
+pkginst "$PKGNAME"-"$VER"
+# pkgup "$PKGNAME" "$PKGNAME"-"$VER"

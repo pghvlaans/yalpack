@@ -1,0 +1,88 @@
+#!/bin/sh
+
+# This is a script that will take SysVInit from source directory to installed
+# yalpack package. Copy into the extracted source tarball, make executable
+# and run to install the package.
+#
+# Copyright 2021  K. Eugene Carlson  Tsukuba, Japan
+#
+# The Instructions section was adapted from Slackware's sysvinit.SlackBuild.
+# Licensing and copyright information for that script follows:
+#
+# Copyright 2005-2020  Patrick J. Volkerding, Sebeka, Minnesota, USA
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+TMP=/tmp
+PKGNAME=sysvinit #package name
+VER=2.98 #version number: 2.98 for LFS 10.1 stable; 2.99 for LFS 10.1 dev
+SOURCEDEST=$(pwd)
+PKGDIR=$TMP/"$PKGNAME"-"$VER"
+PKGDEST="$PKGDIR"/dest
+
+rm -rf "$PKGDIR"
+mkdir -p "$PKGDEST"
+echo "$PKGNAME" > "$PKGDIR"/NAME
+
+# Instructions go here
+patch -Np1 -i ../sysvinit-"$VER"-consolidated-1.patch
+
+make
+# Unfortunately, DESTDIR does not work for installing sysvinit. 
+cd src
+install -m 755 -d $PKGDEST/bin/ $PKGDEST/sbin/
+install -m 755 -d $PKGDEST/usr/bin/
+for i in ; do \
+                install -o root -g root -m 755 $i $PKGDEST/bin/ ; \
+        done
+for i in init halt shutdown runlevel killall5 fstab-decode bootlogd; do \
+                install -o root -g root -m 755 $i $PKGDEST/sbin/ ; \
+        done
+for i in ; do \
+                install -o root -g root -m 755 $i $PKGDEST/usr/bin/ ; \
+        done
+install -m 755 -d $PKGDEST/etc/
+install -m 755 -d $PKGDEST/etc/inittab.d
+ln -sf halt $PKGDEST/sbin/reboot
+ln -sf halt $PKGDEST/sbin/poweroff
+ln -sf init $PKGDEST/sbin/telinit
+install -m 755 -d $PKGDEST/usr/include/
+install -o root -g root -m 644 initreq.h $PKGDEST/usr/include/
+install -m 755 -d $PKGDEST/usr/share/man/man1/
+install -m 755 -d $PKGDEST/usr/share/man/man5/
+install -m 755 -d $PKGDEST/usr/share/man/man8/
+for man in ; do \
+                install -o root -g root -m 644 ../man/$man $PKGDEST/usr/share/man/man1/; \
+                sed -i "1{ s@^\('\\\\\"\)[^\*-]*-\*- coding: [^[:blank:]]\+ -\*-@\1@; }" $PKGDEST/usr/share/man/man1/$man ; \
+        done
+for man in initscript.5 inittab.5 initctl.5; do \
+                install -o root -g root -m 644 ../man/$man $PKGDEST/usr/share/man/man5/; \
+                sed -i "1{ s@^\('\\\\\"\)[^\*-]*-\*- coding: [^[:blank:]]\+ -\*-@\1@; }" $PKGDEST/usr/share/man/man5/$man ; \
+        done
+for man in halt.8 init.8 killall5.8         poweroff.8 reboot.8 runlevel.8 shutdown.8 telinit.8 fstab-decode.8  bootlogd.8; do \
+                install -o root -g root -m 644 ../man/$man $PKGDEST/usr/share/man/man8/; \
+                sed -i "1{ s@^\('\\\\\"\)[^\*-]*-\*- coding: [^[:blank:]]\+ -\*-@\1@; }" $PKGDEST/usr/share/man/man8/$man ; \
+        done
+
+# And then make and install the package
+
+pkgmake "$PKGNAME"-"$VER"
+# Comment the pkginst line and uncomment the pkgup line to upgrade.
+pkginst "$PKGNAME"-"$VER"
+# pkgup "$PKGNAME" "$PKGNAME"-"$VER"
