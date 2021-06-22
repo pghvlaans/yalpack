@@ -1,0 +1,57 @@
+.\" Manpage for /usr/share/yalpack/restore-yalpack
+.\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
+.TH man 5 "07 June 2021" "0.1.5" "restore-yalpack man page"
+.SH NAME
+restore-yalpack \- restore the yalpack data directories using a collection of package trees 
+.SH SYNOPSIS
+/usr/share/yalpack/restore-yalpack (default location)
+.SH DESCRIPTION
+restore-yalpack is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for regenerating the yalpack directory structure and contents under /var/yalpack using a collection of package trees. pkginst(1), pkgup(1) and pkgremove(1) update the following package tree directories as packages are added, upgraded and removed:
+
+\t /var/yalpack/pkgdata/TREES (main directory)
+
+\t /var/log/yalpack (primary backup)
+
+\t /root/.yalpack (secondary backup)
+
+The "backup" directories are not true backups, but rather parallel directories, in that they are modified together with the main directory and not copied over. This serves to prevent accidental damage from affecting the backup and restoration process. Although they cannot be used by the yalpack scripts in /usr/bin and /usr/sbin, they are available to restore the yalpack data directory in case of accidents or other data loss.
+
+restore-yalpack uses the following priority order in determining which collection of package trees to use to regenerate the data directories:
+
+\t /var/log/yalpack
+
+\t /root/.yalpack
+
+\t /var/yalpack/pkgdata/TREES
+
+If none of these locations is a non-empty directory, the script will exit. To specify a directory other than an existing /var/log/yalpack, change the value of the following variable in the script:
+
+\t VARBKUP=/var/log/yalpack
+
+Once a directory has been selected and approved by user input, the following yalpack directories and their contents will be regenerated based on the collection of package trees:
+
+\t /var/yalpack/pkgdata/TREES (via copy; if the TREES directory exists when the script is run, a copy is retained at /var/yalpack/pkgdata/TREES-OLD)
+
+\t /var/yalpack/BIN-DEPS - liblist(1)
+
+\t /var/yalpack/pkgdata/PKG-BINS - pkgcheck(1)
+
+\t /var/yalpack/pkgdata/PKG-DEPS - pkgcheck(1)
+
+\t /var/yalpack/pkgdata/PKG-LIBS - pkgcheck(1)
+
+\t /var/yalpack/pkgdata/NEWFILES
+
+\t /var/yalpack/pkgdata/SYMTREES
+
+\t /var/yalpack/pkgdata/.SYMDESTS
+
+\t /var/yalpack/pkgdata/VER
+
+Package tarballs cannot be restored by restore-yalpack. However, all yalpack scripts should be able to operate normally if restore-yalpack uses a good backup to regenerate the directories above. restore-yalpack needs liblist(1) and pkgcheck(1) in the path, and should be run as root.
+.SH SEE ALSO
+pkginst(1), pkgup(1), pkgremove(1), liblist(1), pkgcheck(1)
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+K. Eugene Carlson (kvngncrlsn@gmail.com)

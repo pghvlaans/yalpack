@@ -1,6 +1,6 @@
 .\" Manpage for pkgremove
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "07 June 2021" "0.1.4" "pkgremove man page"
+.TH man 1 "07 June 2021" "0.1.5" "pkgremove man page"
 .SH NAME
 pkgremove \- remove a pkgmake-made and pkginst-installed package from LFS
 .SH SYNOPSIS
@@ -8,17 +8,25 @@ pkgremove [-y|--yes] NAME1 [NAME2] ...
 .SH DESCRIPTION
 pkgremove is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to remove packages made by pkgmake and installed by pkginst. The TREE and VER (if applicable) files must be present in /var/yalpack/pkgdata.
 
-pkgremove references /var/yalpack/pkgdata/TREES to remove any unneeded files, symlinks or directories installed by the package. Because the home directory is the responsibility of the user/administrator, pkgremove will never remove anything from /home. All files and directories related to the removed package will be deleted from /var/yalpack/pkgdata.
+pkgremove references /var/yalpack/pkgdata/TREES and /var/yalpack/pkgdata/SYMTREES to remove any unneeded files, symlinks or directories installed by the package. Because the home directory is the responsibility of the user/administrator, pkgremove will never remove anything from /home. All files and directories related to the removed package will be deleted from /var/yalpack/pkgdata.
 
 In case of library changes, ldconfig will be invoked.
 
-By default, pkgup references the following directory:
+By default, pkgup references the following directories:
 
 \t /var/yalpack/pkgdata/TREES
+
+\t /var/yalpack/pkgdata/SYMTREES
+
+Please note that the SYMTREES directory and all needed SYMTREE files will be created by yalpack's install.sh script upon first-time installation or upgrade from yalpack-0.1.4 or earlier. See pkginst(1) for a more complete discussion.
 
 The following data files and directories will be removed:
 
 \t /var/yalpack/pkgdata/TREES/[NAME] (a file with the package directory tree)
+
+\t /var/yalpack/pkgdata/SYMTREES/[NAME] (a file with items installed under a path with a symlink and their destinations, as well as symlinks pointing to destinations not provided by the package)
+
+\t /var/yalpack/pkgdata/.SYMDESTS/[NAME] (the same list, but with destinations only)
 
 \t /var/yalpack/pkgdata/VER/[NAME] (a file with the package's version number)
 
@@ -27,6 +35,12 @@ The following data files and directories will be removed:
 \t /var/yalpack/pkgdata/PKG-BINS/[NAME] (any installed programs)
 
 \t /var/yalpack/pkgdata/PKG-LIBS/[NAME] (any installed libraries)
+
+\t /var/yalpack/pkgdata/NEWFILES/[NAME] (any installed .new files)
+
+\t /var/log/yalpack/[NAME] (primary package directory tree backup)
+
+\t /root/.yalpack/[NAME] (secondary package directory tree backup)
 
 The pkgremove script can be edited to change any of these default locations to suit user preferences. This is best done prior to installation and in conjunction with the other yalpack scripts.
 .SH OPTIONS

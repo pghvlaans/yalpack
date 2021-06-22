@@ -1,6 +1,6 @@
 .\" Manpage for liblist
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "07 June 2021" "0.1.4" "liblist man page"
+.TH man 1 "22 June 2021" "0.1.5" "liblist man page"
 .SH NAME
 liblist \- generate dynamic library usage information for system binaries
 .SH SYNOPSIS
@@ -13,7 +13,9 @@ liblist is a shell program provided by yalpack (Yet Another Lfs PACKage manager)
 \t /opt/*
 \t /sbin
 
-Running liblist as root will perform ldd on all such programs; information will be written to the following directory on a per-file basis:
+liblist will not generate duplicate entries on systems where one or more of these locations is a symlink.
+
+Running liblist as root will perform ldd(1) on all such programs; information will be written to the following directory on a per-file basis:
 
 \t /var/yalpack/BINDEPS/[NAME]/[NAME].libinfo
 
@@ -26,8 +28,10 @@ The liblist script can be edited to change any of these default locations to sui
 file - Add library usage information for the specified file. A full path is needed.
 
 -h|--help - Display a help menu.
+.SH WARNING
+Because ldd is called, liblist (and yalpack in general) should never be used on systems with glibc-2.26 or earlier. See "Security" in ldd(1) for details.
 .SH SEE ALSO
-pkginst(1), pkgup(1), pkgcheck(1), liblist(1), libprecise(1)
+pkginst(1), pkgup(1), pkgcheck(1), liblist(1), libprecise(1), ldd(1)
 .SH BUGS
 No known bugs.
 .SH AUTHOR

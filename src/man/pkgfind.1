@@ -1,12 +1,12 @@
 .\" Manpage for pkgfind
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "07 June 2021" "0.1.4" "pkgfind man page"
+.TH man 1 "07 June 2021" "0.1.5" "pkgfind man page"
 .SH NAME
 pkgfind \- search for which package provided matching files/symlinks/directories 
 .SH SYNOPSIS
 pkgfind [-xf|--exact --showfile] SEARCHTERM1 ...
 .SH DESCRIPTION
-pkgfind is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for checking which yalpack package or packages provide files, symlinks or directories matching a search term. pkgfind searches the TREE files for all installed packages, located by default in /var/yalpack/pkgdata/TREES.
+pkgfind is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for checking which yalpack package or packages provide files, symlinks or directories matching a search term. pkgfind searches the TREE and SYMTREE files for all installed packages, located by default in /var/yalpack/pkgdata/TREES.
 
 -x (--exact) can be passed as a parameter to search for exact matches with the user-provided path. If -x is used, pkgfind will display .new files as matches, as in this example:
 
@@ -15,6 +15,8 @@ pkgfind is a shell program provided by yalpack (Yet Another Lfs PACKage manager)
 \t /etc/pulse/client.conf:
 
 \t pulseaudio:/etc/pulse/client.conf.new
+
+For files installed under a path with a symlink, either file path should generate results.
 .SH OPTIONS
 SEARCHTERM - A search term for the desired file, directory or link path.
 
