@@ -26,7 +26,7 @@
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         echo
-        echo libprecise: Check for details about a particular dynamic library.
+	echo $(tput bold)libprecise$(tput sgr0): Check for details about a particular dynamic library.
         echo
         echo Syntax: libprecise LIBRARY
         echo
@@ -40,17 +40,17 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 HEAD=/var/yalpack
-DATA=$HEAD/pkgdata
-PKGLIBS=$DATA/PKG-LIBS
-PKGDEPS=$DATA/PKG-DEPS
+PKGDATA=$HEAD/pkgdata
+PKGLIBS=$PKGDATA/PKG-LIBS
+PKGDEPS=$PKGDATA/PKG-DEPS
 BINDEPS=$HEAD/BIN-DEPS
 
 y="$1[.]"
 
 echo
-echo Checking for information about the library "$1". If the intended 
-echo library does not exist in the form "$1".*, results will be
-echo incomplete or inaccurate.
+echo '	'Checking for information about the library $(tput bold)"$1"$(tput sgr0). If the intended 
+echo '	'library does not exist in the form $(tput bold)"$1".*$(tput sgr0), results will be
+echo '	'incomplete or inaccurate.
 echo
 
 for PKG in "$PKGLIBS"/*
@@ -58,7 +58,7 @@ do
 	if [ -f "$PKG/libs" ]; then
 		x=$(grep "$y" "$PKG/libs")
 		PKG=$(basename "$PKG")
-		[ -n "$x" ] && echo "$1" appears to have been installed by the "$PKG" package.
+		[ -n "$x" ] && echo '	'$(tput bold)"$1"$(tput sgr0) appears to have been installed by the $(tput bold)"$PKG"$(tput sgr0) package.
 	fi
 done
 
@@ -69,10 +69,12 @@ BINSNUM=$(echo "$BINDEPS" | tr -cd '/' | wc -c)
 # Adjusting
 DEPSNUM=$((DEPSNUM + 2))
 BINSNUM=$((BINSNUM + 2))
-echo The following packages use this library:
+echo '	'The following $(tput bold)packages$(tput sgr0) use this library:
+echo
 grep "$y" "$PKGDEPS"/*/* | cut -d'/' -f"$DEPSNUM"- | cut -d'/' -f-1 | uniq
 
 echo
-echo The following binaries use this library:
+echo '	'The following $(tput bold)programs$(tput sgr0) use this library:
+echo
 grep "$y" $BINDEPS/*/* | cut -d'/' -f"$BINSNUM"- | cut -d'/' -f-1 | uniq
 echo

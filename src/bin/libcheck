@@ -26,7 +26,7 @@
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         echo
-        echo libcheck: Check for details about dynamic libraries matching
+	echo $(tput bold)libcheck$(tput sgr0): Check for details about dynamic libraries matching
 	echo a search term.
         echo
         echo Syntax: libcheck SEARCHTERM
@@ -38,9 +38,9 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 HEAD=/var/yalpack
-DATA=$HEAD/pkgdata
-PKGLIBS=$DATA/PKG-LIBS
-PKGDEPS=$DATA/PKG-DEPS
+PKGDATA=$HEAD/pkgdata
+PKGLIBS=$PKGDATA/PKG-LIBS
+PKGDEPS=$PKGDATA/PKG-DEPS
 BINDEPS=$HEAD/BIN-DEPS
 TEMPDIR=~/.yalpack
 TEMP=$TEMPDIR/temp-for-libs
@@ -48,18 +48,21 @@ TEMP=$TEMPDIR/temp-for-libs
 mkdir -p "$TEMPDIR"
 # On the off chance that ~/.yalpack/temp-for-libs exists for some reason.
 [ -f "$TEMP" ] && mv "$TEMP" "$TEMP".yarglebargle
-mkdir -p $DATA
+mkdir -p $PKGDATA
 
 echo
-echo Checking for information about "$1".
+echo '	'Checking for information about $(tput bold)"$1"$(tput sgr0).
 rm -f "$TEMP" "$TEMP".new
+# /lib and /lib64 retained for compatibility with LFS 10.1. Not actionable
+# if these are symlinks.
 for f in /usr/lib/* /lib/* /lib64/* /usr/include/*
 do 
-	find "$f" -maxdepth 0 -type f -exec basename '{}' \; | grep "$1" | cut -d'.' -f-1 >> "$TEMP"
+	[ -d "$(dirname "$f")" ] && [ ! -h "$(dirname "$f")" ] && find "$f" -maxdepth 0 -type f -exec basename '{}' \; | grep "$1" | cut -d'.' -f-1 >> "$TEMP"
 done
 sort "$TEMP" | uniq > "$TEMP".new
 echo
-echo Matches with any of the following libraries will be displayed:
+echo '	'Matches with any of the following libraries will be displayed:
+echo
 cat "$TEMP".new
 echo
 
@@ -68,7 +71,7 @@ do
 	if [ -f "$PKG/libs" ]; then
 		x=$(grep "$1" "$PKG"/libs)
 		PKG=$(basename "$PKG")
-		[ -n "$x" ] && echo One of these libraries appears to have been installed by the "$PKG" package.
+		[ -n "$x" ] && echo '	'One of these libraries appears to have been installed by the $(tput bold)"$PKG"$(tput sgr0) package.
 	fi
 done
 
@@ -79,13 +82,16 @@ BINSNUM=$(echo "$BINDEPS" | tr -cd '/' | wc -c)
 # Adjusting
 DEPSNUM=$((DEPSNUM + 2))
 BINSNUM=$((BINSNUM + 2))
-echo The following packages use one of these libraries:
+echo '	'The following $(tput bold)packages$(tput sgr0) use one of these libraries:
+echo
 grep "$1" "$PKGDEPS"/*/* | cut -d'/' -f"$DEPSNUM"- | cut -d'/' -f-1 | uniq
 echo
-echo The following programs use one of these libraries:
+echo '	'The following $(tput bold)programs$(tput sgr0) use one of these libraries:
+echo
 grep "$1" "$BINDEPS"/*/* | cut -d'/' -f"$BINSNUM"- | cut -d'/' -f-1 | uniq
 echo
-echo If closer matches are needed, consider using libprecise with one of these libraries:
+echo '	'If closer matches are needed, consider using $(tput bold)libprecise$(tput sgr0) with one of these libraries:
+echo
 cat $TEMP.new
 echo
 

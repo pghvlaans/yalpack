@@ -25,8 +25,9 @@
 # Checking for which yalpack package provided items matching a search term.
 
 HEAD=/var/yalpack
-DATA="$HEAD"/pkgdata
-TREES="$DATA"/TREES
+PKGDATA="$HEAD"/pkgdata
+TREES="$PKGDATA"/TREES
+SYMDESTS="$PKGDATA"/.SYMDESTS
 
 TREESNUM="$(echo "$TREES" | tr -cd '/' | wc -c)"
 TREESNUM=$((TREESNUM + 2))
@@ -37,27 +38,63 @@ unset SEARCHNEW
 SEARCH="$1"
 # Enables detection of .new files for "--exact" calls.
 SEARCHNEW="$SEARCH".new
-echo "$SEARCH":
+echo '	'$(tput bold)"$SEARCH"$(tput sgr0):
 echo
 
 if [ "$EXACT" = "EXACT" ] && [ "$FILE" = "FILE" ]; then
 	grep -x "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"-
 	grep -x "$SEARCHNEW" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"-
 	echo
+	if [ -n "$(grep -x "$SEARCH" "$SYMDESTS"/*)" ] || [ -n "$(grep -x "$SEARCHNEW" "$SYMDESTS"/*)" ]; then 
+		echo '	'The following matches were found as destinations corresponding
+		echo '	'to symlinks or symlinked paths installed by the package\(s\) noted.
+		echo
+		# SYMDESTS needs uniq; it is messy and not intended for viewing.
+		grep -x "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | uniq
+		grep -x "$SEARCHNEW" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- |uniq
+		echo
+	fi
 	return
 fi
 
-[ "$FILE" = "FILE" ] && grep "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- && echo && return
+if [ "$FILE" = "FILE" ]; then
+	grep "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- 
+	echo  
+	if [ -n "$(grep "$SEARCH" "$SYMDESTS"/*)" ]; then
+		echo '	'The following matches were found as destinations corresponding
+		echo '	'to symlinks or symlinked paths installed by the package\(s\) noted.
+		echo
+		# SYMDESTS is messy and not intended for viewing. uniq needed.
+		grep "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | uniq 
+		echo
+	fi
+	return
+fi
 
 if [ "$EXACT" = "EXACT" ]; then
 	grep -x "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
 	grep -x "$SEARCHNEW" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
 	echo
+	if [ -n "$(grep -x "$SEARCH" "$SYMDESTS"/*)" ] || [ -n "$(grep -x "$SEARCHNEW" "$SYMDESTS"/*)" ]; then 
+		echo '	'A match was found as a destination corresponding to a symlink or
+		echo '	'symlinked path installed by the package\(s\) noted.
+		echo
+		grep -x "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+		grep -x "$SEARCHNEW" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+		echo
+	fi
 	return
 fi
 
 grep "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
 echo
+if [ -n "$(grep "$SEARCH" "$SYMDESTS"/*)" ]; then
+	echo '	'Matches were found as destinations corresponding to symlinks
+	echo '	'or symlinked paths installed by the package\(s\) noted.
+	echo
+	grep "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+	echo
+fi
 return
 }
 
@@ -67,7 +104,7 @@ echo
 for arg in "$@"; do
 case "$arg" in
 	-h|--help)
-	echo pkgfind: Use a search term or full file path to find the yalpack package providing it.
+		echo $(tput bold)pkgfind$(tput sgr0): Use a search term or full file path to find the yalpack package providing it.
 	echo
 	echo Syntax: pkgfind \(options\) SEARCHTERM1 ...
 	echo

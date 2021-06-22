@@ -25,9 +25,9 @@
 # Providing a list of installed packages with versioning information
 
 HEAD=/var/yalpack
-DATA=$HEAD/pkgdata
-VERS=$DATA/VER
-TREES=$DATA/TREES
+PKGDATA=$HEAD/pkgdata
+VERS=$PKGDATA/VER
+TREES=$PKGDATA/TREES
 
 full() {
 find $TREES/* -maxdepth 0 | while read -r file;
@@ -65,7 +65,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo pkglist: Show a list of installed yalpack packages \(search functionality available\).
+		echo $(tput bold)pkglist$(tput sgr0): Show a list of installed yalpack packages \(search functionality available\).
 		echo
 		echo Syntax: pkglist \(options\) \(SEARCHTERM1 SEARCHTERM2 ... \)
 		echo
