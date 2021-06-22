@@ -34,14 +34,13 @@ BIN="$(basename "$1")"
 # An empty variable name here would be really bad
 [ -z "$BIN" ] && return
 # Not interested in library files here
-[ -n "$(echo "$BIN" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ] && return
+[ -n "$(echo "$BIN" | grep -e "[.]so[.]" -e "[.]so\$" -e "[.]la[.]" -e "[.]la\$" -e "[.]a[.]" -e "[.]a\$")" ] && return
 BINDIR="$BINDEPS/$BIN"
 mkdir -p "$BINDIR"
 echo "$BIN" checked "$(date)" > "$BINDIR/$BIN.libinfo"
 ldd "$1" >> "$BINDIR/$BIN.libinfo"
 # Don't need empty entries
-x=$(wc -l "$BINDIR/$BIN.libinfo" | cut -d' ' -f-1)
-[ "$x" = 1 ] && rm -rf "$BINDIR"
+[ "$(wc -l "$BINDIR/$BIN.libinfo")" = "1 $BINDIR/$BIN.libinfo" ] && rm -rf "$BINDIR"
 }
 
 # A new dynamic library usage data collection
@@ -50,8 +49,8 @@ new() {
 [ -d "$BINDEPS" ] && mv "$BINDEPS" "$BINDEPS.old"
 mkdir -p "$BINDEPS"
 for d in /bin /usr /sbin /opt; do
-	# Only look in if directory exists and is non-empty
-	if [ -d "$d" ] && [ -n "$(ls -A "$d")" ]; then
+	# Only look in if directory exists, is not a symlink and is non-empty
+	if [ -d "$d" ] && [ ! -h "$d" ] && [ -n "$(ls -A "$d")" ]; then
 		echo Checking $d
 		find $d/* -executable -type f | while read -r file; do populate "$file"; done
 	fi
@@ -65,7 +64,7 @@ else
 		case "$arg" in
 			-h|--help)
 			echo
-			echo liblist: Generate dynamic library information, separated by binary and stored in
+			echo $(tput bold)liblist$(tput sgr0): Generate dynamic library information, separated by binary and stored in
 			echo /var/yalpack/BINDEPS
 			echo
 			echo Syntax: liblist \(options\) \(PATH1 PATH2 ... \)

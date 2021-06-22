@@ -26,7 +26,7 @@
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 	echo
-	echo pkgcheck: Check for details about a yalpack package.
+	echo $(tput bold)pkgcheck$(tput sgr0): Check for details about a yalpack package.
 	echo
 	echo Syntax: pkgcheck NAME
 	echo
@@ -43,15 +43,15 @@ PKGTREES=$PKGDATA/TREES
 PKGTREE=$PKGTREES/"$1"
 BINDEPS=$HEAD/BIN-DEPS
 
-echo
-echo Preparing to check for information about "$1".
+[ "${CHECK:-yes}" = yes ] && echo
+echo '	'Preparing to check for information about $(tput bold)"$1"$(tput sgr0).
 echo
 set -e
 cd $STAGING
 unset NAME
 
 # Sanity check
-[ ! -f "$PKGTREE" ] && echo Warning! Package not found. Exiting now. && exit
+[ ! -f "$PKGTREE" ] && echo '	'$(tput bold)Warning!$(tput sgr0) Package not found. Exiting now. && exit
 NAME=$(basename "$PKGTREE")
 
 PKGBIN=$PKGDATA/PKG-BINS/"$NAME"
@@ -67,102 +67,71 @@ mkdir -p "$PKGLIB"
 [ -f "$PKGBIN/instbins" ] && mv "$PKGBIN"/instbins "$PKGBIN"/.instbins.old
 [ -f "$PKGDEP/libdeps" ] && mv "$PKGDEP"/libdeps "$PKGDEP"/.libdeps.old
 [ -f "$PKGLIB/libs" ] && mv "$PKGLIB"/libs "$PKGLIB"/.libs.old
-echo Backed up data lists.
+echo '	'Backed up data lists.
 echo
-# Looking for executables
+# Looking for executables, divided between libraries and others (symlinks also)
 while read -r f; do
-	if [ -x "$f" ] && [ -f "$f" ]; then
-		g="$(basename "$f")"
-		# Not interested in libraries here
-		if [ -z "$(echo "$f" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ]; then
-			echo Found "$f".
-			echo "$f" >> "$PKGBIN"/instbins
-			echo Wrote "$f" to package data.
-			# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
-			set +e
-			liblist "$f" > /dev/null 2>&1
-			set -e
-			[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
-			echo Used libraries written in, if any.
-			echo
-		fi
-	fi
-done < "$PKGTREE"
-# Also interested in symlinks to programs
-while read -r f; do
-	if [ -h "$f" ]; then
-		h="$(readlink "$f")"
-		if [ -z "$(echo "$h" | grep -e "[.]so" -e "[.]la" -e "[.]a")" ] && [ -x "$h" ] && [ -f "$h" ]; then
-			echo Found "$f".
-			echo "$f" >> "$PKGBIN"/instbins
-			echo Wrote "$f" to package data.
-			# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
-			set +e
-			liblist "$f" > /dev/null 2>&1
-			set -e
-			[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
-			echo Used libraries written in, if any.
-			echo
-		fi
-	fi
-done < "$PKGTREE"
-
-# Adding information about anything installed to libraries.
-for z in /lib /lib64 /usr/lib /usr/libexec /usr/include
-do
-y="$(echo "$z" | wc -c)"
-y=$((y - 1))
-while read -r f
-do
-	if [ -f "$f" ] || [ -h "$f" ]; then
-		if [ "$(echo "$f" | cut -c1-"$y")" = "$z" ]; then
-			g="$(basename "$f")"
-			# Restrict to actual libraries
-			if [ -n "$(echo "$f" | grep -e "[.]so[.]" -e "[.]la[.]" -e "[.]a[.]" -e "[.]so\$" -e "[.]la\$" -e "[.]a\$")" ]; then
-				# Not interested in doubles (can happen in /usr/libexec)
-				[ ! -f "$PKGLIB/libs" ] && touch "$PKGLIB/libs"
-				[ -z "$(grep "$f" "$PKGLIB/libs")" ] && echo Found library "$f". && echo "$f" >> "$PKGLIB/libs" && echo
+	h="${f%.new}"
+	file="$f"
+	unset NEWFILE
+	[ "$h" != "$file" ] && NEWFILE=yes
+	[ "$NEWFILE" = yes ] && [ -f "$h" ] && [ ! -f "$f" ] && file="$h"
+	if [ -x "$file" ] && [ -f "$file" ]; then
+		g="$(basename "$file")"
+		i="$(readlink -e "$file")"
+		# Non-libraries
+		if [ -z "$(echo "$g" | grep -e "[.]so[.]" -e "[.]so\$" -e "[.]la[.]" -e "[.]la\$" -e "[.]a[.]" -e "[.]a\$")" ]; then
+			# [ -x $i ] is sufficient here, because symlinks to directories fail type -f
+			if [ "$i" = "$file" ] || [ -x "$i" ] || [ ! -h "$file" ]; then
+				echo "$file" >> "$PKGBIN"/instbins
+				# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
+				set +e
+				liblist "$file" > /dev/null 2>&1
+				set -e
+				[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
 			fi
+		# Libraries
+		else
+			echo "$f" >> "$PKGLIB/libs"
 		fi
-	fi
+	# The library method above is cheating; some libraries are non-executable. Completing
+	# here.
+	elif [ ! -x "$file" ] && [ -f "$file" ] && [ -n "$(echo "$file" | grep -e "[.]so[.]" -e "[.]so\$" -e "[.]la[.]" -e "[.]la\$" -e "[.]a[.]" -e "[.]a\$")" ]; then
+		echo "$file" >> "$PKGLIB/libs"
+	fi	
 done < "$PKGTREE"
-done
 
 if [ -f "$PKGBIN"/instbins ]; then
-	echo These programs were installed by "$1":
+	echo '	'These programs were installed by $(tput bold)"$1"$(tput sgr0):
+	echo
 	cat "$PKGBIN"/instbins
 	echo
 fi
-if [ -f "$PKGDEP"/libdeps ]; then
-	echo The following libraries are used by "$1":
-	cat "$PKGDEP"/libdeps
-	echo
-fi
 if [ -f "$PKGLIB"/libs ]; then
-	echo Installed library information for "$1":
+	echo '	'These libraries were installed by $(tput bold)$"$1"$(tput sgr0):
+	echo
 	cat "$PKGLIB"/libs
 	echo
 	# Called with CHECK=no from pkginst and pkgup; step is skipped otherwise.
 	if [ "${CHECK:-yes}" != yes ]; then
-		echo Libraries appear to have been installed. Now using liblist -n to update all
-		echo library information. Please wait.
+		echo '	'Now using $(tput bold)liblist -n$(tput sgr0) to update all library information...
 		set +e
 		liblist -n > /dev/null 2>&1
 		set -e
-		echo Library information update done.
+		echo '	'Done.
 		echo
 	fi
 fi
 
 if [ "${CHECK:-yes}" != yes ]; then
 	if [ "$NAME" = "yalpack" ] ; then
-		echo This is an installation or upgrade of yalpack. Running liblist -n now to make a
-		echo collection of library information.
-		/sbin/liblist -n > /dev/null 2>&1
-		echo Library information for yalpack updated.
+		echo '	'This is an installation or upgrade of $(tput bold)yalpack$(tput sgr0). Running $(tput bold)liblist -n$(tput sgr0) now to make a
+		echo '	'collection of library information...
+		liblist -n > /dev/null 2>&1
+		echo '	'Done.
 		echo
 	fi	
 fi
 
-echo Check complete.
+echo '	'$(tput bold)Check complete.$(tput sgr0)
 echo

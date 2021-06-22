@@ -26,21 +26,32 @@
 
 HEAD=/var/yalpack
 STAGING=$HEAD/packages
-PKGTREES=$HEAD/pkgdata/TREES
-PKGVERS=$HEAD/pkgdata/VER
+PKGDATA=$HEAD/pkgdata
+PKGTREES=$PKGDATA/TREES
+PKGVERS=$PKGDATA/VER
+SYMTREES=$PKGDATA/SYMTREES
+SYMDESTS=$PKGDATA/.SYMDESTS
+NEWFILES=$PKGDATA/NEWFILES
+
+# Backups
+VARBKUP=/var/log/yalpack
+# Putting yalpack data directories in locations not owned by root is not recommended.
+ROOTHOME=/root
+ROOTBKUP=$ROOTHOME/.yalpack
 
 main() {
 NEWDIR=$STAGING/"$2"
 
 if [ "$4" != "NOCONFIRM" ]; then
 	echo
-	echo It is advised to run pkgcheck on the old package first.
+	echo '	'It may be a good idea to run pkgcheck on the old package first.
 	echo
-	echo Upgrade of "$1" to "$2" has been requested. To proceed, press \"y\". IF YOU HAVE ANY DOUBTS, TERMINATE THE PROCESS NOW.
+	echo '	'An upgrade of $(tput bold)"$1"$(tput sgr0) to $(tput bold)"$2"$(tput sgr0) has been requested. To proceed,
+	echo '	'enter $(tput bold)\"y\"$(tput sgr0). If in doubt, terminate the process now.
 	read -r INPUT
 	[ "$INPUT" != "y" ] && exit
 else
-	echo Upgrade of "$1" to "$2" is underway.
+	echo '	'Upgrade of $(tput bold)"$1"$(tput sgr0) to $(tput bold)"$2"$(tput sgr0) is underway.
 fi
 echo
 
@@ -52,32 +63,45 @@ set -e
 cd $STAGING
 [ ! -d "$NEWDIR" ] && tar -xf $STAGING/"$2".tar.xz
 # Sanity checks
-[ ! -f "$NEWDIR/TREE" ] && echo Warning! The TREE file for "$2" could not be found. Try running pkgmake again. Exiting now. && exit
-[ ! -f "$NEWDIR/NAME" ] && echo Warning! The NAME file for "$2" could not be found. Try running pkgmake again. Exiting now. && exit
+[ ! -f "$NEWDIR/TREE" ] && echo '	'$(tput bold)Warning!$(tput sgr0) The $(tput bold)TREE$(tput sgr0) file for $(tput bold)"$2"$(tput sgr0) could not be found. Try running pkgmake again. Exiting now. && exit
+[ ! -f "$NEWDIR/NAME" ] && echo '	'$(tput bold)Warning!$(tput sgr0) The $(tput bold)NAME$(tput sgr0) file for $(tput bold)"$2"$(tput sgr0) could not be found. Try running pkgmake again. Exiting now. && exit
 NAME="$(cat "$NEWDIR/NAME")"
 
 # The new version will overwrite the outgoing TREE and VER, but they need to be saved for comparison.
-cp -v "$PKGTREES"/"$1" "$PKGTREES/YALPACK-OUTGOING"
-cp -v "$PKGVERS"/"$1" "$PKGVERS/YALPACK-OUTGOING"
+cp "$PKGTREES"/"$1" "$PKGTREES/YALPACK-OUTGOING"
+# The backup locations contain only TREE files.
+[ -d "$VARBKUP" ] && cp "$VARBKUP"/"$1" "$VARBKUP/YALPACK-OUTGOING"
+[ -d "$ROOTBKUP" ] && cp "$ROOTBKUP"/"$1" "$ROOTBKUP/YALPACK-OUTGOING"
+cp "$PKGVERS"/"$1" "$PKGVERS/YALPACK-OUTGOING"
+
+# The new version may or may not overwrite SYMTREE and NEWFILE
+[ -f "$SYMTREES"/"$1" ] && mv "$SYMTREES"/"$1" "$SYMTREES/YALPACK-OUTGOING"
+[ -f "$SYMDESTS"/"$1" ] && mv "$SYMDESTS"/"$1" "$SYMDESTS/YALPACK-OUTGOING"
+# Just in case.
+mkdir -p "$NEWFILES"
+[ -f "$NEWFILES"/"$1" ] && cp "$NEWFILES"/"$1" "$NEWFILES/YALPACK-OUTGOING"
 
 # pkgremove, pkginst and pkgcheck can use their own error handling
 set +e
-[ "$3" = "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes /sbin/pkginst -kr "$2"
-[ "$3" = "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes /sbin/pkginst -k "$2"
-[ "$3" != "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes /sbin/pkginst -r "$2"
-[ "$3" != "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes /sbin/pkginst "$2"
+[ "$3" = "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes pkginst -kr "$2"
+[ "$3" = "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes pkginst -k "$2"
+[ "$3" != "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes pkginst -r "$2"
+[ "$3" != "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes pkginst "$2"
 # UPGRADE=yes protects the newly-installed version from interference.
-UPGRADE=yes /sbin/pkgremove -y "$1"
-CHECK=no /sbin/pkgcheck "$NAME"
+UPGRADE=yes pkgremove -y "$1"
+CHECK=no pkgcheck "$NAME"
 set -e
 
 # Checking for a new version of init
 NEWINITVER="$(/sbin/init --version | cut -d' ' -f4-)"
 
 # Reload init if new glibc or new sysvinit
-[ -n "$(grep /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && /sbin/telinit U && echo init has been reloaded. && echo
+unset MESSAGE
+# Adding "or true" means the script will not crash when performing glibc or init upgrades
+[ -n "$(grep /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && telinit U || true
+[ "$MESSAGE" = "WRITE" ] && echo && echo '	'$(tput bold)init$(tput sgr0) has been reloaded, if not in chroot. && echo
 
-echo The upgrade of "$1" to "$2" is complete.
+echo '	'The upgrade of $(tput bold)"$1"$(tput sgr0) to $(tput bold)"$2"$(tput sgr0) is complete.
 echo
 }
 unset OUTGOING
@@ -89,7 +113,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo pkgup: Upgrade from one yalpack package to another.
+		echo $(tput bold)pkgup$(tput sgr0): Upgrade from one yalpack package to another.
 		echo
 		echo Syntax: pkgup \(options\) OLDNAME NEWNAME-NEWVER
 		echo

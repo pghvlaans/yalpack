@@ -27,34 +27,76 @@
 main() {
 HEAD=/var/yalpack
 STAGING=$HEAD/packages
-DATA=$HEAD/pkgdata
-PKGTREES=$DATA/TREES
+PKGDATA=$HEAD/pkgdata
+PKGTREES=$PKGDATA/TREES
 OLDTREE=$PKGTREES/"$1"
 [ "${UPGRADE:-no}" = yes ] && OLDTREE="$PKGTREES/YALPACK-OUTGOING"
-BINS=$DATA/PKG-BINS
-DEPS=$DATA/PKG-DEPS
-LIBS=$DATA/PKG-LIBS
-VERS=$DATA/VER
+SYMTREES=$PKGDATA/SYMTREES
+OLDSYM=$SYMTREES/"$1"
+[ "${UPGRADE:-no}" = yes ] && OLDSYM="$SYMTREES/YALPACK-OUTGOING"
+SYMDESTS=$PKGDATA/.SYMDESTS
+OLDSYMDEST=$SYMDESTS/"$1"
+[ "${UPGRADE:-no}" = yes ] && OLDSYMDEST="$SYMDESTS/YALPACK-OUTGOING"
+BINS=$PKGDATA/PKG-BINS
+DEPS=$PKGDATA/PKG-DEPS
+LIBS=$PKGDATA/PKG-LIBS
+VERS=$PKGDATA/VER
 OLDVER=$VERS/"$1"
 [ "${UPGRADE:-no}" = yes ] && OLDVER="$VERS/YALPACK-OUTGOING"
-RMDOC=$DATA/RMDOC
-RMTEMP=$DATA/RMTEMP
+NEWFILES=$PKGDATA/NEWFILES
+OLDNEWFILE=$NEWFILES/"$1"
+[ "${UPGRADE:-no}" = yes ] && OLDNEWFILE="$NEWFILES/YALPACK-OUTGOING"
+RMDOC=$PKGDATA/RMDOC
+CODMR=$PKGDATA/CODMR
+RMTEMP=$PKGDATA/RMTEMP
+SAFE=$PKGDATA/SAFE
 
-if [ "$2" != "NOCONFIRM" ]; then
+# Backups
+
+VARBKUP=/var/log/yalpack
+VARTREE=$VARBKUP/"$1"
+[ "${UPGRADE:-no}" = yes ] && VARTREE="$VARBKUP/YALPACK-OUTGOING"
+VARTEMP=$VARBKUP/RMTEMP
+# Putting yalpack data directories in locations not owned by root is not recommended.
+ROOTHOME=/root
+ROOTBKUP=$ROOTHOME/.yalpack
+ROOTTREE=$ROOTBKUP/"$1"
+[ "${UPGRADE:-no}" = yes ] && ROOTTREE="$ROOTBKUP/YALPACK-OUTGOING"
+ROOTTEMP=$ROOTBKUP/RMTEMP
+
+if [ "$2" != "NOCONFIRM" ] && [ "${UPGRADE:-no}" != yes ]; then
 	echo
-	echo It is advised to run pkgcheck on the package first.
+	echo '	'It may be a good idea to run pkgcheck on the package first.
 	echo
-	echo Removal of package "$1" has been requested. To proceed\, 
-	echo press \"y\". IF YOU HAVE ANY DOUBTS, TERMINATE THE PROCESS NOW.
+	echo '	'Removal of the package $(tput bold)"$1"$(tput sgr0) has been requested. To proceed\, 
+	echo '	'enter $(tput bold)\"y\"$(tput sgr0). If in doubt, terminate the process now.
 	read -r INPUT
 	echo
 	[ "$INPUT" != "y" ] && exit
+elif [ "$2" = "NOCONFIRM" ] && [ "${UPGRADE:-no}" != yes ]; then
+	echo
 fi
 
 set -e
-rm -rf "$RMTEMP"
+# Although there are protections against deleting symlinks to items that are needed
+# by other packages, using pkgremove on a system with few packages could conceivably
+# cause the deletion of important symlinks. For LFS 11.0 onward, these include the
+# merged-usr symlinks. Creating the SAFE file will prevent this edge case from
+# causing potentially serious problems. (rmdir is used for handling directories, so
+# this precaution is not needed for non-symlinks)
+cat > "$SAFE" << "EOF"
+/bin
+/sbin
+/lib
+/etc/mtab
+EOF
+
+rm -rf "$RMTEMP" "$VARTEMP" "$ROOTTEMP"
 mkdir -p "$RMTEMP"/VER
 mkdir -p "$RMTEMP"/NAME
+mkdir -p "$RMTEMP"/NEWFILE
+[ -d "$VARBKUP" ] && mkdir "$VARTEMP"
+[ -d "$ROOTBKUP" ] && mkdir "$ROOTTEMP"
 
 NAME="$1"
 if [ -f "$OLDVER" ]; then
@@ -62,11 +104,13 @@ if [ -f "$OLDVER" ]; then
 	mv "$OLDVER" "$RMTEMP"/VER
 fi
 
-# No exit code necessary because pkgup already checks for this.
-[ -z "$(find "$OLDTREE")" ] && echo Requested package not found. Check for the package name with pkglist. Exiting now. && exit
+[ -f "$OLDNEWFILE" ] && mv "$OLDNEWFILE" "$RMTEMP"/NEWFILE
 
-# Removing any previous RMDOC
-rm -f $RMDOC
+# No exit code necessary because pkgup already checks for this.
+[ -z "$(find "$OLDTREE")" ] && echo '	'Requested package not found. Check for the package name with $(tput bold)pkglist$(tput sgr0). Exiting now. && exit
+
+# Removing any previous RMDOC and CODMR
+rm -f "$RMDOC" "$CODMR"
 # Producing RMDOC; it will exclude the package title and the home directory.
 while read -r line;
 do
@@ -74,59 +118,103 @@ do
 	[ -z "$VER" ] && [ "$line" != "$NAME" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
 done < "$OLDTREE"
 mv "$OLDTREE" "$RMTEMP"/TREE
+# The backup location(s) only have TREE files.
+[ -d "$VARTEMP" ] && mv "$VARTREE" "$VARTEMP"/TREE
+[ -d "$ROOTTEMP" ] && mv "$ROOTTREE" "$ROOTTEMP"/TREE
+
+# Finishing RMDOC and moving the SYMTREE document, if any.
+if [ -f "$OLDSYMDEST" ]; then
+while read -r line;
+do
+	[ -n "$VER" ] && [ "$line" != "$NAME"-"$VER" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
+	[ -z "$VER" ] && [ "$line" != "$NAME" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
+done < "$OLDSYMDEST"
+mv "$OLDSYM" "$RMTEMP"/SYMTREE
+mv "$OLDSYMDEST" "$RMTEMP"/SYMDEST
+fi
+
+# Making CODMR, a line-reversed version of RMDOC. Needed for the proper handling of empty directories.
+tac "$RMDOC" > "$CODMR"
 
 # This is not done in case of upgrades, as these files will already belong to the new version of the package.
 if [ "${UPGRADE:-no}" != yes ]; then
 	mkdir -p "$RMTEMP"/BIN "$RMTEMP"/DEP "$RMTEMP"/LIB
-	mv  ${BINS:?}/"$NAME" "$RMTEMP"/BIN/
+	mv ${BINS:?}/"$NAME" "$RMTEMP"/BIN/
 	mv ${DEPS:?}/"$NAME" "$RMTEMP"/DEP/
 	mv ${LIBS:?}/"$NAME" "$RMTEMP"/LIB/
-	echo Binary and library information moved to "$RMTEMP".
+	echo '	'Binary and library information moved to "$RMTEMP".
 	echo
 fi
 
 # Checking package for matches in other installed packages. Should be safe on a package-oriented system.
+# For files
 while read -r line;
 do
-	# If grep -x turns up nothing, not needed by remaining packages
-	if [ -z "$(grep -x "$line" "$PKGTREES"/*)" ]; then
-		# For files
-		[ -f "$line" ] && rm -fv "$line"
-		# For symlinks
-		[ -h "$line" ] && rm -fv "$line"
+	if [ -f "$line" ] && [ ! -h "$line" ]; then
+		# If grep -x turns up nothing, not needed by remaining packages.
+		unset LINK
+		# Using "or true" to avoid errors when examining an already-deleted file
+		LINK="$(readlink -e "$line")" || true
+		if [ -z "$(grep -x "$line" "$PKGTREES"/* "$SYMDESTS"/*)" ] && \
+		[ -z "$(grep -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
+			rm -fv "$line"
+		fi
+	fi
+done < "$RMDOC"
+
+# For symlinks
+while read -r line;
+do
+	if [ -h "$line" ]; then
+		# Don't want to knock out symlinks to things that are still needed.
+		# Important examples for LFS 11.0 and after: /sbin, /bin
+		unset LINK
+		LINK="$(readlink -e "$line")" || true
+		# If grep -x turns up nothing, not needed by remaining packages.
+		# SAFE preserves merged-usr symlinks against low-package edge cases.
+		if [ -z "$(grep -x "$line" "$PKGTREES"/* "$SYMDESTS"/* "$SAFE")" ] && \
+		[ -z "$(grep -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
+			rm -fv "$line"
+		fi
 	fi
 done < "$RMDOC"
 
 # Directories go afterwards to catch the empty ones properly.
 while read -r line;
 do
-	# If grep -x turns up nothing, not needed by remaining packages
-	if [ -z "$(grep -x "$line" "$PKGTREES"/*)" ]; then
-		# For directories
-		[ -d "$line" ] && x=$(ls -A "$line") && [ -z "$x" ] && rmdir -v --ignore-fail-on-non-empty "$line"
+	if [ -d "$line" ] && [ ! -h "$line" ]; then
+		unset LINK
+		LINK="$(readlink -e "$line")" || true
+		# Directories are protected by rmdir, etc.
+		if [ -z "$(grep -x "$line" "$PKGTREES"/* "$SYMDESTS"/*)" ] && \
+		[ -z "$(grep -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
+			# For directories (ls -A condition is to cut down on unnecessary and alarming messages)
+			unset x	
+			x=$(ls -A "$line") && [ -z "$x" ] && rmdir -v --ignore-fail-on-non-empty "$line"
+		fi
 	fi
-done < "$RMDOC"
-
+# The reversed document is used here to catch directories containing only empty directories.
+done < "$CODMR"
 
 # In case of library changes
 echo
-echo Running ldconfig now...
-/sbin/ldconfig || true
-echo Done running ldconfig.
+ldconfig
+echo '	'Done running $(tput bold)ldconfig$(tput sgr0).
 echo
 # Cleaning up
-rm -f "$RMDOC"
-rm -rf "$RMTEMP"
+rm -f "$RMDOC" "$CODMR"
+rm -rf "$RMTEMP" "$VARTEMP" "$ROOTTEMP"
+rm -f "$SAFE"
 [ -n "$VER" ] && rm -fv $STAGING/"$NAME"-"$VER".tar.xz
 [ -z "$VER" ] && rm -fv $STAGING/"$NAME".tar.xz
 
 if [ "${UPGRADE:-no}" != yes ]; then
-	echo The package "$1" has been removed. 
-	[ "$NAME" != "yalpack" ] && echo Consider running \"liblist -n\" to update yalpack\'s dynamic library information.
+	echo '	'The package $(tput bold)"$1"$(tput sgr0) has been removed. 
+	[ "$NAME" != "yalpack" ] && echo '	'Consider running $(tput bold)\"liblist -n\"$(tput sgr0) to update dynamic library information.
 	echo
 else
-	[ -n "$VER" ] && echo Extraneous files from "$NAME"-"$VER" have been removed.
-	[ -z "$VER" ] && echo Extraneous files from "$NAME" have been removed.
+	[ -n "$VER" ] && echo '	'Any extraneous files from $(tput bold)"$NAME"-"$VER"$(tput sgr0) have been removed.
+	[ -z "$VER" ] && echo '	'Any extraneous files from $(tput bold)"$NAME"$(tput sgr0) have been removed.
 	echo
 fi
 }
@@ -136,7 +224,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo pkgremove: Remove a yalpack package from the system
+		echo $(tput bold)pkgremove$(tput sgr0): Remove a yalpack package from the system.
 		echo
 		echo Syntax: pkgremove \(options\) NAME1 NAME2 ...
 		echo

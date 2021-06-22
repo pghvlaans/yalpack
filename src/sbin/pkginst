@@ -33,20 +33,30 @@ PKGDATA=$HEAD/pkgdata
 BUILDDEST=$TMP/"$PACK"/dest
 PKGDEST=$PKGDIR/dest
 PKGTREES=$PKGDATA/TREES
+SYMTREES=$PKGDATA/SYMTREES
+SYMDESTS=$PKGDATA/.SYMDESTS
 PKGVER=$PKGDATA/VER
+NEWFILES=$PKGDATA/NEWFILES
+
+# Backups
+
+VARBKUP=/var/log/yalpack
+# Placing yalpack data directories in locations not owned by root is not recommended.
+ROOTHOME=/root
+ROOTBKUP="$ROOTHOME"/.yalpack
 
 echo
-echo Installing package "$PACK".
+echo '	'Installing package $(tput bold)"$PACK"$(tput sgr0).
 echo
 set -e
 mkdir -p $STAGING
-mkdir -p "$PKGDATA" "$PKGTREES" "$PKGVER"
+mkdir -p "$PKGDATA" "$PKGTREES" "$PKGVER" "$NEWFILES"
 cd $STAGING
 tar -xf "$PACK".tar.xz
 NAME=$(cat "$PKGDIR"/NAME)
 
 # Exit code not necessary because pkgup already checks for TREE.
-[ ! -d "$PKGDEST" ] && echo Warning! "$PKGDEST" was not found. Exiting. && exit
+[ ! -d "$PKGDEST" ] && echo '	'$(tput bold)Warning! "$PKGDEST"$(tput sgr0) was not found. Exiting. && exit
 
 cd "$PKGDEST"
 # Patrick Volkerding says non-755 root is dangerous, so it can't hurt (for safety when extracting the package to root).
@@ -54,14 +64,15 @@ chmod 755 "$PKGDEST"
 # If --root-own was passed in, change ownership to root:root. Ownership is preserved at the actual install stage.
 [ "$3" = "CHOWN" ] && chown -R root:root "$PKGDEST"
 
-# Non-symlinks in etc and home will be .new; check for identical/unique. Doing nothing means .new installed. (Any other file named .new manually will be checked similarly.)
+# Non-directories, non-symlinks and non-binaries in etc and home will be .new; check for identical/unique. Doing nothing means .new installed. (Any other file named .new manually will be checked similarly.)
+echo "$PACK", installed' '$(date) > "$NEWFILES"/"$NAME"
+
 find "$PKGDEST"/ -type f | while read -r f;	
 do
 	h="${f##$PKGDEST/}"
 	i="${h%.new}"
 	# Proceed if the file is .new
 	if [ "$i" != "$h" ]; then
-		echo Checking "$f".
 		# The non-.new version will be called this, if needed
 		j="${f%.new}"
 		# If file exists, check for differences
@@ -70,95 +81,147 @@ do
 			md5i=$(md5sum "/$i" | cut -d' ' -f-1)
 			# If not different, new file is not needed
 			if [ "$md5f" = "$md5i" ]; then
-				rm -fv "$f"
-				echo
+				rm -f "$f"
 			else
 				# If .new file will be installed, log it and show the user afterwards.
-				echo "/$h" >> "$PKGDIR"/NEWFILES
+				echo "/$h" >> "$NEWFILES"/"$NAME"
 				# Change the .new file ownership and mode to match the existing file (mostly relevant for rc files)
 				chown "$(stat -c "%U:%G" "/$i")" "$f"
 				chmod "$(stat -c "%a" "/$i")" "$f"
-				echo
 			fi
 		# If file DNE, don't call the new one .new
 		else
-			echo File does not exist on this system.
-			mv -v "$f" "$j"
-			echo
+			mv "$f" "$j"
 		fi
 	fi
 done
-echo Done evaluating the .new files, if any.
+echo '	'Done evaluating the $(tput bold).new$(tput sgr0) files, if any.
 echo
+
+# Don't retain empty NEWFILE documents.
+unset NEWLENGTH
+NEWLENGTH="$(wc -l "$NEWFILES"/"$NAME" | cut -d' ' -f1)"
+[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$NAME"
 
 # Preparing and reporting on symlinks; absolute symlinks can have been pointed at either the ultimate
-# destination or a file/directory in the build directory.
-find "$PKGDEST"/ -type l | while read -r f;
+# destination or a file/directory in the build directory. Symlinks that required repair will be reported.
+while read -r f;
 do
-	i="${f##$PKGDEST/}"
+	if [ -h "$PKGDEST"/"$f" ]; then
+	i="${f#/}"
 	j=$(readlink "$i")
 	# If the symlink is absolute; BUILDDEST needed to test it out.
-	if echo "$j" | grep -q "$BUILDDEST"; then
+	if [ -n "$(echo "$j" | grep "$BUILDDEST")" ]; then
 		# Pointing at BUILDDEST from time of building.
-		k="${j##$BUILDDEST/}"
-		echo /"$i" to /"$k" >> "$PKGDIR"/SYMLINKS
-		ln -sfv /"$k" "$f"
+		k="${j##$BUILDDEST}"
+		echo /"$i" "to" "$k" >> "$PKGDIR"/SYMLINKS
+		ln -sfn "$k" "$i"
 		echo
-	# If the symlink is relative
-	else
-		echo /"$i" to "$j" >> "$PKGDIR"/SYMLINKS
 	fi
-done
+	fi
+done < "$PKGDIR"/TREE
+
+[ -f "$PKGDIR/SYMLINKS" ] && echo '	'Symlink checks and repairs complete. && echo
 
 # Now that changes have been made to dest, make a new tarball for extraction...
+echo '	'$(tput bold)Repackaging$(tput sgr0)...
 tar -czf "$STAGING"/INPACKAGE.tar.xz ./*
-# And extract over root.
+# And extract over root. (dereferencing for links; don't change directory mode or ownership)
 cd /
-tar -xvf "$STAGING"/INPACKAGE.tar.xz --no-overwrite-dir
+echo '	'$(tput bold)Extracting now$(tput sgr0)...
+tar --dereference --hard-dereference -xf "$STAGING"/INPACKAGE.tar.xz --no-overwrite-dir
 cd "$PKGDIR"
+echo '	'Done.
 echo
 
-# Running ldconfig in case of new libraries
-echo Now running ldconfig...
-/sbin/ldconfig || true
-echo Done running ldconfig.
-echo
+# Running ldconfig in case of new libraries; in case of an upgrade, it should be run after removal.
+if [ "${UPGRADE:-no}" != yes ]; then
+	ldconfig
+	echo '	'Done running $(tput bold)ldconfig$(tput sgr0).
+	echo
+fi
 
 # Populate the TREE entry for future updating
 cat "$PKGDIR"/TREE > $PKGTREES/"$NAME"
+# Saving to the backup locations as well, if they exist. The install script for
+# yalpack will make and populate them otherwise.
+[ -d "$VARBKUP" ] && cat "$PKGDIR"/TREE > "$VARBKUP"/"$NAME"
+[ -d "$ROOTBKUP" ] && cat "$PKGDIR"/TREE > "$ROOTBKUP"/"$NAME"
 
 # Add version information to /var/yalpack/pkgdata
-mkdir -p "$PKGVER"
 cat "$PKGDIR"/VER > "$PKGVER"/"$NAME"
+
+# Make the SYMTREES document, if needed. If the directory does not yet exist,
+# the install script for yalpack will make and populate it.
+unset SYMTREEFLAG
+if [ -d "$SYMTREES" ]; then
+	echo '	'Checking for installations under paths with symlinks and symlinks with
+	echo '	'destinations not provided by $(tput bold)"$PACK"$(tput sgr0)...
+	while read -r line; do
+		if [ -f "$line" ] || [ -h "$line" ] || [ -d "$line" ]; then
+			unset LINK
+			# "or true" prevents pkginst from crashing if the package contains a broken symlink
+			LINK="$(readlink -e "$line")" || true
+			# Trying to avoid doubles with the original TREE document
+			if [ -n "$LINK" ] && \
+			[ "$LINK" != "$line" ] && \
+			[ -z "$(grep -x "$LINK" "$PKGTREES"/"$NAME")" ] && \
+			[ -z "$(grep -x "$LINK".new "$PKGTREES"/"$NAME")" ]; then
+				SYMTREEFLAG="WRITE"
+				echo "$line" to "$LINK" >> "$SYMTREES"/"$NAME"
+				echo "$LINK" >> "$SYMDESTS"/"$NAME"
+			fi
+		fi
+	done < "$PKGTREES"/"$NAME"
+	if [ "$SYMTREEFLAG" = "WRITE" ]; then
+		echo
+		cat "$SYMTREES"/"$NAME"
+		echo
+	fi
+	echo '	'Done.
+	echo
+fi
 
 # Run the install script, if any
 if [ -f "$PKGDIR/install.sh" ]; then 
-	echo Now running install.sh.
+	echo '	'Now running $(tput bold)install.sh$(tput sgr0).
+	echo
 	"$PKGDIR"/install.sh
 	echo
 fi
 
 # For the installer's edification and to update library use info
-echo
 # pkgup handles pkgcheck for upgrades.
-[ "${UPGRADE:-no}" != yes ] && CHECK=no /sbin/pkgcheck "$NAME"
+[ "${UPGRADE:-no}" != yes ] && CHECK=no pkgcheck "$NAME"
 
-# Inform about any symlinks
+# Inform about any repaired symlinks
 if [ -f "$PKGDIR"/SYMLINKS ]; then 
-	echo The following symlinks were created by the build process:
+	echo '	'The following $(tput bold)absolute symlinks$(tput sgr0) were repaired before installation:
+	echo
 	cat "$PKGDIR"/SYMLINKS
 	echo
 fi
 
 # Inform about any .new files
-if [ -f "$PKGDIR"/NEWFILES ]; then
-	echo The following .new files should be examined:
-	cat "$PKGDIR"/NEWFILES
+if [ -f "$NEWFILES/$NAME" ]; then
+	echo '	'The following $(tput bold).new$(tput sgr0) files should be examined:
 	echo
-	echo '' >> "$PKGDATA"/NEWFILE-LOG
-	echo "$PACK" installed on "$(date)" >> "$PKGDATA"/NEWFILE-LOG
-	cat "$PKGDIR"/NEWFILES >> "$PKGDATA"/NEWFILE-LOG
-	echo The list has been added to "$PKGDATA"/NEWFILE-LOG for convenience.
+	cat "$NEWFILES"/"$NAME"
+	echo
+	echo '	'The list will be stored at $(tput bold)"$NEWFILES"/"$NAME"$(tput sgr0) for reference.
+	echo '	'Run $(tput bold)/usr/share/yalpack/newfiles$(tput sgr0) to update "$NEWFILES".
+	echo
+fi
+
+if [ "$SYMTREEFLAG" = "WRITE" ]; then
+	echo '	'$(tput bold)One or more installations under a symlink path have been detected.$(tput sgr0)
+	# This may happen from time to time with merged-usr. Without merged-usr, it probably shouldn't.
+	if [ ! -h "/bin" ]; then
+		echo '	'This may be a sign tht the package was built incorrectly. See 
+		echo '	'$(tput bold)"$SYMTREES"/"$NAME"$(tput sgr0) for a list.
+	else
+		echo '	'See $(tput bold)"$SYMTREES"/"$NAME"$(tput sgr0) for a list.
+	fi
 	echo
 fi
 
@@ -167,13 +230,13 @@ cd "$STAGING"
 rm -f "$STAGING"/INPACKAGE.tar.xz
 rm -rf "${PKGDIR:?}"
 if [ "$2" != "KEEP" ]; then
-	rm -vf $STAGING/"$PACK".tar.xz
-	echo The package tarball has been removed. See $PKGTREES/"$NAME"
-	echo for a list of installed files.
+	rm -f $STAGING/"$PACK".tar.xz
+	echo '	'The package tarball has been removed. See $(tput bold)$PKGTREES/"$NAME"$(tput sgr0)
+	echo '	'for a list of installed files, symlinks and directories.
 	echo
 fi
 
-echo Installation of "$PACK" complete.
+echo '	'Installation of $(tput bold)"$PACK"$(tput sgr0) complete.
 echo
 }
 unset KEEP
@@ -184,7 +247,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo pkginst: Install a yalpack package from a package tarball in /var/yalpack/packages
+		echo $(tput bold)pkginst$(tput sgr0): Install a yalpack package from a package tarball in /var/yalpack/packages
 		echo
 		echo Syntax: pkginst \(options\) NAME1-VER1 NAME2-VER2 ...
 		echo 

@@ -33,7 +33,7 @@ BUILDDEST="$BUILDDIR"/dest
 NAME="$(cat "$BUILDDIR"/NAME)"
 
 echo
-echo Making a package for "$1".
+echo '	'Making a package for $(tput bold)"$1"$(tput sgr0).
 echo
 set -e
 cd "$BUILDDEST"
@@ -45,8 +45,14 @@ if [ -d "$BUILDDEST/$z" ]; then
 	# Copy the original directory out for safekeeping
 	rm -rf $TMP/"$1"-$z
 	cp -r "$BUILDDEST"/$z $TMP/"$1"-$z
+	# List non-binary files
+	rm -f "$TMP"/"$1"-"$z"-list
+	echo "$(find "$(pwd)"/$z/ -type f -exec file {} \; | grep text | cut -d':' -f1)" >> "$TMP"/"$1"-"$z"-list
 	# Now the renaming can proceed
-	find "$(pwd)"/$z/ -type f -exec mv '{}' '{}'.new \;
+	while read -r f; do
+		# Existence check needed, as etc or home without files will otherwise crash.
+		[ -f "$f" ] && [ ! -h "$f" ] &&mv "$f" "$f".new
+	done < "$TMP"/"$1"-"$z"-list
 fi
 done
 
@@ -77,19 +83,20 @@ mv "$1".tar.xz $STAGING
 # Check for the existence of an executable install.sh file
 if [ -x "$BUILDDIR/install.sh" ]; then
 	echo
-	echo Executable install.sh file found.
+	echo '	'Executable $(tput bold)install.sh$(tput sgr0) file found.
 else
 	echo
-	echo NOTE: No install.sh file was found, or it is not executable.
-	echo Please confirm before installation.
+	echo '	'NOTE: No $(tput bold)install.sh$(tput sgr0) file was found, or it is not executable.
+	echo '	'Please confirm before installation.
 fi
 
-# Restoring the original files to the compiled source
+# Restoring the original files to the compiled source and cleaning up.
 for z in etc home
 do
 if [ -d "$TMP/$1-$z" ]; then
 	rm -rf "${BUILDDEST:?}"/$z
 	mv $TMP/"$1"-$z "$BUILDDEST"/$z
+	rm -f $TMP/"$1"-"$z"-list
 fi
 done
 echo
@@ -98,15 +105,15 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo pkgmake: Make a yalpack package from software compiled to a directory at /tmp/NAME-VER/dest
+		echo $(tput bold)pkgmake$(tput sgr0): Make a yalpack package from software compiled to a directory at /tmp/NAME-VER/dest
 		echo
 		echo Syntax: pkgmake NAME1-VER1 NAME2-VER2 ...
 		echo
-		echo Before making the package, ensure a file called \"NAME\" with the package name exists 
-		echo above dest. If \"NAME\" contains the entire package-version string, NAME is sufficient
+		echo Before making the package, ensure a file called $(tput bold)\"NAME\"$(tput sgr0) with the package name exists 
+		echo above dest. If $(tput bold)\"NAME\"$(tput sgr0) contains the entire package-version string, NAME is sufficient
 		echo when calling pkgmake.
 		echo 
-		echo An executable \"install.sh\" above dest will be run before the package checks at the
+		echo An executable $(tput bold)\"install.sh\"$(tput sgr0) above $(tput bold)dest$(tput sgr0) will be run before the package checks at the
 		echo end of the installation process.
 		echo
 		exit
