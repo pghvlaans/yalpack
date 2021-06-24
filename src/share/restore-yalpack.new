@@ -41,7 +41,7 @@ NEWFILES=$PKGDATA/NEWFILES
 
 VARBKUP=/var/log/yalpack
 ROOTHOME=/root
-ROOTBKUP="$ROOTHOME"/.yalpack
+ROOTBKUP="$ROOTHOME"/.yalpack-backup
 
 echo
 # Beginning to restore the directory structure
