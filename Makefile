@@ -87,7 +87,7 @@ package:
 	@echo yalpack > $(PKGDIR)/NAME
 	@pkgmake yalpack-$(VER)
 	@pkginst yalpack-$(VER)
-	@echo '	'$(tput bold)yalpack$(tput sgr0) should now be installed as a package. Run $(tput bold)pkglist$(tput sgr0) to confirm.
+	@echo '	'$(tput smul)yalpack$(tput rmul) should now be installed as a package. Run $(tput smul)pkglist$(tput rmul) to confirm.
 	@echo
 
 clean:
