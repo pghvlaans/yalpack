@@ -26,7 +26,7 @@
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         echo
-	echo $(tput bold)libprecise$(tput sgr0): Check for details about a particular dynamic library.
+	echo $(tput smul)libprecise$(tput rmul): Check for details about a particular dynamic library.
         echo
         echo Syntax: libprecise LIBRARY
         echo
@@ -48,8 +48,8 @@ BINDEPS=$HEAD/BIN-DEPS
 y="$1[.]"
 
 echo
-echo '	'Checking for information about the library $(tput bold)"$1"$(tput sgr0). If the intended 
-echo '	'library does not exist in the form $(tput bold)"$1".*$(tput sgr0), results will be
+echo '	'Checking for information about the library $(tput smul)"$1"$(tput rmul). If the intended 
+echo '	'library does not exist in the form $(tput smul)"$1".*$(tput rmul), results will be
 echo '	'incomplete or inaccurate.
 echo
 
@@ -58,7 +58,7 @@ do
 	if [ -f "$PKG/libs" ]; then
 		x=$(grep "$y" "$PKG/libs")
 		PKG=$(basename "$PKG")
-		[ -n "$x" ] && echo '	'$(tput bold)"$1"$(tput sgr0) appears to have been installed by the $(tput bold)"$PKG"$(tput sgr0) package.
+		[ -n "$x" ] && echo '	'$(tput smul)"$1"$(tput rmul) appears to have been installed by the $(tput smul)"$PKG"$(tput rmul) package.
 	fi
 done
 
@@ -69,12 +69,12 @@ BINSNUM=$(echo "$BINDEPS" | tr -cd '/' | wc -c)
 # Adjusting
 DEPSNUM=$((DEPSNUM + 2))
 BINSNUM=$((BINSNUM + 2))
-echo '	'The following $(tput bold)packages$(tput sgr0) use this library:
+echo '	'The following $(tput smul)packages$(tput rmul) use this library:
 echo
 grep "$y" "$PKGDEPS"/*/* | cut -d'/' -f"$DEPSNUM"- | cut -d'/' -f-1 | uniq
 
 echo
-echo '	'The following $(tput bold)programs$(tput sgr0) use this library:
+echo '	'The following $(tput smul)programs$(tput rmul) use this library:
 echo
 grep "$y" $BINDEPS/*/* | cut -d'/' -f"$BINSNUM"- | cut -d'/' -f-1 | uniq
 echo

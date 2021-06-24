@@ -38,7 +38,7 @@ unset SEARCHNEW
 SEARCH="$1"
 # Enables detection of .new files for "--exact" calls.
 SEARCHNEW="$SEARCH".new
-echo '	'$(tput bold)"$SEARCH"$(tput sgr0):
+echo '	'$(tput smul)"$SEARCH"$(tput rmul):
 echo
 
 if [ "$EXACT" = "EXACT" ] && [ "$FILE" = "FILE" ]; then
@@ -104,7 +104,7 @@ echo
 for arg in "$@"; do
 case "$arg" in
 	-h|--help)
-		echo $(tput bold)pkgfind$(tput sgr0): Use a search term or full file path to find the yalpack package providing it.
+		echo $(tput smul)pkgfind$(tput rmul): Use a search term or full file path to find the yalpack package providing it.
 	echo
 	echo Syntax: pkgfind \(options\) SEARCHTERM1 ...
 	echo

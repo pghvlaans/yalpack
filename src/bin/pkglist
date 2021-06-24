@@ -65,7 +65,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo $(tput bold)pkglist$(tput sgr0): Show a list of installed yalpack packages \(search functionality available\).
+		echo $(tput smul)pkglist$(tput rmul): Show a list of installed yalpack packages \(search functionality available\).
 		echo
 		echo Syntax: pkglist \(options\) \(SEARCHTERM1 SEARCHTERM2 ... \)
 		echo
