@@ -33,7 +33,7 @@ BUILDDEST="$BUILDDIR"/dest
 NAME="$(cat "$BUILDDIR"/NAME)"
 
 echo
-echo '	'Making a package for $(tput bold)"$1"$(tput sgr0).
+echo '	'Making a package for $(tput smul)"$1"$(tput rmul).
 echo
 set -e
 cd "$BUILDDEST"
@@ -83,10 +83,10 @@ mv "$1".tar.xz $STAGING
 # Check for the existence of an executable install.sh file
 if [ -x "$BUILDDIR/install.sh" ]; then
 	echo
-	echo '	'Executable $(tput bold)install.sh$(tput sgr0) file found.
+	echo '	'Executable $(tput smul)install.sh$(tput rmul) file found.
 else
 	echo
-	echo '	'NOTE: No $(tput bold)install.sh$(tput sgr0) file was found, or it is not executable.
+	echo '	'NOTE: No $(tput smul)install.sh$(tput rmul) file was found, or it is not executable.
 	echo '	'Please confirm before installation.
 fi
 
@@ -105,15 +105,15 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo $(tput bold)pkgmake$(tput sgr0): Make a yalpack package from software compiled to a directory at /tmp/NAME-VER/dest
+		echo $(tput smul)pkgmake$(tput rmul): Make a yalpack package from software compiled to a directory at /tmp/NAME-VER/dest
 		echo
 		echo Syntax: pkgmake NAME1-VER1 NAME2-VER2 ...
 		echo
-		echo Before making the package, ensure a file called $(tput bold)\"NAME\"$(tput sgr0) with the package name exists 
-		echo above dest. If $(tput bold)\"NAME\"$(tput sgr0) contains the entire package-version string, NAME is sufficient
+		echo Before making the package, ensure a file called $(tput smul)\"NAME\"$(tput rmul) with the package name exists 
+		echo above dest. If $(tput smul)\"NAME\"$(tput rmul) contains the entire package-version string, NAME is sufficient
 		echo when calling pkgmake.
 		echo 
-		echo An executable $(tput bold)\"install.sh\"$(tput sgr0) above $(tput bold)dest$(tput sgr0) will be run before the package checks at the
+		echo An executable $(tput smul)\"install.sh\"$(tput rmul) above $(tput smul)dest$(tput rmul) will be run before the package checks at the
 		echo end of the installation process.
 		echo
 		exit

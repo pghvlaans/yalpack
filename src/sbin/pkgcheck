@@ -26,7 +26,7 @@
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 	echo
-	echo $(tput bold)pkgcheck$(tput sgr0): Check for details about a yalpack package.
+	echo $(tput smul)pkgcheck$(tput rmul): Check for details about a yalpack package.
 	echo
 	echo Syntax: pkgcheck NAME
 	echo
@@ -44,14 +44,14 @@ PKGTREE=$PKGTREES/"$1"
 BINDEPS=$HEAD/BIN-DEPS
 
 [ "${CHECK:-yes}" = yes ] && echo
-echo '	'Preparing to check for information about $(tput bold)"$1"$(tput sgr0).
+echo '	'Preparing to check for information about $(tput smul)"$1"$(tput rmul).
 echo
 set -e
 cd $STAGING
 unset NAME
 
 # Sanity check
-[ ! -f "$PKGTREE" ] && echo '	'$(tput bold)Warning!$(tput sgr0) Package not found. Exiting now. && exit
+[ ! -f "$PKGTREE" ] && echo '	'$(tput smul)Warning!$(tput rmul) Package not found. Exiting now. && exit
 NAME=$(basename "$PKGTREE")
 
 PKGBIN=$PKGDATA/PKG-BINS/"$NAME"
@@ -102,19 +102,19 @@ while read -r f; do
 done < "$PKGTREE"
 
 if [ -f "$PKGBIN"/instbins ]; then
-	echo '	'These programs were installed by $(tput bold)"$1"$(tput sgr0):
+	echo '	'These programs were installed by $(tput smul)"$1"$(tput rmul):
 	echo
 	cat "$PKGBIN"/instbins
 	echo
 fi
 if [ -f "$PKGLIB"/libs ]; then
-	echo '	'These libraries were installed by $(tput bold)$"$1"$(tput sgr0):
+	echo '	'These libraries were installed by $(tput smul)$"$1"$(tput rmul):
 	echo
 	cat "$PKGLIB"/libs
 	echo
 	# Called with CHECK=no from pkginst and pkgup; step is skipped otherwise.
 	if [ "${CHECK:-yes}" != yes ]; then
-		echo '	'Now using $(tput bold)liblist -n$(tput sgr0) to update all library information...
+		echo '	'Now using $(tput smul)liblist -n$(tput rmul) to update all library information...
 		set +e
 		liblist -n > /dev/null 2>&1
 		set -e
@@ -125,7 +125,7 @@ fi
 
 if [ "${CHECK:-yes}" != yes ]; then
 	if [ "$NAME" = "yalpack" ] ; then
-		echo '	'This is an installation or upgrade of $(tput bold)yalpack$(tput sgr0). Running $(tput bold)liblist -n$(tput sgr0) now to make a
+		echo '	'This is an installation or upgrade of $(tput smul)yalpack$(tput rmul). Running $(tput smul)liblist -n$(tput rmul) now to make a
 		echo '	'collection of library information...
 		liblist -n > /dev/null 2>&1
 		echo '	'Done.
@@ -133,5 +133,5 @@ if [ "${CHECK:-yes}" != yes ]; then
 	fi	
 fi
 
-echo '	'$(tput bold)Check complete.$(tput sgr0)
+echo '	'$(tput smul)Check complete.$(tput rmul)
 echo

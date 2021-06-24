@@ -46,7 +46,7 @@ ROOTHOME=/root
 ROOTBKUP="$ROOTHOME"/.yalpack
 
 echo
-echo '	'Installing package $(tput bold)"$PACK"$(tput sgr0).
+echo '	'Installing package $(tput smul)"$PACK"$(tput rmul).
 echo
 set -e
 mkdir -p $STAGING
@@ -56,7 +56,7 @@ tar -xf "$PACK".tar.xz
 NAME=$(cat "$PKGDIR"/NAME)
 
 # Exit code not necessary because pkgup already checks for TREE.
-[ ! -d "$PKGDEST" ] && echo '	'$(tput bold)Warning! "$PKGDEST"$(tput sgr0) was not found. Exiting. && exit
+[ ! -d "$PKGDEST" ] && echo '	'$(tput smul)Warning! "$PKGDEST"$(tput rmul) was not found. Exiting. && exit
 
 cd "$PKGDEST"
 # Patrick Volkerding says non-755 root is dangerous, so it can't hurt (for safety when extracting the package to root).
@@ -95,7 +95,7 @@ do
 		fi
 	fi
 done
-echo '	'Done evaluating the $(tput bold).new$(tput sgr0) files, if any.
+echo '	'Done evaluating the $(tput smul).new$(tput rmul) files, if any.
 echo
 
 # Don't retain empty NEWFILE documents.
@@ -124,11 +124,11 @@ done < "$PKGDIR"/TREE
 [ -f "$PKGDIR/SYMLINKS" ] && echo '	'Symlink checks and repairs complete. && echo
 
 # Now that changes have been made to dest, make a new tarball for extraction...
-echo '	'$(tput bold)Repackaging$(tput sgr0)...
+echo '	'$(tput smul)Repackaging$(tput rmul)...
 tar -czf "$STAGING"/INPACKAGE.tar.xz ./*
 # And extract over root. (dereferencing for links; don't change directory mode or ownership)
 cd /
-echo '	'$(tput bold)Extracting now$(tput sgr0)...
+echo '	'$(tput smul)Extracting now$(tput rmul)...
 tar --dereference --hard-dereference -xf "$STAGING"/INPACKAGE.tar.xz --no-overwrite-dir
 cd "$PKGDIR"
 echo '	'Done.
@@ -137,7 +137,7 @@ echo
 # Running ldconfig in case of new libraries; in case of an upgrade, it should be run after removal.
 if [ "${UPGRADE:-no}" != yes ]; then
 	ldconfig
-	echo '	'Done running $(tput bold)ldconfig$(tput sgr0).
+	echo '	'Done running $(tput smul)ldconfig$(tput rmul).
 	echo
 fi
 
@@ -156,7 +156,7 @@ cat "$PKGDIR"/VER > "$PKGVER"/"$NAME"
 unset SYMTREEFLAG
 if [ -d "$SYMTREES" ]; then
 	echo '	'Checking for installations under paths with symlinks and symlinks with
-	echo '	'destinations not provided by $(tput bold)"$PACK"$(tput sgr0)...
+	echo '	'destinations not provided by $(tput smul)"$PACK"$(tput rmul)...
 	while read -r line; do
 		if [ -f "$line" ] || [ -h "$line" ] || [ -d "$line" ]; then
 			unset LINK
@@ -184,7 +184,7 @@ fi
 
 # Run the install script, if any
 if [ -f "$PKGDIR/install.sh" ]; then 
-	echo '	'Now running $(tput bold)install.sh$(tput sgr0).
+	echo '	'Now running $(tput smul)install.sh$(tput rmul).
 	echo
 	"$PKGDIR"/install.sh
 	echo
@@ -196,7 +196,7 @@ fi
 
 # Inform about any repaired symlinks
 if [ -f "$PKGDIR"/SYMLINKS ]; then 
-	echo '	'The following $(tput bold)absolute symlinks$(tput sgr0) were repaired before installation:
+	echo '	'The following $(tput smul)absolute symlinks$(tput rmul) were repaired before installation:
 	echo
 	cat "$PKGDIR"/SYMLINKS
 	echo
@@ -204,23 +204,23 @@ fi
 
 # Inform about any .new files
 if [ -f "$NEWFILES/$NAME" ]; then
-	echo '	'The following $(tput bold).new$(tput sgr0) files should be examined:
+	echo '	'The following $(tput smul).new$(tput rmul) files should be examined:
 	echo
 	cat "$NEWFILES"/"$NAME"
 	echo
-	echo '	'The list will be stored at $(tput bold)"$NEWFILES"/"$NAME"$(tput sgr0) for reference.
-	echo '	'Run $(tput bold)/usr/share/yalpack/newfiles$(tput sgr0) to update "$NEWFILES".
+	echo '	'The list will be stored at $(tput smul)"$NEWFILES"/"$NAME"$(tput rmul) for reference.
+	echo '	'Run $(tput smul)/usr/share/yalpack/newfiles$(tput rmul) to update "$NEWFILES".
 	echo
 fi
 
 if [ "$SYMTREEFLAG" = "WRITE" ]; then
-	echo '	'$(tput bold)One or more installations under a symlink path have been detected.$(tput sgr0)
+	echo '	'$(tput smul)One or more installations under a symlink path have been detected.$(tput rmul)
 	# This may happen from time to time with merged-usr. Without merged-usr, it probably shouldn't.
 	if [ ! -h "/bin" ]; then
 		echo '	'This may be a sign tht the package was built incorrectly. See 
-		echo '	'$(tput bold)"$SYMTREES"/"$NAME"$(tput sgr0) for a list.
+		echo '	'$(tput smul)"$SYMTREES"/"$NAME"$(tput rmul) for a list.
 	else
-		echo '	'See $(tput bold)"$SYMTREES"/"$NAME"$(tput sgr0) for a list.
+		echo '	'See $(tput smul)"$SYMTREES"/"$NAME"$(tput rmul) for a list.
 	fi
 	echo
 fi
@@ -231,12 +231,12 @@ rm -f "$STAGING"/INPACKAGE.tar.xz
 rm -rf "${PKGDIR:?}"
 if [ "$2" != "KEEP" ]; then
 	rm -f $STAGING/"$PACK".tar.xz
-	echo '	'The package tarball has been removed. See $(tput bold)$PKGTREES/"$NAME"$(tput sgr0)
+	echo '	'The package tarball has been removed. See $(tput smul)$PKGTREES/"$NAME"$(tput rmul)
 	echo '	'for a list of installed files, symlinks and directories.
 	echo
 fi
 
-echo '	'Installation of $(tput bold)"$PACK"$(tput sgr0) complete.
+echo '	'Installation of $(tput smul)"$PACK"$(tput rmul) complete.
 echo
 }
 unset KEEP
@@ -247,7 +247,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo $(tput bold)pkginst$(tput sgr0): Install a yalpack package from a package tarball in /var/yalpack/packages
+		echo $(tput smul)pkginst$(tput rmul): Install a yalpack package from a package tarball in /var/yalpack/packages
 		echo
 		echo Syntax: pkginst \(options\) NAME1-VER1 NAME2-VER2 ...
 		echo 

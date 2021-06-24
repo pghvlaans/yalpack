@@ -68,8 +68,8 @@ if [ "$2" != "NOCONFIRM" ] && [ "${UPGRADE:-no}" != yes ]; then
 	echo
 	echo '	'It may be a good idea to run pkgcheck on the package first.
 	echo
-	echo '	'Removal of the package $(tput bold)"$1"$(tput sgr0) has been requested. To proceed\, 
-	echo '	'enter $(tput bold)\"y\"$(tput sgr0). If in doubt, terminate the process now.
+	echo '	'Removal of the package $(tput smul)"$1"$(tput rmul) has been requested. To proceed\, 
+	echo '	'enter $(tput smul)\"y\"$(tput rmul). If in doubt, terminate the process now.
 	read -r INPUT
 	echo
 	[ "$INPUT" != "y" ] && exit
@@ -107,7 +107,7 @@ fi
 [ -f "$OLDNEWFILE" ] && mv "$OLDNEWFILE" "$RMTEMP"/NEWFILE
 
 # No exit code necessary because pkgup already checks for this.
-[ -z "$(find "$OLDTREE")" ] && echo '	'Requested package not found. Check for the package name with $(tput bold)pkglist$(tput sgr0). Exiting now. && exit
+[ -z "$(find "$OLDTREE")" ] && echo '	'Requested package not found. Check for the package name with $(tput smul)pkglist$(tput rmul). Exiting now. && exit
 
 # Removing any previous RMDOC and CODMR
 rm -f "$RMDOC" "$CODMR"
@@ -199,7 +199,7 @@ done < "$CODMR"
 # In case of library changes
 echo
 ldconfig
-echo '	'Done running $(tput bold)ldconfig$(tput sgr0).
+echo '	'Done running $(tput smul)ldconfig$(tput rmul).
 echo
 # Cleaning up
 rm -f "$RMDOC" "$CODMR"
@@ -209,12 +209,12 @@ rm -f "$SAFE"
 [ -z "$VER" ] && rm -fv $STAGING/"$NAME".tar.xz
 
 if [ "${UPGRADE:-no}" != yes ]; then
-	echo '	'The package $(tput bold)"$1"$(tput sgr0) has been removed. 
-	[ "$NAME" != "yalpack" ] && echo '	'Consider running $(tput bold)\"liblist -n\"$(tput sgr0) to update dynamic library information.
+	echo '	'The package $(tput smul)"$1"$(tput rmul) has been removed. 
+	[ "$NAME" != "yalpack" ] && echo '	'Consider running $(tput smul)\"liblist -n\"$(tput rmul) to update dynamic library information.
 	echo
 else
-	[ -n "$VER" ] && echo '	'Any extraneous files from $(tput bold)"$NAME"-"$VER"$(tput sgr0) have been removed.
-	[ -z "$VER" ] && echo '	'Any extraneous files from $(tput bold)"$NAME"$(tput sgr0) have been removed.
+	[ -n "$VER" ] && echo '	'Any extraneous files from $(tput smul)"$NAME"-"$VER"$(tput rmul) have been removed.
+	[ -z "$VER" ] && echo '	'Any extraneous files from $(tput smul)"$NAME"$(tput rmul) have been removed.
 	echo
 fi
 }
@@ -224,7 +224,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo $(tput bold)pkgremove$(tput sgr0): Remove a yalpack package from the system.
+		echo $(tput smul)pkgremove$(tput rmul): Remove a yalpack package from the system.
 		echo
 		echo Syntax: pkgremove \(options\) NAME1 NAME2 ...
 		echo

@@ -46,12 +46,12 @@ if [ "$4" != "NOCONFIRM" ]; then
 	echo
 	echo '	'It may be a good idea to run pkgcheck on the old package first.
 	echo
-	echo '	'An upgrade of $(tput bold)"$1"$(tput sgr0) to $(tput bold)"$2"$(tput sgr0) has been requested. To proceed,
-	echo '	'enter $(tput bold)\"y\"$(tput sgr0). If in doubt, terminate the process now.
+	echo '	'An upgrade of $(tput smul)"$1"$(tput rmul) to $(tput smul)"$2"$(tput rmul) has been requested. To proceed,
+	echo '	'enter $(tput smul)\"y\"$(tput rmul). If in doubt, terminate the process now.
 	read -r INPUT
 	[ "$INPUT" != "y" ] && exit
 else
-	echo '	'Upgrade of $(tput bold)"$1"$(tput sgr0) to $(tput bold)"$2"$(tput sgr0) is underway.
+	echo '	'Upgrade of $(tput smul)"$1"$(tput rmul) to $(tput smul)"$2"$(tput rmul) is underway.
 fi
 echo
 
@@ -63,8 +63,8 @@ set -e
 cd $STAGING
 [ ! -d "$NEWDIR" ] && tar -xf $STAGING/"$2".tar.xz
 # Sanity checks
-[ ! -f "$NEWDIR/TREE" ] && echo '	'$(tput bold)Warning!$(tput sgr0) The $(tput bold)TREE$(tput sgr0) file for $(tput bold)"$2"$(tput sgr0) could not be found. Try running pkgmake again. Exiting now. && exit
-[ ! -f "$NEWDIR/NAME" ] && echo '	'$(tput bold)Warning!$(tput sgr0) The $(tput bold)NAME$(tput sgr0) file for $(tput bold)"$2"$(tput sgr0) could not be found. Try running pkgmake again. Exiting now. && exit
+[ ! -f "$NEWDIR/TREE" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)TREE$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
+[ ! -f "$NEWDIR/NAME" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)NAME$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
 NAME="$(cat "$NEWDIR/NAME")"
 
 # The new version will overwrite the outgoing TREE and VER, but they need to be saved for comparison.
@@ -99,9 +99,9 @@ NEWINITVER="$(/sbin/init --version | cut -d' ' -f4-)"
 unset MESSAGE
 # Adding "or true" means the script will not crash when performing glibc or init upgrades
 [ -n "$(grep /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && telinit U || true
-[ "$MESSAGE" = "WRITE" ] && echo && echo '	'$(tput bold)init$(tput sgr0) has been reloaded, if not in chroot. && echo
+[ "$MESSAGE" = "WRITE" ] && echo && echo '	'$(tput smul)init$(tput rmul) has been reloaded, if not in chroot. && echo
 
-echo '	'The upgrade of $(tput bold)"$1"$(tput sgr0) to $(tput bold)"$2"$(tput sgr0) is complete.
+echo '	'The upgrade of $(tput smul)"$1"$(tput rmul) to $(tput smul)"$2"$(tput rmul) is complete.
 echo
 }
 unset OUTGOING
@@ -113,7 +113,7 @@ for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 		echo
-		echo $(tput bold)pkgup$(tput sgr0): Upgrade from one yalpack package to another.
+		echo $(tput smul)pkgup$(tput rmul): Upgrade from one yalpack package to another.
 		echo
 		echo Syntax: pkgup \(options\) OLDNAME NEWNAME-NEWVER
 		echo

@@ -64,7 +64,7 @@ else
 		case "$arg" in
 			-h|--help)
 			echo
-			echo $(tput bold)liblist$(tput sgr0): Generate dynamic library information, separated by binary and stored in
+			echo $(tput smul)liblist$(tput rmul): Generate dynamic library information, separated by binary and stored in
 			echo /var/yalpack/BINDEPS
 			echo
 			echo Syntax: liblist \(options\) \(PATH1 PATH2 ... \)
