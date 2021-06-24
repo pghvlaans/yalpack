@@ -37,7 +37,7 @@ NEWFILES=$PKGDATA/NEWFILES
 VARBKUP=/var/log/yalpack
 # Putting yalpack data directories in locations not owned by root is not recommended.
 ROOTHOME=/root
-ROOTBKUP=$ROOTHOME/.yalpack
+ROOTBKUP=$ROOTHOME/.yalpack-backup
 
 main() {
 NEWDIR=$STAGING/"$2"

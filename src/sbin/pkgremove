@@ -59,7 +59,7 @@ VARTREE=$VARBKUP/"$1"
 VARTEMP=$VARBKUP/RMTEMP
 # Putting yalpack data directories in locations not owned by root is not recommended.
 ROOTHOME=/root
-ROOTBKUP=$ROOTHOME/.yalpack
+ROOTBKUP=$ROOTHOME/.yalpack-backup
 ROOTTREE=$ROOTBKUP/"$1"
 [ "${UPGRADE:-no}" = yes ] && ROOTTREE="$ROOTBKUP/YALPACK-OUTGOING"
 ROOTTEMP=$ROOTBKUP/RMTEMP
