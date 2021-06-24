@@ -1,6 +1,6 @@
 .\" Manpage for pkginst
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "22 June 2021" "0.1.6" "pkginst man page"
+.TH man 1 "24 June 2021" "0.1.6" "pkginst man page"
 .SH NAME
 pkginst \- install a pkgmake-made package in LFS
 .SH SYNOPSIS
@@ -48,7 +48,7 @@ From here, pkginst calls pkgcheck(1) to return information about installed progr
 
 \t /var/log/yalpack/[NAME] (primary package tree backup)
 
-\t /root/.yalpack/[NAME] (secondary package tree backup)
+\t /root/.yalpack-backup/[NAME] (secondary package tree backup)
 
 When called in the course of pkginst, pkgcheck(1) will invoke liblist(1) to make a new collection of dynamic library information if recognized library files have been installed under any of the following locations or their subdirectories:
 
