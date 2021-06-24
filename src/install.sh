@@ -48,7 +48,7 @@ PKGVERS="$PKGDATA"/VER
 
 VARBKUP=/var/log/yalpack
 ROOTHOME=/root
-ROOTBKUP="$ROOTHOME"/.yalpack
+ROOTBKUP="$ROOTHOME"/.yalpack-backup
 
 echo '	'Checking for SYMTREE-related directories.
 
