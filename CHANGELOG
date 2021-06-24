@@ -1,13 +1,4 @@
 CHANGELOG
 
-** For tracking changes between yalpack-0.1.5 and the current repo **
+** For tracking changes between the yalpack-0.1.6 and the current repo **
 
-2021-06-23
-* Added "TODO"
-	A list of tasks, planned changes, etc.
-
-2021-06-24
-* Changed bold text to underline (all scripts)
-	Done because it is possible to stop underlining without resetting
-	other tput commands. Renders as cyan on tty, which stands out
-	well and is easy to read.

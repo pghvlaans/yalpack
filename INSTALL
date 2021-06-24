@@ -1,4 +1,4 @@
-yalpack-0.1.5 Installation Guide
+yalpack-0.1.6 Installation Guide
 
 To install yalpack to your LFS-type system, run the Makefile as root. 
 The following targets are available:
@@ -9,7 +9,7 @@ The following targets are available:
 	as package tree backup directories at /var/log/yalpack and
 	/root/.yalpack. A package for yalpack will not be created. This is
 	the recommended method for upgrades; DESTDIR should be 
-	/tmp/yalpack-0.1.5/dest. From here, make the NAME file and use 
+	/tmp/yalpack-0.1.6/dest. From here, make the NAME file and use 
 	pkgmake and pkgup as usual.
 
 	make package: Recommended for initial installations. Install the
@@ -28,7 +28,7 @@ The following targets are available:
 
 The following parameters can be set with the make call:
 
-	DESTDIR: should be set to /tmp/yalpack-0.1.5/dest for upgrades
+	DESTDIR: should be set to /tmp/yalpack-0.1.6/dest for upgrades
 	PREFIX (/usr): the prefix for the bin, sbin, doc, share and man
                        directories
 	SHAREDIR (PREFIX/share): yalpack's directory under share
@@ -73,4 +73,4 @@ As of Linux From Scratch 10.1, three packages in the base book use
 	sysklogd
 
 For workarounds related to  managing these packages with yalpack, see
-README (/usr/share/doc/yalpack-0.1.5/README) or the pkgmake man page.
+README (/usr/share/doc/yalpack-0.1.6/README) or the pkgmake man page.
