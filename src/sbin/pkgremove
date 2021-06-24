@@ -119,8 +119,8 @@ do
 done < "$OLDTREE"
 mv "$OLDTREE" "$RMTEMP"/TREE
 # The backup location(s) only have TREE files.
-[ -d "$VARTEMP" ] && mv "$VARTREE" "$VARTEMP"/TREE
-[ -d "$ROOTTEMP" ] && mv "$ROOTTREE" "$ROOTTEMP"/TREE
+[ -f "$VARTREE" ] && mv "$VARTREE" "$VARTEMP"/TREE
+[ -f "$ROOTTREE" ] && mv "$ROOTTREE" "$ROOTTEMP"/TREE
 
 # Finishing RMDOC and moving the SYMTREE document, if any.
 if [ -f "$OLDSYMDEST" ]; then
