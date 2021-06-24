@@ -87,7 +87,7 @@ The variables themselves are:
 
   VARBKUP=/var/log/yalpack
   ROOTHOME=/root
-  ROOTBKUP=$ROOTHOME/.yalpack
+  ROOTBKUP=$ROOTHOME/.yalpack-backup
 
 If either of these locations is changed after installation, install.sh
 should be edited and run again to generate the new backups.

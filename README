@@ -242,7 +242,7 @@ directories (main copy at /var/yalpack/pkgdata/TREES) in the following
 locations:
 
 	/var/log/yalpack
-	/root/.yalpack
+	/root/.yalpack-backup
 
 If either of these directories (or the TREES directory itself) is intact, and
 yalpack is installed, /usr/share/yalpack/restore-yalpack.sh can be used to
