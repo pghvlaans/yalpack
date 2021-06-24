@@ -48,16 +48,16 @@ find "$PKGTREES"/* -type f | while read -r f; do
 	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
 	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
 done
-echo '	'$(tput bold)"$NEWFILES"$(tput sgr0) has been updated.
+echo '	'$(tput smul)"$NEWFILES"$(tput rmul) has been updated.
 echo
 unset x
 x="$(ls -A "$NEWFILES")"
 if [ -n "$x" ]; then
-	echo '	'See the following to examine $(tput bold).new$(tput sgr0) files:
+	echo '	'See the following to examine $(tput smul).new$(tput rmul) files:
 	echo
 	find "$NEWFILES"/* -type f
 	echo
-	echo '	'To display the $(tput bold).new$(tput sgr0) files now, enter $(tput bold)y$(tput sgr0). To exit, enter any other character.
+	echo '	'To display the $(tput smul).new$(tput rmul) files now, enter $(tput smul)y$(tput rmul). To exit, enter any other character.
 	unset INPUT
 	read -r INPUT && [ "$INPUT" != "y" ] && exit
 	find "$NEWFILES"/* -type f | while read -r f; do
@@ -66,6 +66,7 @@ if [ -n "$x" ]; then
 	done
 	echo
 else
-	echo '	'No $(tput bold).new$(tput sgr0) files were found for yalpack-installed packages.
+	echo '	'No $(tput smul).new$(tput rmul) files were found for yalpack-installed packages.
 	echo
 fi
+

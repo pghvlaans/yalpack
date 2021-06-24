@@ -64,16 +64,16 @@ elif [ "$ROOTOK" = yes ]; then
 elif [ "$TREESOK" = yes ]; then 
 	echo
 	echo '	'Unfortunately, neither of the listed backup locations has a collection of
-	echo '	'package trees. However, $(tput bold)"$PKGTREES"$(tput sgr0) appears to be at least partially populated.
+	echo '	'package trees. However, $(tput smul)"$PKGTREES"$(tput rmul) appears to be at least partially populated.
 	echo
-	echo '	'To continue restoring based on the information in $(tput bold)"$PKGTREES"$(tput sgr0), enter $(tput bold)y$(tput sgr0).
+	echo '	'To continue restoring based on the information in $(tput smul)"$PKGTREES"$(tput rmul), enter $(tput smul)y$(tput rmul).
 	echo '	'To stop this script, enter any other character.
 	unset INPUT
 	read -r INPUT
 	if [ "$INPUT" != "y" ]; then 
 		echo
 		echo '	'Exiting now. If a yalpack backup directory is at another location, change
-		echo '	'the $(tput bold)"VARBKUP"$(tput sgr0) variable in $(tput bold)/usr/share/yalpack/restore-yalpack$(tput sgr0).
+		echo '	'the $(tput smul)"VARBKUP"$(tput rmul) variable in $(tput smul)/usr/share/yalpack/restore-yalpack$(tput rmul).
 		echo
 		exit
 	fi
@@ -82,11 +82,11 @@ elif [ "$TREESOK" = yes ]; then
 else
 	echo
 	echo '	'Unfortunately, neither the backup locations nor the original location of
-	echo '	'$(tput bold)"$PKGTREES"$(tput sgr0) has a collection of files.
+	echo '	'$(tput smul)"$PKGTREES"$(tput rmul) has a collection of files.
 	echo
 	echo '	'The script will now exit. If a yalpack backup directory is at a location
-	echo '	'other than $(tput bold)"$VARBKUP"$(tput sgr0) or $(tput bold)"$ROOTBKUP"$(tput sgr0), change the $(tput bold)"VARBKUP"$(tput sgr0)
-	echo '	'variable in $(tput bold)/usr/share/yalpack/restore-yalpack$(tput sgr0).
+	echo '	'other than $(tput smul)"$VARBKUP"$(tput rmul) or $(tput smul)"$ROOTBKUP"$(tput rmul), change the $(tput smul)"VARBKUP"$(tput rmul)
+	echo '	'variable in $(tput smul)/usr/share/yalpack/restore-yalpack$(tput rmul).
 	echo
 	exit
 fi
@@ -94,13 +94,13 @@ fi
 if [ "$TREESOURCE" != "$PKGTREES" ]; then
 	# Confirming the backup.
 	echo
-	echo '	'A collection of package trees was found at $(tput bold)"$TREESOURCE"$(tput sgr0). To proceed with restoring
-	echo '	'the $(tput bold)"$HEAD"$(tput sgr0) directory structure using this collection, enter $(tput bold)y$(tput sgr0). $(tput bold)"$TREESOURCE"$(tput sgr0) will
+	echo '	'A collection of package trees was found at $(tput smul)"$TREESOURCE"$(tput rmul). To proceed with restoring
+	echo '	'the $(tput smul)"$HEAD"$(tput rmul) directory structure using this collection, enter $(tput smul)y$(tput rmul). $(tput smul)"$TREESOURCE"$(tput rmul) will
 	echo '	'be copied in.
 	echo
 	echo '	'To stop the script, enter any other character. To choose a different directory as
-	echo '	'the basis for restoration, change the $(tput bold)"VARBKUP"$(tput sgr0) variable in
-	echo '	'$(tput bold)/usr/share/yalpack/restore-yalpack$(tput sgr0).
+	echo '	'the basis for restoration, change the $(tput smul)"VARBKUP"$(tput rmul) variable in
+	echo '	'$(tput smul)/usr/share/yalpack/restore-yalpack$(tput rmul).
 	echo
 	unset INPUT
 	read -r INPUT
@@ -110,20 +110,20 @@ if [ "$TREESOURCE" != "$PKGTREES" ]; then
 		echo
 		exit
 	fi
-	[ -d "$PKGTREES" ] && echo '	'Moving the current $(tput bold)"$PKGTREES"$(tput sgr0) directory to $(tput bold)"$OLDTREES"$(tput sgr0). && rm -rf "$OLDTREES"  && mv "$PKGTREES" "$OLDTREES" && echo
+	[ -d "$PKGTREES" ] && echo '	'Moving the current $(tput smul)"$PKGTREES"$(tput rmul) directory to $(tput smul)"$OLDTREES"$(tput rmul). && rm -rf "$OLDTREES"  && mv "$PKGTREES" "$OLDTREES" && echo
 	cp -rv "$TREESOURCE" "$PKGTREES"
 	echo
 fi
 
 # Restoring library information with liblist -n
-echo '	'Now using $(tput bold)liblist$(tput sgr0) to restore library information.
+echo '	'Now using $(tput smul)liblist$(tput rmul) to restore library information.
 echo
 liblist -n > /dev/null 2>&1
-echo '	'Done running $(tput bold)liblist$(tput sgr0). $(tput bold)"$BINDEPS"$(tput sgr0) has been restored.
+echo '	'Done running $(tput smul)liblist$(tput rmul). $(tput smul)"$BINDEPS"$(tput rmul) has been restored.
 echo
 
 # Restoring other package information with pkgcheck
-echo '	'Now using $(tput bold)pkgcheck$(tput sgr0) to restore ancillary package information. This may take
+echo '	'Now using $(tput smul)pkgcheck$(tput rmul) to restore ancillary package information. This may take
 echo '	'some time.
 echo
 find "$PKGTREES"/* -type f | while read -r f; do
@@ -136,7 +136,7 @@ echo '	'Thank you for your patience. Done with checking packages.
 echo
 
 # Restoring SYMTREES, if any
-echo '	'Now restoring or replacing the $(tput bold)SYMTREES$(tput sgr0) directory. Although most packages
+echo '	'Now restoring or replacing the $(tput smul)SYMTREES$(tput rmul) directory. Although most packages
 echo '	'will not have SYMTREE files, this may take some time.
 echo
 rm -rf "$SYMTREES" "$SYMDESTS"
@@ -163,11 +163,11 @@ find "$PKGTREES"/* -type f | while read -r f; do
 	fi
 done < "$f"
 done
-echo '	'The $(tput bold)"$SYMTREES"$(tput sgr0) directory has been repopulated.
+echo '	'The $(tput smul)"$SYMTREES"$(tput rmul) directory has been repopulated.
 echo
 
 # Restoring version information using the TREE documents
-echo '	'Now restoring the $(tput bold)"$PKGVERS"$(tput sgr0) directory.
+echo '	'Now restoring the $(tput smul)"$PKGVERS"$(tput rmul) directory.
 echo
 find "$PKGTREES"/* -type f | while read -r f; do
 	unset NAMESTR
@@ -183,7 +183,7 @@ echo '	'Done.
 echo
 
 # Restoring the lists in NEWFILES.
-echo '	'Now restoring or replacing the $(tput bold).new$(tput sgr0) file lists for each installed
+echo '	'Now restoring or replacing the $(tput smul).new$(tput rmul) file lists for each installed
 echo '	'package. This may take some time.
 echo
 mkdir -p "$NEWFILES"
@@ -203,9 +203,9 @@ find "$PKGTREES"/* -type f | while read -r f; do
 	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
 	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
 done
-echo '	'$(tput bold)"$NEWFILES"$(tput sgr0) has been regenerated.
+echo '	'$(tput smul)"$NEWFILES"$(tput rmul) has been regenerated.
 echo
-echo '	'$(tput bold)Restoration complete.$(tput sgr0) Please note that package tarballs are not
+echo '	'$(tput smul)Restoration complete.$(tput rmul) Please note that package tarballs are not
 echo '	'recoverable. However, it should now be possible to resume
 echo '	'normal operations with yalpack.
 echo
