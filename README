@@ -1,4 +1,4 @@
-yalpack-0.1.6
+yalpack-0.1.7
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package
 management tools for LFS-based systems. yalpack was inspired by pkgtools from
@@ -68,10 +68,12 @@ systems:
 			Searching for which package provided matching files/
 			symlinks/directories.
 
-In addition, the following ancillary scripts can be found in /usr/share/yalpack:
+In addition, the following utility scripts can be found in /usr/share/yalpack:
 
 	* newfiles
-		Update the NEWFILES directory to reflect currently-existing files
+		Update the NEWFILES directory to reflect currently-existing
+		files; optionally, manage .new files.
+
 	* restore-yalpack
 		Regenerate the yalpack data directory using a package tree backup
 		in case of data loss or other accidents.
@@ -94,9 +96,10 @@ please remember the following considerations:
 	  root directory once installed. Absolute symlinks can be pointed
 	  relative to either root or /tmp/[NAME]-[VERSION]/dest.
 
-	* All installed non-binary files in /etc and /home are marked as .new by
+	* All installed text files in /etc and /home are marked as .new by
 	  pkgmake. If other .new files are needed, they should be renamed manually
-	  prior to making the package.
+	  prior to making the package. pkginst handles the renaming of .new
+	  files.
 
 	* Any executable file at /tmp/[NAME]-[VERSION]/install.sh will be
 	  executed by pkginst after all new files, directories and symlinks
@@ -128,7 +131,7 @@ Upgrade and downgrade tests were successful for acl and attr (10.1 stable and
 dev).
 
 As might be expected, the situation for glibc is more complicated. For
-yalpack-0.1.6, it was possible to move between glibc-2.32 and 2.33 on a 10.1
+yalpack-0.1.7, it was possible to move between glibc-2.32 and 2.33 on a 10.1
 LFS (stable) system that had been built with glibc-2.32.
 
 The 10.1 LFS dev system used for testing had been built with glibc-2.33; an
@@ -137,7 +140,7 @@ etc. relying on glibc-2.33 subsequently failed, resulting in the full
 installation process being incomplete. The system was bricked thereafter.
 
 In summary, then, findings for glibc upgrades and downgrades with
-yalpack-0.1.6 are as follows:
+yalpack-0.1.7 are as follows:
 
 	* With LFS 10.1 stable:
 		* Upgrades: tested to work (2.32 to 2.33)
@@ -163,14 +166,14 @@ workarounds:
 	  "make PREFIX=/usr install"
 	* sysvinit: Use the following steps:
 		* Extract the sysvinit source tarball.
-		* Copy /usr/share/doc/yalpack-0.1.6/sysvinit.dewit into the
+		* Copy /usr/share/doc/yalpack-0.1.7/sysvinit.dewit into the
 		  source directory.
 		* To install a version other than 2.98, or to upgrade, edit
 		  the file accordingly (explanatory comments included).
 		* Make the script executable and run.  
 	* sysklogd: Use the following steps:
 		* Extract the sysvinit source tarball.
-		* Copy /usr/share/doc/yalpack-0.1.6/sysklogd.dewit into the
+		* Copy /usr/share/doc/yalpack-0.1.7/sysklogd.dewit into the
 		  source directory.
 		* To install a version other than 1.5.1, select a job level 
 		  or upgrade, edit the file accordingly (explanatory 
@@ -189,7 +192,8 @@ Upgrading glibc and SysVinit:
 As the Linux From Scratch documentation indicates, glibc upgrades generally
 entail a full system rebuild. Although yalpack-0.1.4+ has been tested to
 upgrade glibc up to 2.33, this type of upgrade should be treated with care and is
-not necessarily advisable.
+not necessarily advisable. glibc downgrades (in particular, downgrades to
+versions older than the version used to build LFS) are unsupported altogether.
 
 In order to avoid unmounting problems at the next halt or reboot, pkgup uses
 /sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected.
@@ -229,9 +233,7 @@ Any and all of the target directories (including /tmp for the original
 consistent.
 
 Please note that the /var/yalpack directory will not be removed by running
-"pkgremove yalpack." For this reason, it is possible to upgrade yalpack by
-removing with pkgremove, and then running "make package" in the source
-directory for the new version.
+"pkgremove yalpack."
 
 Package tree backups:
 

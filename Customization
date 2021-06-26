@@ -1,4 +1,4 @@
-yalpack-0.1.6 Customization Guide
+yalpack-0.1.7 Customization Guide
 
 By default, the compilation DESTDIR directory for yalpack is under
 /tmp, and the data, library information and package tarball directories
@@ -13,8 +13,8 @@ desired.
 As a general note, such edits should be made before installing or
 upgrading yalpack. For post-installation changes to the location of
 /var/yalpack, move the yalpack directory before using the edited
-scripts. /usr/share/yalpack/restore-yalpack could also be used in this
-way, though the procedure is untested.
+scripts. In principle, /usr/share/yalpack/restore-yalpack could also be
+used in this way.
 
 ***********************************************************************
                              Changing DESTDIR                         
@@ -36,6 +36,20 @@ And, in the source directory:
 For Makefile, TMP can also be set when calling make.
 
 ***********************************************************************
+                             Changing SBINDIR                         
+***********************************************************************
+
+With Linux From Scratch set to move to a merged-usr setup from version
+11.0, root-only yalpack scripts are installed to /usr/sbin by default.
+To change this, edit the following variable in pkgup, pkginst and
+pkgcheck:
+
+  SBINDIR=/usr/sbin
+
+Additionally, ensure that SBINDIR is set to the same value when running
+"make package." Changing SBINDIR after installation is unsupported.
+
+***********************************************************************
                      Changing the yalpack directory
 ***********************************************************************
 
@@ -45,7 +59,8 @@ under the same directory structure.
 
 In order to store yalpack-related data and package tarballs under a
 directory other than /var/yalpack, change the following variable in all
-scripts in src/bin, src/sbin and src/share:
+scripts in src/bin, src/sbin and src/share, as well as make-package.sh
+and src/install.sh:
 
   HEAD=/var/yalpack
 
@@ -72,7 +87,7 @@ restored! By default, yalpack stores parallel copies of the package
 trees in /var/yalpack/pkgdata/TREES in the following locations:
 
   * /var/log/yalpack
-  * /root/.yalpack
+  * /root/.yalpack-backup
 
 To ensure that good backups are present at all times, it is important
 that all references to these locations match:
@@ -81,7 +96,7 @@ that all references to these locations match:
   * src/sbin/pkgup
   * src/sbin/pkgremove
   * src/install.sh
-  * src/share/restore-yalpack.sh
+  * src/share/restore-yalpack
 
 The variables themselves are:
 
@@ -92,8 +107,8 @@ The variables themselves are:
 If either of these locations is changed after installation, install.sh
 should be edited and run again to generate the new backups.
 
-src/share/restore-yalpack.new (installed to
-/usr/share/yalpack/restore-yalpack.new by default) takes a collection
+src/share/restore-yalpack (installed to
+/usr/share/yalpack/restore-yalpack by default) takes a collection
 of package tree files and uses them to regenerate the rest of the
 contents of /var/yalpack. To use a non-default backup directory,
 replace
@@ -103,4 +118,4 @@ replace
 in the script before running. If the default HEAD directory above is
 changed after installation, restore-yalpack could be used to generate
 a directory structure in the new location once all appropriate script
-edits have been made. Please note that this procedure is untested.
+edits have been made.

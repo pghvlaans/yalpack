@@ -1,7 +1,14 @@
-yalpack-0.1.6 Installation Guide
+yalpack-0.1.7 Installation Guide
 
 To install yalpack to your LFS-type system, run the Makefile as root. 
 The following targets are available:
+	
+	make package: Recommended for all installations and upgrades.
+	Install the yalpack scripts; these scripts are then used to make
+	and install a package for yalpack. If yalpack is already installed
+	on the system, the new scripts will be used to upgrade yalpack as
+	a package instead. This helps avoid old bugs, etc. that have since
+	been fixed.
 
 	make install: Install yalpack under the chosen DESTDIR; install.sh
 	will run at this time, creating and populating 
@@ -9,12 +16,10 @@ The following targets are available:
 	as package tree backup directories at /var/log/yalpack and
 	/root/.yalpack. A package for yalpack will not be created. This is
 	the recommended method for upgrades; DESTDIR should be 
-	/tmp/yalpack-0.1.6/dest. From here, make the NAME file and use 
-	pkgmake and pkgup as usual.
-
-	make package: Recommended for initial installations. Install the
-	yalpack scripts; these scripts are then used to make and install
-	a package for yalpack.
+	/tmp/yalpack-0.1.7/dest. From here, make the NAME file and use 
+	pkgmake and pkgup as usual. Because the outgoing pkgup script
+	would be used for upgrades, "make package" is recommended for both
+	upgrades and first-time installations.
 
 	make clean: Removes compressed man pages from the source 
 	directory.
@@ -28,7 +33,9 @@ The following targets are available:
 
 The following parameters can be set with the make call:
 
-	DESTDIR: should be set to /tmp/yalpack-0.1.6/dest for upgrades
+	DESTDIR: should be set to /tmp/yalpack-0.1.7/dest for upgrades
+		 with "make install." Please note that "make package"
+		 is the recommended installation and upgrade method.
 	PREFIX (/usr): the prefix for the bin, sbin, doc, share and man
                        directories
 	SHAREDIR (PREFIX/share): yalpack's directory under share
@@ -61,9 +68,7 @@ defaults are as follows:
 				    pkgmake in package construction.
 
 Any changes are most conveniently made before yalpack is installed or
-upgraded. In other cases, run /usr/share/yalpack/restore-yalpack to
-regenerate the yalpack directory. Please see "Customization" for 
-details.
+upgraded. Please see "Customization" for details.
 
 As of Linux From Scratch 10.1, three packages in the base book use
 "make install," but do not have PKGDEST capabilities:
@@ -73,4 +78,4 @@ As of Linux From Scratch 10.1, three packages in the base book use
 	sysklogd
 
 For workarounds related to  managing these packages with yalpack, see
-README (/usr/share/doc/yalpack-0.1.6/README) or the pkgmake man page.
+README (/usr/share/doc/yalpack-0.1.7/README) or the pkgmake man page.

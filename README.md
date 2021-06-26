@@ -1,4 +1,4 @@
-**yalpack-0.1.6**
+**yalpack-0.1.7**
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
 
@@ -6,7 +6,7 @@ yalpack is intended to make managing upgrades and trying new software easier on 
 * Install compiled software as packages
 * Easily remove unwanted packages (no need to worry about "make uninstall")
 * Simple(r) pacakge upgrades
-* Handle and log ".new" files automatically
+* Handle and log ".new" files automatically - from yalpack-0.1.7, easy .new file management.
 * List installed packages and versions
 * Gather, store and check information about dynamic library usage
 * Search for which package provided which file/directory/symlink
@@ -43,7 +43,7 @@ yalpack provides the following tools for package management on LFS-based systems
 	* pkgfind: Use search terms or exact file paths to determine which package provided matching files, directories and symlinks
 
 In addition, the following utility scripts can be found in /usr/share/yalpack:
-* newfiles: Update the NEWFILES directory to reflect currently-existing files
+* newfiles: Update the NEWFILES directory to reflect currently-existing files; optionally manage .new files.
 * restore-yalpack: Regenerate the yalpack data directory using a package tree backup in case of data loss or other accidents.
 
 When building from source with the objective of installing a yalpack package, please remember the following considerations:
@@ -54,7 +54,7 @@ When building from source with the objective of installing a yalpack package, pl
 	
 * pkginst repairs absolute symlinks such that they are relative to the root directory once installed. LFS/BLFS instructions to make absolute symlinks can be done either as-is or by using `/tmp/[NAME]-[VERSION]/dest/` rather than `/`.
 
-* All installed non-binary files in /etc and /home are marked as .new by pkgmake. If other .new files are needed, they should be renamed manually prior to making the package.
+* All installed text files in /etc and /home are marked as .new by pkgmake. If other .new files are needed, they should be renamed manually prior to making the package. pkginst handles the renaming of .new files.
 
 * Any executable file at `/tmp/[NAME]-[VERSION]/install.sh` will be executed by pkginst after all new files, directories and symlinks have been created. Bear in mind that moving files and creating symlinks with install.sh will result in said files and symlinks being unaffected by pkgremove (and possibly pkgup).
 
@@ -71,11 +71,11 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 
 Upgrade and downgrade tests were successful for acl and attr (10.1 stable and dev).
 
-As might be expected, the situation for glibc is more complicated. For yalpack-0.1.6, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32.
+As might be expected, the situation for glibc is more complicated. For yalpack-0.1.7, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32.
 
 The 10.1 LFS dev system used for testing had been built with glibc-2.33; an attempted downgrade to 2.32 managed to install the files, but calls of cat, etc. relying on glibc-2.33 subsequently failed, resulting in the full installation process being incomplete. The system was bricked thereafter.
 
-In summary, then, findings for glibc upgrades and downgrades with yalpack-0.1.6 are as follows:
+In summary, then, findings for glibc upgrades and downgrades with yalpack-0.1.7 are as follows:
 
 * With LFS 10.1 stable:
 	* Upgrades: tested to work (2.32 to 2.33)
@@ -93,12 +93,12 @@ As of LFS 10.1, some packages in the book cannot use DESTDIR with `make install`
 * bzip2: Use `make PREFIX=/tmp/bzip2-1.0.8/dest/usr install` in lieu of `make PREFIX=/usr install`
 * sysvinit: Use the following steps:
 	* Extract the sysvinit source tarball.
-	* Copy /usr/share/doc/yalpack-0.1.6/sysvinit.dewit into the source directory.
+	* Copy /usr/share/doc/yalpack-0.1.7/sysvinit.dewit into the source directory.
 	* To install a version other than 2.98, or to upgrade, edit the file accordingly (explanatory comments included).
 	* Make the script executable and run.
 * sysklogd: Use the following steps:
 	* Extract the sysklogd source tarball.
-	* Copy /usr/share/doc/yalpack-0.1.6/sysklogd.dewit into the source directory.
+	* Copy /usr/share/doc/yalpack-0.1.7/sysklogd.dewit into the source directory.
 	* To install a version other than 1.5.1, select a job level or upgrade, edit the file accordingly (explanatory comments included).
 	* Make the script executable and run.
 	* Follow the post-installation instructions in the LFS book, or write them in to an install.sh script.
@@ -107,7 +107,7 @@ The installation procedure in sysvinit.dewit was adapted from sysvinit.SlackBuil
 
 *Upgrading glibc and SysVinit*
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Although yalpack 0.1.4+ been tested to upgrade glibc up to 2.33, this type of upgrade should be treated with care and is not necessarily advisable.
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Although yalpack 0.1.4+ been tested to upgrade glibc up to 2.33, this type of upgrade should be treated with care and is not necessarily advisable. glibc downgrades (in particular, downgrades to versions older than the one used to build LFS) are unsupported altogether.
 
 In order to avoid unmounting problems at the next halt or reboot, pkgup uses /sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected. *This procedure is untested on systemd-based installations.*
 
@@ -138,7 +138,7 @@ yalpack makes use of the following directories, which will be made when the scri
 
 Any and all of the target directories (including /tmp for the original "install" destination) can be changed by editing the shell scripts in `/sbin` or `/usr/bin`. See "Customization" for details and ensure that any edits are consistent.
 
-Please note that the `/var/yalpack` directory will not be removed by running `pkgremove yalpack`. For this reason, it is possible to upgrade yalpack by removing with pkgremove, and then running `make package` in the source directory for the new version.
+Please note that the `/var/yalpack` directory will not be removed by running `pkgremove yalpack`.
 
 **Package tree backups**
 
