@@ -1,0 +1,230 @@
+#!/bin/sh
+#
+# /usr/share/yalpack/newfiles
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Running this script will update the lists of .new files belonging to
+# yalpack-installed packages on the system.
+
+HEAD=/var/yalpack
+PKGDATA=$HEAD/pkgdata
+PKGTREES=$PKGDATA/TREES
+PKGVERS=$PKGDATA/VER
+NEWFILES=$PKGDATA/NEWFILES
+NEWTEMP=$PKGDATA/NEWTEMP
+KLIST=$PKGDATA/.KLIST
+
+picker (){
+echo
+newfile="$1"
+oldfile="${newfile%.new}"
+
+# If the old file is missing (for whatever reason), offer to move the .new file over
+if [ ! -f "$oldfile" ] && [ -f "$newfile" ]; then
+	echo '	'"$oldfile" was not found on the system. Enter y to move $(tput smul)"$newfile"$(tput rmul) over.
+	unset INPUT
+	read -r INPUT && [ "$INPUT" != "y" ] && return
+	echo
+	cp -v --preserve --dereference "$newfile" "$oldfile"
+	if [ -f "$oldfile" ]; then
+		rm -f "$newfile"
+	else
+		echo '	'Copying appears to have failed. Moving on to the next .new file
+		echo '	'or exiting, as appropriate.
+		echo
+	fi
+	main QUIET
+fi
+
+echo '	'"$newfile"
+echo
+echo '	'$(tput smul)o$(tput rmul) - Overwrite with the .new file \(no backup\)
+echo '	'$(tput smul)b$(tput rmul) - Overwrite with the .new file\; backup at $(tput smul)"$oldfile".old$(tput rmul)
+echo '	'$(tput smul)r$(tput rmul) - Remove the .new file
+echo '	'$(tput smul)k$(tput rmul) - Keep both files as they are
+echo '	'$(tput smul)d$(tput rmul) - Run diff on the files and display this menu again
+echo '	'$(tput smul)x$(tput rmul) - Exit the script
+
+unset INPUT
+read -r INPUT && [ -n "$INPUT" ] && \
+case "$INPUT" in
+	o)
+	echo
+	cp -v --preserve --dereference "$newfile" "$oldfile"
+	if [ -f "$oldfile" ]; then
+		rm -f "$newfile"
+	else
+		echo '	'Copying appears to have failed. Moving on to the next .new file
+		echo '	'or exiting, as appropriate.
+	fi
+	main QUIET
+	;;
+	b)
+	echo
+	cp -v --preserve --dereference "$oldfile" "$oldfile".old
+	if [ -f "$oldfile.old" ]; then
+		cp -v --preserve --dereference "$newfile" "$oldfile"
+	else
+		echo '	'Making a backup appears to have failed. Moving on to the next
+		echo '	'.new file or exiting, as appropriate.
+		main QUIET
+	fi
+	if [ -f "$oldfile" ]; then
+		rm -f "$newfile"
+	else
+		echo '	'Copying appears to have failed. Moving on to the next .new file
+		echo '	'or exiting, as appropriate.
+		echo
+	fi
+	main QUIET
+	;;
+	r)
+	echo
+	rm -fv "$newfile"
+	main QUIET
+	;;
+	k)
+	echo
+	echo '	'Keeping $(tput smul)"$newfile"$(tput rmul).
+	# Bug-avoidance strategy for multiple .new files with the same basename; see "staging" comment below.
+	unset y
+	y="$(echo "$newfile" | tr '/' '@')"
+	echo "$y" >> "$KLIST"
+	main QUIET
+	;;
+	d)
+	echo
+	# Trying to use diff on a pair of binaries would not be good. Checking first.
+	unset x
+	unset y
+	x="$(file "$newfile" | cut -d':' -f2- | grep text)"
+	y="$(file "$oldfile" | cut -d':' -f2- | grep text)"
+	[ -z "$x" ] || [ -z "$y" ] && echo '	'One or both of these files is a $(tput smul)non-text file$(tput rmul)\; diff is not available. && main QUIET
+	# Using less is nice, but it isn't in the LFS temporary tools, so check for it
+	[ -x "/usr/bin/less" ] && diff "$newfile" "$oldfile" | less && main QUIET
+	diff "$newfile" "$oldfile" && main QUIET
+	;;
+	x)
+	echo
+	echo '	'Exiting now.
+	rm -rf "$NEWTEMP"
+	rm -f "$KLIST"
+	exit
+	;;
+	*)
+	picker "$newfile"
+esac	
+}
+
+staging (){
+rm -rf "$NEWTEMP"
+mkdir -p "$NEWTEMP"
+
+[ -n "$(ls -A "$NEWFILES")" ] && find "$NEWFILES"/* -maxdepth 0 -type f | while read -r p; do
+	while read -r n; do
+		# Exclude the package name and date line
+		x="$(head -n 1 "$p")"
+		if [ "$n" != "$x" ]; then
+			unset y
+			# Not using the full path leads to bugs when multiple .new files have the same basename.
+			y="$(echo "$n" | tr '/' '@')"
+			echo "$n" > "$NEWTEMP"/"$y"
+		fi
+	done < "$p"
+done
+
+[ -f "$KLIST" ] && [ -n "$(ls -A "$NEWTEMP")" ] && while read -r k; do
+	rm -f "$NEWTEMP"/"$k"
+done < "$KLIST"
+
+rmdir --ignore-fail-on-non-empty "$NEWTEMP"
+
+[ -d "$NEWTEMP" ] && picker "$(cat "$(find "$NEWTEMP"/* | head -n 1)")"
+
+# Want to update the directory again, but with no reporting.
+if [ -d "$NEWTEMP" ] && [ -n "$(ls -A "$NEWTEMP")" ]; then
+	main QUIET
+else
+	main NORETURN
+	exit
+fi
+# Cleaning up.
+rm -rf "$NEWTEMP"
+}
+
+main (){
+echo
+rm -r "$NEWFILES"
+mkdir -p "$NEWFILES"
+find "$PKGTREES"/* -type f | while read -r f; do
+	g="$(basename "$f")"
+	VER="$(cat "$PKGVERS"/"$g")"
+	[ -n "$VER" ] && echo "$g"-"$VER", list updated' '"$(date)" > "$NEWFILES"/"$g"
+	[ -z "$VER" ] && echo "$g", list updated' '"$(date)" > "$NEWFILES"/"$g"
+	while read -r file; do
+		h="${file%.new}"
+		# Only existing .new files are written in.
+		[ "$file" != "$h" ] && [ -f "$file" ] && echo "$file" >> "$NEWFILES"/"$g"		
+	done < "$f"
+	# Don't keep empty NEWFILE documents.
+	unset NEWLENGTH
+	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
+	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
+done
+if [ "$1" != "QUIET" ] && [ "$1" != "NORETURN" ]; then
+	echo '	'$(tput smul)"$NEWFILES"$(tput rmul) has been updated.
+	echo
+fi
+unset x
+x="$(ls -A "$NEWFILES")"
+if [ -n "$x" ] && [ "$1" != "QUIET" ] && [ "$1" != "NORETURN" ]; then
+	echo '	'See the following to examine $(tput smul).new$(tput rmul) files:
+	echo
+	find "$NEWFILES"/* -type f
+	echo
+	echo '	'To display the $(tput smul).new$(tput rmul) files now, enter $(tput smul)y$(tput rmul). To exit, enter any other character.
+	unset INPUT
+	read -r INPUT && [ "$INPUT" != "y" ] && exit
+	find "$NEWFILES"/* -type f | while read -r f; do
+		echo
+		cat "$f"
+	done
+	echo
+	echo '	'To manage, enter $(tput smul)y$(tput rmul). To exit, enter any other character.
+	unset INPUT
+	read -r INPUT && [ "$INPUT" != "y" ] && exit
+	staging
+elif [ -z "$x" ] && [ "$1" != "QUIET" ] && [ "$1" != "NORETURN" ]; then
+	echo '	'No $(tput smul).new$(tput rmul) files were found for yalpack-installed packages.
+	echo
+	exit
+elif [ "$1" = "QUIET" ] && [ -n "$x" ]; then
+	staging
+else
+	rm -f "$KLIST"
+	rm -rf "$NEWTEMP"
+	exit
+fi
+}
+
+rm -f "$KLIST"
+main

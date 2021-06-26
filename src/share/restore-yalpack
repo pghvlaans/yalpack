@@ -1,0 +1,210 @@
+#!/bin/sh
+#
+# /usr/share/yalpack/restore-yalpack
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Running this script will use one of the two yalpack backup locations to
+# restore a missing (or partially-missing) directory tree at /var/yalpack.
+# The default PKGTREES directory can also be used.
+
+HEAD=/var/yalpack
+PKGDATA=$HEAD/pkgdata
+STAGING=$HEAD/packages
+PKGTREES=$PKGDATA/TREES
+OLDTREES=$PKGDATA/TREES-OLD
+PKGVERS=$PKGDATA/VER
+SYMTREES=$PKGDATA/SYMTREES
+SYMDESTS=$PKGDATA/.SYMDESTS
+BINDEPS=$HEAD/BIN-DEPS
+NEWFILES=$PKGDATA/NEWFILES
+
+# Backups
+
+VARBKUP=/var/log/yalpack
+ROOTHOME=/root
+ROOTBKUP="$ROOTHOME"/.yalpack-backup
+
+echo
+# Beginning to restore the directory structure
+mkdir -p "$STAGING" "$PKGDATA" "$PKGVERS"
+# Bringing in a new copy of /var/yalpack/pkgdata/TREES
+# The first-priority location is VARBACKUP
+unset VAROK
+unset ROOTOK
+unset TREESOK
+unset TREESOURCE
+[ -d "$VARBKUP" ] && [ -n "$(find "$VARBKUP"/* -type f 2> /dev/null)" ] && VAROK=yes
+[ -d "$ROOTBKUP" ] && [ -n "$(find "$ROOTBKUP"/* -type f 2> /dev/null)" ] && ROOTOK=yes
+[ -d "$PKGTREES" ] && [ -n "$(find "$PKGTREES"/* -type f 2> /dev/null)" ] && TREESOK=yes
+
+# Selecting a TREES backup source.
+if [ "$VAROK" = yes ]; then
+	TREESOURCE="$VARBKUP"
+elif [ "$ROOTOK" = yes ]; then
+	TREESOURCE="$ROOTBKUP"
+elif [ "$TREESOK" = yes ]; then 
+	echo
+	echo '	'Unfortunately, neither of the listed backup locations has a collection of
+	echo '	'package trees. However, $(tput smul)"$PKGTREES"$(tput rmul) appears to be at least partially populated.
+	echo
+	echo '	'To continue restoring based on the information in $(tput smul)"$PKGTREES"$(tput rmul), enter $(tput smul)y$(tput rmul).
+	echo '	'To stop this script, enter any other character.
+	unset INPUT
+	read -r INPUT
+	if [ "$INPUT" != "y" ]; then 
+		echo
+		echo '	'Exiting now. If a yalpack backup directory is at another location, change
+		echo '	'the $(tput smul)"VARBKUP"$(tput rmul) variable in $(tput smul)/usr/share/yalpack/restore-yalpack$(tput rmul).
+		echo
+		exit
+	fi
+	TREESOURCE="$PKGTREES"
+# Can't do anything without a collection of package trees.
+else
+	echo
+	echo '	'Unfortunately, neither the backup locations nor the original location of
+	echo '	'$(tput smul)"$PKGTREES"$(tput rmul) has a collection of files.
+	echo
+	echo '	'The script will now exit. If a yalpack backup directory is at a location
+	echo '	'other than $(tput smul)"$VARBKUP"$(tput rmul) or $(tput smul)"$ROOTBKUP"$(tput rmul), change the $(tput smul)"VARBKUP"$(tput rmul)
+	echo '	'variable in $(tput smul)/usr/share/yalpack/restore-yalpack$(tput rmul).
+	echo
+	exit
+fi
+
+if [ "$TREESOURCE" != "$PKGTREES" ]; then
+	# Confirming the backup.
+	echo '	'A collection of package trees was found at $(tput smul)"$TREESOURCE"$(tput rmul). To proceed with restoring
+	echo '	'the $(tput smul)"$HEAD"$(tput rmul) directory structure using this collection, enter $(tput smul)y$(tput rmul). $(tput smul)"$TREESOURCE"$(tput rmul) will
+	echo '	'be copied in.
+	echo
+	echo '	'To stop the script, enter any other character. To choose a different directory as
+	echo '	'the basis for restoration, change the $(tput smul)"VARBKUP"$(tput rmul) variable in
+	echo '	'$(tput smul)/usr/share/yalpack/restore-yalpack$(tput rmul).
+	echo
+	unset INPUT
+	read -r INPUT
+	if [ "$INPUT" != "y" ]; then
+		echo
+		echo '	'Exiting now.
+		echo
+		exit
+	fi
+	[ -d "$PKGTREES" ] && echo '	'Moving the current $(tput smul)"$PKGTREES"$(tput rmul) directory to $(tput smul)"$OLDTREES"$(tput rmul). && rm -rf "$OLDTREES"  && mv "$PKGTREES" "$OLDTREES" && echo
+	cp -rv "$TREESOURCE" "$PKGTREES"
+	echo
+fi
+
+# Restoring library information with liblist -n
+echo '	'Now using $(tput smul)liblist$(tput rmul) to restore library information.
+echo
+liblist -n > /dev/null 2>&1
+echo '	'Done running $(tput smul)liblist$(tput rmul). $(tput smul)"$BINDEPS"$(tput rmul) has been restored.
+echo
+
+# Restoring other package information with pkgcheck
+echo '	'Now using $(tput smul)pkgcheck$(tput rmul) to restore ancillary package information. This may take
+echo '	'some time.
+echo
+find "$PKGTREES"/* -type f | while read -r f; do
+	g="$(basename "$f")"
+	echo '	'"$g"
+	pkgcheck "$g" > /dev/null 2>&1
+done
+echo
+echo '	'Thank you for your patience. Done with checking packages.
+echo
+
+# Restoring SYMTREES, if any
+echo '	'Now restoring or replacing the $(tput smul)SYMTREES$(tput rmul) directory. Although most packages
+echo '	'will not have SYMTREE files, this may take some time.
+echo
+rm -rf "$SYMTREES" "$SYMDESTS"
+mkdir -p "$SYMTREES" "$SYMDESTS"
+# Needed to avoid potential pkgremove errors
+touch "$SYMTREES"/PLACEHOLDER
+touch "$SYMDESTS"/PLACEHOLDER
+find "$PKGTREES"/* -type f | while read -r f; do
+        tree="$(basename "$f")"
+        # Checking for files installed under symlinked paths and documenting the non-symlinked
+        # file path.
+        while read -r line; do
+	if [ -f "$line" ] || [ -h "$line" ] || [ -d "$line" ]; then
+                unset LINK
+                LINK="$(readlink -e "$line")" || true
+               	# Trying to avoid doubles
+             	if [ -n "$LINK" ] && \
+              	[ "$LINK" != "$line" ] && \
+              	[ -z "$(grep -x "$LINK" "$f")" ] && \
+        	[ -z "$(grep -x "$LINK".new "$f")" ]; then
+			echo "$line" to "$LINK" >> "$SYMTREES"/"$tree"
+			echo "$LINK" >> "$SYMDESTS"/"$tree"
+		fi
+	fi
+done < "$f"
+done
+echo '	'The $(tput smul)"$SYMTREES"$(tput rmul) directory has been repopulated.
+echo
+
+# Restoring version information using the TREE documents
+echo '	'Now restoring the $(tput smul)"$PKGVERS"$(tput rmul) directory.
+echo
+find "$PKGTREES"/* -type f | while read -r f; do
+	unset NAMESTR
+	unset NAME
+	unset VER
+	NAME="$(basename "$f")"
+	NAMESTR="$(head -1 "$f")"
+	VER="${NAMESTR##$NAME}"
+	[ -n "$VER" ] && VER="${VER#-}"
+	echo "$VER" > "$PKGVERS"/"$NAME"
+done
+echo '	'Done.
+echo
+
+# Restoring the lists in NEWFILES.
+echo '	'Now restoring or replacing the $(tput smul).new$(tput rmul) file lists for each installed
+echo '	'package.
+echo
+mkdir -p "$NEWFILES"
+find "$PKGTREES"/* -type f | while read -r f; do
+	g="$(basename "$f")"
+	unset VER
+	VER="$(cat "$PKGVERS"/"$g")"
+	[ -n "$VER" ] && echo "$g"-"$VER", list updated' '"$(date)" > "$NEWFILES"/"$g"
+	[ -z "$VER" ] && echo "$g", list updated' '"$(date)" > "$NEWFILES"/"$g"
+	while read -r file; do
+		h="${file%.new}"
+		# Only existing .new files are written in.
+		[ "$file" != "$h" ] && [ -f "$file" ] && echo "$file" >> "$NEWFILES"/"$g"		
+	done < "$f"
+	# Don't keep empty NEWFILE documents.
+	unset NEWLENGTH
+	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
+	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
+done
+echo '	'$(tput smul)"$NEWFILES"$(tput rmul) has been regenerated.
+echo
+echo '	'$(tput smul)Restoration complete.$(tput rmul) Please note that package tarballs are not
+echo '	'recoverable. However, it should now be possible to resume
+echo '	'normal operations with yalpack.
+echo
