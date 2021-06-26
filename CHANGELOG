@@ -1,14 +1,4 @@
 CHANGELOG
 
-** For tracking changes between the yalpack-0.1.6 and the current repo **
-
-2021-06-24
-* Bugfix: changed secondary backup location to /root/.yalpack-backup
-      This was done because /root/.yalpack is also used by libcheck, and install.sh
-      would fail to move the backup data into the existing directory for upgrades
-      to yalpack-0.1.5 or 0.1.6.
-      
-      To use the secondary backup without upgrading the package, copy the contents
-      of the primary backup location (/var/log/yalpack) into /root/.yalpack. If 
-      upgrading using a new git clone, no special action is needed.
+** For tracking changes between the yalpack-0.1.7 and the current repo **
 
