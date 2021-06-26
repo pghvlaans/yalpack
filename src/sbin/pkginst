@@ -37,6 +37,7 @@ SYMTREES=$PKGDATA/SYMTREES
 SYMDESTS=$PKGDATA/.SYMDESTS
 PKGVER=$PKGDATA/VER
 NEWFILES=$PKGDATA/NEWFILES
+SBINDIR=/usr/sbin
 
 # Backups
 
@@ -192,7 +193,7 @@ fi
 
 # For the installer's edification and to update library use info
 # pkgup handles pkgcheck for upgrades.
-[ "${UPGRADE:-no}" != yes ] && CHECK=no pkgcheck "$NAME"
+[ "${UPGRADE:-no}" != yes ] && CHECK=no "$SBINDIR"/pkgcheck "$NAME"
 
 # Inform about any repaired symlinks
 if [ -f "$PKGDIR"/SYMLINKS ]; then 
@@ -209,7 +210,7 @@ if [ -f "$NEWFILES/$NAME" ]; then
 	cat "$NEWFILES"/"$NAME"
 	echo
 	echo '	'The list will be stored at $(tput smul)"$NEWFILES"/"$NAME"$(tput rmul) for reference.
-	echo '	'Run $(tput smul)/usr/share/yalpack/newfiles$(tput rmul) to update "$NEWFILES".
+	echo '	'Run $(tput smul)/usr/share/yalpack/newfiles$(tput rmul) at any time to manage $(tput smul).new$(tput rmul) files.
 	echo
 fi
 
@@ -217,7 +218,7 @@ if [ "$SYMTREEFLAG" = "WRITE" ]; then
 	echo '	'$(tput smul)One or more installations under a symlink path have been detected.$(tput rmul)
 	# This may happen from time to time with merged-usr. Without merged-usr, it probably shouldn't.
 	if [ ! -h "/bin" ]; then
-		echo '	'This may be a sign tht the package was built incorrectly. See 
+		echo '	'This may be a sign that the package was built incorrectly. See 
 		echo '	'$(tput smul)"$SYMTREES"/"$NAME"$(tput rmul) for a list.
 	else
 		echo '	'See $(tput smul)"$SYMTREES"/"$NAME"$(tput rmul) for a list.

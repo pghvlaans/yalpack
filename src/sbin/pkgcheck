@@ -42,6 +42,7 @@ PKGDATA=$HEAD/pkgdata
 PKGTREES=$PKGDATA/TREES
 PKGTREE=$PKGTREES/"$1"
 BINDEPS=$HEAD/BIN-DEPS
+SBINDIR=/usr/sbin
 
 [ "${CHECK:-yes}" = yes ] && echo
 echo '	'Preparing to check for information about $(tput smul)"$1"$(tput rmul).
@@ -86,7 +87,7 @@ while read -r f; do
 				echo "$file" >> "$PKGBIN"/instbins
 				# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
 				set +e
-				liblist "$file" > /dev/null 2>&1
+				"$SBINDIR"/liblist "$file" > /dev/null 2>&1
 				set -e
 				[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
 			fi
@@ -116,7 +117,7 @@ if [ -f "$PKGLIB"/libs ]; then
 	if [ "${CHECK:-yes}" != yes ]; then
 		echo '	'Now using $(tput smul)liblist -n$(tput rmul) to update all library information...
 		set +e
-		liblist -n > /dev/null 2>&1
+		"$SBINDIR"/liblist -n > /dev/null 2>&1
 		set -e
 		echo '	'Done.
 		echo
@@ -127,7 +128,7 @@ if [ "${CHECK:-yes}" != yes ]; then
 	if [ "$NAME" = "yalpack" ] ; then
 		echo '	'This is an installation or upgrade of $(tput smul)yalpack$(tput rmul). Running $(tput smul)liblist -n$(tput rmul) now to make a
 		echo '	'collection of library information...
-		liblist -n > /dev/null 2>&1
+		"$SBINDIR"/liblist -n > /dev/null 2>&1
 		echo '	'Done.
 		echo
 	fi	

@@ -45,13 +45,17 @@ if [ -d "$BUILDDEST/$z" ]; then
 	# Copy the original directory out for safekeeping
 	rm -rf $TMP/"$1"-$z
 	cp -r "$BUILDDEST"/$z $TMP/"$1"-$z
-	# List non-binary files
+	# List text files only
 	rm -f "$TMP"/"$1"-"$z"-list
-	echo "$(find "$(pwd)"/$z/ -type f -exec file {} \; | grep text | cut -d':' -f1)" >> "$TMP"/"$1"-"$z"-list
+	echo "$(find "$BUILDDEST"/"$z" -type f -exec file {} \; | grep text | cut -d':' -f1)" >> "$TMP"/"$1"-"$z"-list
 	# Now the renaming can proceed
-	while read -r f; do
-		# Existence check needed, as etc or home without files will otherwise crash.
-		[ -f "$f" ] && [ ! -h "$f" ] &&mv "$f" "$f".new
+	[ -f "$TMP/$1-$z-list" ] && while read -r f; do
+		echo "$f"
+		# A non-text file with "text" in its name could slip through; checking again.
+		if [ -n "$(file "$f" | cut -d':' -f2- | grep text)" ]; then
+			# Existence check needed, as etc or home without files will otherwise crash.
+			[ -f "$f" ] && [ ! -h "$f" ] && mv "$f" "$f".new
+		fi
 	done < "$TMP"/"$1"-"$z"-list
 fi
 done

@@ -32,6 +32,7 @@ PKGVERS=$PKGDATA/VER
 SYMTREES=$PKGDATA/SYMTREES
 SYMDESTS=$PKGDATA/.SYMDESTS
 NEWFILES=$PKGDATA/NEWFILES
+SBINDIR=/usr/sbin
 
 # Backups
 VARBKUP=/var/log/yalpack
@@ -57,7 +58,8 @@ echo
 
 # If init is upgraded, or in case of a glibc upgrade, it will need to reload before a halt or reboot
 # is attempted.
-INITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+unset INITVER
+[ -x "/sbin/init" ] && INITVER="$(/sbin/init --version | cut -d' ' -f4-)"
 
 set -e
 cd $STAGING
@@ -70,8 +72,8 @@ NAME="$(cat "$NEWDIR/NAME")"
 # The new version will overwrite the outgoing TREE and VER, but they need to be saved for comparison.
 cp "$PKGTREES"/"$1" "$PKGTREES/YALPACK-OUTGOING"
 # The backup locations contain only TREE files.
-[ -d "$VARBKUP" ] && cp "$VARBKUP"/"$1" "$VARBKUP/YALPACK-OUTGOING"
-[ -d "$ROOTBKUP" ] && cp "$ROOTBKUP"/"$1" "$ROOTBKUP/YALPACK-OUTGOING"
+[ -f "$VARBKUP/$NAME" ] && cp "$VARBKUP"/"$1" "$VARBKUP/YALPACK-OUTGOING"
+[ -f "$ROOTBKUP/$NAME" ] && cp "$ROOTBKUP"/"$1" "$ROOTBKUP/YALPACK-OUTGOING"
 cp "$PKGVERS"/"$1" "$PKGVERS/YALPACK-OUTGOING"
 
 # The new version may or may not overwrite SYMTREE and NEWFILE
@@ -83,23 +85,23 @@ mkdir -p "$NEWFILES"
 
 # pkgremove, pkginst and pkgcheck can use their own error handling
 set +e
-[ "$3" = "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes pkginst -kr "$2"
-[ "$3" = "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes pkginst -k "$2"
-[ "$3" != "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes pkginst -r "$2"
-[ "$3" != "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes pkginst "$2"
+[ "$3" = "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes "$SBINDIR"/pkginst -kr "$2"
+[ "$3" = "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes "$SBINDIR"/pkginst -k "$2"
+[ "$3" != "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes "$SBINDIR"/pkginst -r "$2"
+[ "$3" != "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes "$SBINDIR"/pkginst "$2"
 # UPGRADE=yes protects the newly-installed version from interference.
-UPGRADE=yes pkgremove -y "$1"
-CHECK=no pkgcheck "$NAME"
+UPGRADE=yes "$SBINDIR"/pkgremove -y "$1"
+CHECK=no "$SBINDIR"/pkgcheck "$NAME"
 set -e
 
 # Checking for a new version of init
-NEWINITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+[ -x "/sbin/init" ] && NEWINITVER="$(/sbin/init --version | cut -d' ' -f4-)"
 
 # Reload init if new glibc or new sysvinit
 unset MESSAGE
 # Adding "or true" means the script will not crash when performing glibc or init upgrades
 [ -n "$(grep /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && telinit U || true
-[ "$MESSAGE" = "WRITE" ] && echo && echo '	'$(tput smul)init$(tput rmul) has been reloaded, if not in chroot. && echo
+[ "$MESSAGE" = "WRITE" ] && echo '	'$(tput smul)init$(tput rmul) has been reloaded, if not in chroot. && echo
 
 echo '	'The upgrade of $(tput smul)"$1"$(tput rmul) to $(tput smul)"$2"$(tput rmul) is complete.
 echo
