@@ -71,7 +71,7 @@ else
 	tree="$(basename "$f")"
 	# Checking for files installed under symlinked paths and documenting the non-symlinked
 	# file path, as well as symlinks pointing to destinations not provided by the package.
-	while read -r line; do
+	[ "$tree" != "YALPACK-OUTGOING" ] && while read -r line; do
 		if [ -f "$line" ] || [ -h "$line" ] || [ -d "$line" ]; then
 			unset LINK
 			LINK="$(readlink -e "$line")" || true
@@ -98,19 +98,21 @@ mkdir -p "$NEWFILES"
 echo '	'Generating lists of $(tput smul).new$(tput rmul) files now.
 find "$PKGTREES"/* -type f | while read -r f; do
 	g="$(basename "$f")"
-	unset VER
-	VER="$(cat "$PKGVERS"/"$g")"
-	[ -n "$VER" ]; echo "$g"-"$VER", updated' '"$(date)" > "$NEWFILES"/"$g"
-	[ -z "$VER" ]; echo "$g", updated' '"$(date)" > "$NEWFILES"/"$g"
-	while read -r file; do
-		h="${file%.new}"
-		# Only existing .new files are written in. 
-		[ "$file" != "$h" ] && [ -f "$file" ] && echo "$file" >> "$NEWFILES"/"$g"
-	done < "$f"
-	# Don't keep empty NEWFILE documents.
-	unset NEWLENGTH
-	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
-	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
+	if [ "$g" != "YALPACK-OUTGOING" ]; then
+		unset VER
+		VER="$(cat "$PKGVERS"/"$g")"
+		[ -n "$VER" ]; echo "$g"-"$VER", updated' '"$(date)" > "$NEWFILES"/"$g"
+		[ -z "$VER" ]; echo "$g", updated' '"$(date)" > "$NEWFILES"/"$g"
+		while read -r file; do
+			h="${file%.new}"
+			# Only existing .new files are written in. 
+			[ "$file" != "$h" ] && [ -f "$file" ] && echo "$file" >> "$NEWFILES"/"$g"
+		done < "$f"
+		# Don't keep empty NEWFILE documents.
+		unset NEWLENGTH
+		NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
+		[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
+	fi
 done
 echo
 echo '	'Done. The lists \(if any\) can be found in $(tput smul)"$NEWFILES"$(tput rmul).
