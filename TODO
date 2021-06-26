@@ -1,7 +1,6 @@
-TODO list for after yalpack-0.1.5
+TODO list for after yalpack-0.1.7
 
-* newfiles: add file management prompts (diff, backup, replace, etc.) to newfiles
-* Add a common "yalpack" man page with basic commands and a list of the other man pages
+* Add a config file at /etc/yalpack.conf
 * Retest glibc downgrades with selected compatible binaries already installed to the system
 * Full testing on the future LFS 11.0 release candidate
 * Full testing on the future LFS 11.0 stable release
