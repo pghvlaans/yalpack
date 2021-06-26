@@ -1,4 +1,4 @@
-TODO list for after yalpack-0.1.7
+TODO list for after yalpack-0.1.8
 
 * Add a config file at /etc/yalpack.conf
 * Retest glibc downgrades with selected compatible binaries already installed to the system
