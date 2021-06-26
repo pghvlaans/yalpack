@@ -4,3 +4,5 @@ TODO list for after yalpack-0.1.8
 * Retest glibc downgrades with selected compatible binaries already installed to the system
 * Full testing on the future LFS 11.0 release candidate
 * Full testing on the future LFS 11.0 stable release
+* Search for script optimizations.
+* Further checks for POSIX-compliability.
