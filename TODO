@@ -1,8 +1,16 @@
-TODO list for after yalpack-0.1.8
+TODO list for after yalpack-0.1.7
 
+For next release:
 * Add a config file at /etc/yalpack.conf
+      Status: Testing and documentation
+      Needed bugfix: Altering the top-level TMP directory can cause symlink repair failures
+                     for software packaged before the config file edit and installed
+                     afterwards.
+* Word-wrap comments for legibility
+* Search for script optimizations.
+* Further checks for POSIX-compliability.
+
+For the future:
 * Retest glibc downgrades with selected compatible binaries already installed to the system
 * Full testing on the future LFS 11.0 release candidate
 * Full testing on the future LFS 11.0 stable release
-* Search for script optimizations.
-* Further checks for POSIX-compliability.
