@@ -2,3 +2,5 @@ CHANGELOG
 
 ** For tracking changes between the yalpack-0.1.7 and the current repo **
 
+2021-06-27
+src/man/yalpack.1: Fixed file path and man page name for newfiles.
