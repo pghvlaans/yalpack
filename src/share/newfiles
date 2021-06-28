@@ -120,8 +120,8 @@ case "$INPUT" in
 	y="$(file "$oldfile" | cut -d':' -f2- | grep text)"
 	[ -z "$x" ] || [ -z "$y" ] && echo '	'One or both of these files is a $(tput smul)non-text file$(tput rmul)\; diff is not available. && main QUIET
 	# Using less is nice, but it isn't in the LFS temporary tools, so check for it
-	[ -x "/usr/bin/less" ] && diff "$newfile" "$oldfile" | less && main QUIET
-	diff "$newfile" "$oldfile" && main QUIET
+	[ -x "/usr/bin/less" ] && diff -u "$oldfile" "$newfile" | less && main QUIET
+	diff -u "$oldfile" "$newfile" && main QUIET
 	;;
 	x)
 	echo
