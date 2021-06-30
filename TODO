@@ -3,14 +3,19 @@ TODO list for after yalpack-0.1.7
 For next release:
 * Add a config file at /etc/yalpack.conf
       Status: Testing and documentation
-      Task: Tighten up config verification mechanisms.
+      Tasks: * Tighten up config verification mechanisms: done (check for empty, identical and
+               non-file-path variables)
+             * Pass the config variables when one script calls another: done      
       Needed bugfix: Altering the top-level TMP directory can cause symlink repair failures
                      for software packaged before the config file edit and installed
                      afterwards.
 * Word-wrap comments for legibility
       Status: Done (not yet uploaded)
 * Search for script optimizations.
-      Status: speed improvements may be possible for newfiles and pkglist.
+      Status: marked speed improvements are coming for pkgcheck; drastic for packages with a high
+              ratio of non-executable files (e.g. Python, the kernel, man-pages). liblist speed
+              is up by about 20%. This makes pkginst, pkgup and restore-yalpack faster. Also, 
+              newfiles and libcheck are both snappier. (not yet uploaded)
 * Further checks for POSIX-compliability.
       Status: All scripts intended for 0.1.8 run successfully with a dash login and /bin/sh -> dash.
               (Not yet uploaded; this will be re-tested prior to release.)
