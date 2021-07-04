@@ -1,7 +1,6 @@
 TODO list for after yalpack-0.1.7
 
-Release milestone: full build testing (10.1 and 10.1 dev); retesting of script operations on
-      installed systems. (ETA: "Before LFS 11.0 RC")
+Release milestone: One more 10.1 dev build test; review all documentation for accuracy.
 
 For next release:
 * Add a config file at /etc/yalpack.conf
