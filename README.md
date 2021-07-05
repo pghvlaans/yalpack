@@ -1,4 +1,4 @@
-**yalpack-0.1.7**
+**yalpack-0.1.8**
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
 
@@ -6,11 +6,11 @@ yalpack is intended to make managing upgrades and trying new software easier on 
 * Install compiled software as packages
 * Easily remove unwanted packages (no need to worry about "make uninstall")
 * Simple(r) pacakge upgrades
-* Handle and log ".new" files automatically - from yalpack-0.1.7, easy .new file management.
+* Handle and log ".new" files automatically, with a script for easy .new file management
 * List installed packages and versions
 * Gather, store and check information about dynamic library usage
 * Search for which package provided which file/directory/symlink
-* Easily regenerate the yalpack data directory from a backup collection of installed package trees.
+* Easily regenerate the yalpack data directory from a backup collection of installed package trees
 
 yalpack requires only a POSIX-compliant shell, coreutils, util-linux, findutils, ncurses, grep and tar to operate. gzip is needed for installation. Dependency resolution is not provided, and packages are still meant to be built from source. A number of the included scripts are intended as aids to dependency management, however.
 
@@ -19,6 +19,10 @@ Although the envisioned use case of yalpack is to add, upgrade and remove packag
 yalpack has not been tested on earlier versions of Linux from Scratch. Because ldd is used to collect information about binaries, moreover, it should never be used with versions of glibc earlier than 2.27. For an explanation, see the "Security" section in the ldd man page.
 
 For installation and upgrades of yalpack, see INSTALL or run `make all` for details.
+
+*POSIX compliance*
+
+Providing a POSIX-compliant package management solution is a priority for this project. All yalpack-0.1.8 scripts have been tested to run with /bin/sh linked to dash, bash and zsh. As indicated in the Linux From Scratch instructions, /bin/sh should nevertheless be a symlink to /bin/bash when building the base system.
 
 **USING YALPACK OUTSIDE OF AN LFS BOOT OR CHROOT CONTEXT WOULD INSTALL AND/OR REMOVE PACKAGES ON THE HOST SYSTEM, RESULTING IN MAYHEM.**
 
@@ -40,11 +44,12 @@ yalpack provides the following tools for package management on LFS-based systems
 	* libcheck: Checking for binaries and yalpack packages using dynamic libraries matching a search term
 	* libprecise: Checking for binaries and yalpack packages using a particular dynamic library
 	* pkglist: Providing a list of yalpack-installed packages
-	* pkgfind: Use search terms or exact file paths to determine which package provided matching files, directories and symlinks
+	* yalfind: Use search terms or exact file paths to determine which package provided matching files, directories and symlinks
 
 In addition, the following utility scripts can be found in /usr/share/yalpack:
-* newfiles: Update the NEWFILES directory to reflect currently-existing files; optionally manage .new files.
+* newfiles: Update the NEWFILES directory to reflect currently-existing files; optionally, manage .new files.
 * restore-yalpack: Regenerate the yalpack data directory using a package tree backup in case of data loss or other accidents.
+* backups: Set up a parallel package tree in the backup locations, if necessary. Can be used in case of data loss or changes to /etc/yalpack.conf.
 
 When building from source with the objective of installing a yalpack package, please remember the following considerations:
 
@@ -71,11 +76,11 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 
 Upgrade and downgrade tests were successful for acl and attr (10.1 stable and dev).
 
-As might be expected, the situation for glibc is more complicated. For yalpack-0.1.7, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32.
+As might be expected, the situation for glibc is more complicated. For yalpack-0.1.8, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32, provided that no critical packages (e.g. acl, attr) had been built with glibc-2.33 in the mean time.
 
 The 10.1 LFS dev system used for testing had been built with glibc-2.33; an attempted downgrade to 2.32 managed to install the files, but calls of cat, etc. relying on glibc-2.33 subsequently failed, resulting in the full installation process being incomplete. The system was bricked thereafter.
 
-In summary, then, findings for glibc upgrades and downgrades with yalpack-0.1.7 are as follows:
+In summary, then, findings for glibc upgrades and downgrades with yalpack-0.1.8 are as follows:
 
 * With LFS 10.1 stable:
 	* Upgrades: tested to work (2.32 to 2.33)
@@ -93,21 +98,23 @@ As of LFS 10.1, some packages in the book cannot use DESTDIR with `make install`
 * bzip2: Use `make PREFIX=/tmp/bzip2-1.0.8/dest/usr install` in lieu of `make PREFIX=/usr install`
 * sysvinit: Use the following steps:
 	* Extract the sysvinit source tarball.
-	* Copy /usr/share/doc/yalpack-0.1.7/sysvinit.dewit into the source directory.
+	* Copy /usr/share/doc/yalpack-0.1.8/sysvinit.dewit into the source directory.
 	* To install a version other than 2.98, or to upgrade, edit the file accordingly (explanatory comments included).
 	* Make the script executable and run.
 * sysklogd: Use the following steps:
 	* Extract the sysklogd source tarball.
-	* Copy /usr/share/doc/yalpack-0.1.7/sysklogd.dewit into the source directory.
+	* Copy /usr/share/doc/yalpack-0.1.8/sysklogd.dewit into the source directory.
 	* To install a version other than 1.5.1, select a job level or upgrade, edit the file accordingly (explanatory comments included).
 	* Make the script executable and run.
 	* Follow the post-installation instructions in the LFS book, or write them in to an install.sh script.
+
+The build scripts provided in /usr/share/doc/yalpack-0.1.8 have hardcoded values. If TMP was changed in /etc/yalpack.conf, the value of TMP in the scripts should be changed accordingly.
 
 The installation procedure in sysvinit.dewit was adapted from sysvinit.SlackBuild, provided by Slackware. Except for inordinately complicated installation procedures for packages in the Linux From Scratch book, distributing build scripts is beyond the scope of this project.
 
 *Upgrading glibc and SysVinit*
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Although yalpack 0.1.4+ been tested to upgrade glibc up to 2.33, this type of upgrade should be treated with care and is not necessarily advisable. glibc downgrades (in particular, downgrades to versions older than the one used to build LFS) are unsupported altogether.
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Although yalpack 0.1.4+ has been tested to upgrade glibc up to 2.33, this type of upgrade should be treated with care and is not necessarily advisable. glibc downgrades (especially downgrades to versions older than the one used to build LFS) are unsupported altogether.
 
 In order to avoid unmounting problems at the next halt or reboot, pkgup uses /sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected. *This procedure is untested on systemd-based installations.*
 
@@ -128,24 +135,22 @@ Everything under `dest/` is installed relative to root. `NAME` (and `install.sh`
 yalpack makes use of the following directories, which will be made when the script in parentheses is run for the first time:
 
 	/var/yalpack/packages	(pkgmake)
-		Holds package tarballs; tarballs for all currently-installed
-		packages should be retained.
-	/var/yalpack/pkgdata	(pkginst)
+		Holds package tarballs; once a package has been installed, the package tarball need not be retained.
+	/var/yalpack/pkgdata	(pkginst or yalpack's install.sh script)
 		Holds reference information about installed packages.
 	/var/yalpack/BIN-DEPS	(liblist; called by pkginst)
-		Holds information about the dynamic libraries used by those
-		binaries checked by liblist.
+		Holds information about the dynamic libraries used by those binaries checked by liblist.
 
-Any and all of the target directories (including /tmp for the original "install" destination) can be changed by editing the shell scripts in `/sbin` or `/usr/bin`. See "Customization" for details and ensure that any edits are consistent.
+The yalpack main data directory, backup locations, build destination and sbin directory can all be changed by editing /etc/yalpack.conf. See "Customization" for details and instructions. 
 
-Please note that the `/var/yalpack` directory will not be removed by running `pkgremove yalpack`.
+Please note that the /var/yalpack directory and the backup locations will not be removed by running `pkgremove yalpack.`
 
 **Package tree backups**
 
 yalpack relies on the contents of `/var/yalpack` to operate. If this directory is lost (in whole or in part), using yalpack scripts could become inconvenient or impossible. For this reason, yalpack retains parallel package tree directories (main copy at `/var/yalpack/pkgdata/TREES`) in the following locations:
 
-	/var/log/yalpack
-	/root/.yalpack-backup
+	`/var/log/yalpack`
+	`/root/.yalpack-backup`
 
 If either of these directories (or the TREES directory itself) is intact, and yalpack is installed, `/usr/share/yalpack/restore-yalpack.sh` can be used to regenerate the rest of the `/var/yalpack` directory. This process takes a few minutes, so it would still be best not to delete `/var/yalpack` if possible.
 

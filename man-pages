@@ -10,7 +10,7 @@ following man pages:
 	* liblist(1)
 	* pkgcheck(1)
 	* pkglist(1)
-	* pkgfind(1)
+	* yalfind(1)
 	* libcheck(1)
 	* libprecise(1)
 	* restore-yalpack(5)
