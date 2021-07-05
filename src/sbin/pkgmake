@@ -25,10 +25,50 @@
 # Making a package from source elements
 
 main() {
-HEAD=/var/yalpack
-TMP=/tmp
-STAGING=$HEAD/packages
-BUILDDIR=$TMP/$1
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its originally-installed state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+
+STAGING="$HEAD"/packages
+BUILDDIR="$TMP"/"$1"
 BUILDDEST="$BUILDDIR"/dest
 NAME="$(cat "$BUILDDIR"/NAME)"
 
@@ -38,12 +78,13 @@ echo
 set -e
 cd "$BUILDDEST"
 
-# Move all files in etc and home (if any) to .new; exclude symlinks and directories
+# Move all files in etc and home (if any) to .new; exclude symlinks and
+# directories
 for z in etc home
 do
 if [ -d "$BUILDDEST/$z" ]; then
 	# Copy the original directory out for safekeeping
-	rm -rf $TMP/"$1"-$z
+	rm -rf "$TMP"/"$1"-$z
 	cp -r "$BUILDDEST"/$z $TMP/"$1"-$z
 	# List text files only
 	rm -f "$TMP"/"$1"-"$z"-list
@@ -51,9 +92,11 @@ if [ -d "$BUILDDEST/$z" ]; then
 	# Now the renaming can proceed
 	[ -f "$TMP/$1-$z-list" ] && while read -r f; do
 		echo "$f"
-		# A non-text file with "text" in its name could slip through; checking again.
+		# A non-text file with "text" in its name could slip through; 
+		# checking again.
 		if [ -n "$(file "$f" | cut -d':' -f2- | grep text)" ]; then
-			# Existence check needed, as etc or home without files will otherwise crash.
+			# Existence check needed, as etc or home without files
+			# will otherwise crash.
 			[ -f "$f" ] && [ ! -h "$f" ] && mv "$f" "$f".new
 		fi
 	done < "$TMP"/"$1"-"$z"-list
@@ -71,7 +114,8 @@ done
 
 # Adding version information
 VER="${1##$NAME-}"
-# Properly handling no-version packages (like the kernel, if the user wants more than one installed)
+# Properly handling no-version packages (like the kernel, if the user wants more
+# than one installed)
 if [ "$VER" != "$NAME" ]; then
 	echo "$VER" > "$BUILDDIR"/VER
 else
@@ -79,10 +123,10 @@ else
 fi
 
 # Compression and move to the correct place
-cd $TMP
+cd "$TMP"
 tar -czvf "$1".tar.xz "$1"
-mkdir -p $STAGING
-mv "$1".tar.xz $STAGING
+mkdir -p "$STAGING"
+mv "$1".tar.xz "$STAGING"
 
 # Check for the existence of an executable install.sh file
 if [ -x "$BUILDDIR/install.sh" ]; then
@@ -99,8 +143,8 @@ for z in etc home
 do
 if [ -d "$TMP/$1-$z" ]; then
 	rm -rf "${BUILDDEST:?}"/$z
-	mv $TMP/"$1"-$z "$BUILDDEST"/$z
-	rm -f $TMP/"$1"-"$z"-list
+	mv "$TMP"/"$1"-$z "$BUILDDEST"/$z
+	rm -f "$TMP"/"$1"-"$z"-list
 fi
 done
 echo
