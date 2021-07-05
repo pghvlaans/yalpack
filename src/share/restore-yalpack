@@ -42,7 +42,7 @@ SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
 if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
-        echo The document can be found in its originally-installed state at
+        echo The document can be found in its default state at
         echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
