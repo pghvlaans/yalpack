@@ -149,9 +149,9 @@ Please note that the /var/yalpack directory and the backup locations will not be
 
 yalpack relies on the contents of `/var/yalpack` to operate. If this directory is lost (in whole or in part), using yalpack scripts could become inconvenient or impossible. For this reason, yalpack retains parallel package tree directories (main copy at `/var/yalpack/pkgdata/TREES`) in the following locations:
 
-	`/var/log/yalpack`
-	`/root/.yalpack-backup`
+* `/var/log/yalpack`
+* `/root/.yalpack-backup`
 
-If either of these directories (or the TREES directory itself) is intact, and yalpack is installed, `/usr/share/yalpack/restore-yalpack.sh` can be used to regenerate the rest of the `/var/yalpack` directory. This process takes a few minutes, so it would still be best not to delete `/var/yalpack` if possible.
+If either of these directories (or the TREES directory itself) is intact, and yalpack is installed, `/usr/share/yalpack/restore-yalpack` can be used to regenerate the rest of the `/var/yalpack` directory. Any lost package tarballs are unrecoverable, so it would still be best not to delete `/var/yalpack` if possible.
 
 install.sh will set up the backups for new installations and any upgrades from versions of yalpack without backup capabilities.
