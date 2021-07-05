@@ -71,7 +71,7 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 
 Upgrade and downgrade tests were successful for acl and attr (10.1 stable and dev).
 
-As might be expected, the situation for glibc is more complicated. For yalpack-0.1.7, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32.
+As might be expected, the situation for glibc is more complicated. For yalpack-0.1.7, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32, provided that no critical package built under glibc-2.33 was present at the time of downgrade.
 
 The 10.1 LFS dev system used for testing had been built with glibc-2.33; an attempted downgrade to 2.32 managed to install the files, but calls of cat, etc. relying on glibc-2.33 subsequently failed, resulting in the full installation process being incomplete. The system was bricked thereafter.
 
@@ -107,7 +107,7 @@ The installation procedure in sysvinit.dewit was adapted from sysvinit.SlackBuil
 
 *Upgrading glibc and SysVinit*
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Although yalpack 0.1.4+ been tested to upgrade glibc up to 2.33, this type of upgrade should be treated with care and is not necessarily advisable. glibc downgrades (in particular, downgrades to versions older than the one used to build LFS) are unsupported altogether.
+As the Linux From Scratch documentation indicates, glibc upgrades generally entail a full system rebuild. Although yalpack 0.1.4+ been tested to upgrade glibc up to 2.33, this type of upgrade should be treated with care and is not necessarily advisable. glibc downgrades (especially downgrades to versions older than the one used to build LFS) are unsupported altogether.
 
 In order to avoid unmounting problems at the next halt or reboot, pkgup uses /sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected. *This procedure is untested on systemd-based installations.*
 
