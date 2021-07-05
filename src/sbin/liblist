@@ -22,25 +22,69 @@
 #  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Checking dynamic libraries called in by all binaries. Must be run as root or there will be no information about /sbin and /usr/sbin.
+# Checking dynamic libraries called in by all binaries. Must be run as root or 
+# there will be no information about /sbin and /usr/sbin.
 
-HEAD=/var/yalpack
-BINDEPS=$HEAD/BIN-DEPS
+# If called by another script, use the passed-in variables to save time.
+if [ "${YALCONFIG:-no}" = no ]; then
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its default state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+fi
+
+BINDEPS="$HEAD"/BIN-DEPS
 mkdir -p "$BINDEPS"
 
 # The function to check libraries for an individual binary
 populate() {
-BIN="$(basename "$1")"
-# An empty variable name here would be really bad
-[ -z "$BIN" ] && return
-# Not interested in library files here
-[ -n "$(echo "$BIN" | grep -e "[.]so[.]" -e "[.]so\$" -e "[.]la[.]" -e "[.]la\$" -e "[.]a[.]" -e "[.]a\$")" ] && return
-BINDIR="$BINDEPS/$BIN"
-mkdir -p "$BINDIR"
-echo "$BIN" checked "$(date)" > "$BINDIR/$BIN.libinfo"
-ldd "$1" >> "$BINDIR/$BIN.libinfo"
-# Don't need empty entries
-[ "$(wc -l "$BINDIR/$BIN.libinfo")" = "1 $BINDIR/$BIN.libinfo" ] && rm -rf "$BINDIR"
+# This line here is why yalpack should not be used with glibc-2.26 and earlier;
+# see "man 1 ldd."
+x="$(ldd "$1")"
+if [ -n "$x" ]; then
+	BIN="$(basename "$1")"
+	# An empty variable name here would be really bad
+	[ -z "$BIN" ] && return
+	BINDIR="$BINDEPS/$BIN"
+	mkdir -p "$BINDIR" && echo "$BIN" > "$BINDIR"/"$BIN".libinfo && echo "$x" >> "$BINDIR"/"$BIN".libinfo
+fi
 }
 
 # A new dynamic library usage data collection
@@ -52,7 +96,9 @@ for d in /bin /usr /sbin /opt; do
 	# Only look in if directory exists, is not a symlink and is non-empty
 	if [ -d "$d" ] && [ ! -h "$d" ] && [ -n "$(ls -A "$d")" ]; then
 		echo Checking $d
-		find $d/* -executable -type f | while read -r file; do populate "$file"; done
+		find "$d"/* -executable -type f | while read -r file; do 
+			[ -z "$(basename "$file" | grep -m 1 -e "[.]so[.]" -e "[.]so\$" -e "[.]la\$" -e "[.]a\$")" ] && populate "$file" 
+		done
 	fi
 done
 }

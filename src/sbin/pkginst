@@ -24,35 +24,77 @@
 #
 # Installing a package from a source tarball
 
+# If called by another script, use the passed-in variables to save time.
+if [ "${YALCONFIG:-no}" = no ]; then
+
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its default state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+fi
+
 main (){
-HEAD=/var/yalpack
-TMP=/tmp
-STAGING=$HEAD/packages
-PKGDIR=$STAGING/"$PACK"
-PKGDATA=$HEAD/pkgdata
-BUILDDEST=$TMP/"$PACK"/dest
-PKGDEST=$PKGDIR/dest
-PKGTREES=$PKGDATA/TREES
-SYMTREES=$PKGDATA/SYMTREES
-SYMDESTS=$PKGDATA/.SYMDESTS
-PKGVER=$PKGDATA/VER
-NEWFILES=$PKGDATA/NEWFILES
-SBINDIR=/usr/sbin
+STAGING="$HEAD"/packages
+PKGDIR="$STAGING"/"$PACK"
+PKGDATA="$HEAD"/pkgdata
+PKGDEST="$PKGDIR"/dest
+PKGTREES="$PKGDATA"/TREES
+SYMTREES="$PKGDATA"/SYMTREES
+SYMDESTS="$PKGDATA"/.SYMDESTS
+PKGVER="$PKGDATA"/VER
+NEWFILES="$PKGDATA"/NEWFILES
+BUILDDEST="$TMP"/dest/"$PACK"
 
 # Backups
 
-VARBKUP=/var/log/yalpack
-# Placing yalpack data directories in locations not owned by root is not recommended.
-ROOTHOME=/root
+# Placing yalpack data directories in locations not owned by root is not
+#i recommended.
 ROOTBKUP="$ROOTHOME"/.yalpack-backup
 
 echo
 echo '	'Installing package $(tput smul)"$PACK"$(tput rmul).
 echo
 set -e
-mkdir -p $STAGING
+mkdir -p "$STAGING"
 mkdir -p "$PKGDATA" "$PKGTREES" "$PKGVER" "$NEWFILES"
-cd $STAGING
+cd "$STAGING"
 tar -xf "$PACK".tar.xz
 NAME=$(cat "$PKGDIR"/NAME)
 
@@ -60,14 +102,17 @@ NAME=$(cat "$PKGDIR"/NAME)
 [ ! -d "$PKGDEST" ] && echo '	'$(tput smul)Warning! "$PKGDEST"$(tput rmul) was not found. Exiting. && exit
 
 cd "$PKGDEST"
-# Patrick Volkerding says non-755 root is dangerous, so it can't hurt (for safety when extracting the package to root).
+# Patrick Volkerding says non-755 root is dangerous, so it can't hurt (for
+# safety when extracting the package to root).
 chmod 755 "$PKGDEST"
-# If --root-own was passed in, change ownership to root:root. Ownership is preserved at the actual install stage.
+# If --root-own was passed in, change ownership to root:root. Ownership is
+# preserved at the actual install stage.
 [ "$3" = "CHOWN" ] && chown -R root:root "$PKGDEST"
 
-# Non-directories, non-symlinks and non-binaries in etc and home will be .new; check for identical/unique. Doing nothing means .new installed. (Any other file named .new manually will be checked similarly.)
-echo "$PACK", installed' '$(date) > "$NEWFILES"/"$NAME"
-
+# Non-directories, non-symlinks and non-binaries in etc and home will be .new;
+# check for identical/unique. Doing nothing means .new installed. (Any other
+# file named .new manually will be checked similarly.)
+rm -f "$NEWFILES"/"$NAME"
 find "$PKGDEST"/ -type f | while read -r f;	
 do
 	h="${f##$PKGDEST/}"
@@ -84,9 +129,13 @@ do
 			if [ "$md5f" = "$md5i" ]; then
 				rm -f "$f"
 			else
-				# If .new file will be installed, log it and show the user afterwards.
+				# If .new file will be installed, log it and
+				# show the user afterwards.
+				[ ! -f "$NEWFILES"/"$NAME" ] && echo "$PACK" >> "$NEWFILES"/"$NAME"
 				echo "/$h" >> "$NEWFILES"/"$NAME"
-				# Change the .new file ownership and mode to match the existing file (mostly relevant for rc files)
+				# Change the .new file ownership and mode to 
+				# match the existing file (mostly relevant for 
+				# rc files)
 				chown "$(stat -c "%U:%G" "/$i")" "$f"
 				chmod "$(stat -c "%a" "/$i")" "$f"
 			fi
@@ -99,20 +148,18 @@ done
 echo '	'Done evaluating the $(tput smul).new$(tput rmul) files, if any.
 echo
 
-# Don't retain empty NEWFILE documents.
-unset NEWLENGTH
-NEWLENGTH="$(wc -l "$NEWFILES"/"$NAME" | cut -d' ' -f1)"
-[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$NAME"
-
-# Preparing and reporting on symlinks; absolute symlinks can have been pointed at either the ultimate
-# destination or a file/directory in the build directory. Symlinks that required repair will be reported.
+# Preparing and reporting on symlinks; absolute symlinks can have been pointed 
+# at either the ultimate destination or a file/directory in the build directory.
+# Symlinks that required repair will be reported.
 while read -r f;
 do
 	if [ -h "$PKGDEST"/"$f" ]; then
 	i="${f#/}"
 	j=$(readlink "$i")
-	# If the symlink is absolute; BUILDDEST needed to test it out.
-	if [ -n "$(echo "$j" | grep "$BUILDDEST")" ]; then
+	# If the symlink is absolute; BUILDDEST needed to test it out. (Just the
+	# string; the directory itself doesn't need to exist for pkginst to
+	# work.)
+	if [ -n "$(echo "$j" | grep -m 1 "$BUILDDEST")" ]; then
 		# Pointing at BUILDDEST from time of building.
 		k="${j##$BUILDDEST}"
 		echo /"$i" "to" "$k" >> "$PKGDIR"/SYMLINKS
@@ -127,7 +174,8 @@ done < "$PKGDIR"/TREE
 # Now that changes have been made to dest, make a new tarball for extraction...
 echo '	'$(tput smul)Repackaging$(tput rmul)...
 tar -czf "$STAGING"/INPACKAGE.tar.xz ./*
-# And extract over root. (dereferencing for links; don't change directory mode or ownership)
+# And extract over root. (dereferencing for links; don't change directory mode or
+# ownership)
 cd /
 echo '	'$(tput smul)Extracting now$(tput rmul)...
 tar --dereference --hard-dereference -xf "$STAGING"/INPACKAGE.tar.xz --no-overwrite-dir
@@ -135,7 +183,8 @@ cd "$PKGDIR"
 echo '	'Done.
 echo
 
-# Running ldconfig in case of new libraries; in case of an upgrade, it should be run after removal.
+# Running ldconfig in case of new libraries; in case of an upgrade, it should be
+# run after removal.
 if [ "${UPGRADE:-no}" != yes ]; then
 	ldconfig
 	echo '	'Done running $(tput smul)ldconfig$(tput rmul).
@@ -143,7 +192,7 @@ if [ "${UPGRADE:-no}" != yes ]; then
 fi
 
 # Populate the TREE entry for future updating
-cat "$PKGDIR"/TREE > $PKGTREES/"$NAME"
+cat "$PKGDIR"/TREE > "$PKGTREES"/"$NAME"
 # Saving to the backup locations as well, if they exist. The install script for
 # yalpack will make and populate them otherwise.
 [ -d "$VARBKUP" ] && cat "$PKGDIR"/TREE > "$VARBKUP"/"$NAME"
@@ -156,24 +205,50 @@ cat "$PKGDIR"/VER > "$PKGVER"/"$NAME"
 # the install script for yalpack will make and populate it.
 unset SYMTREEFLAG
 if [ -d "$SYMTREES" ]; then
-	echo '	'Checking for installations under paths with symlinks and symlinks with
-	echo '	'destinations not provided by $(tput smul)"$PACK"$(tput rmul)...
+	rm -f "$PKGDATA"/SYMTEMP
+	rm -f "$PKGDATA"/SYMTEMP2
+	echo '	'Checking for installations under paths with symlinks.
 	while read -r line; do
-		if [ -f "$line" ] || [ -h "$line" ] || [ -d "$line" ]; then
-			unset LINK
-			# "or true" prevents pkginst from crashing if the package contains a broken symlink
-			LINK="$(readlink -e "$line")" || true
-			# Trying to avoid doubles with the original TREE document
-			if [ -n "$LINK" ] && \
-			[ "$LINK" != "$line" ] && \
-			[ -z "$(grep -x "$LINK" "$PKGTREES"/"$NAME")" ] && \
-			[ -z "$(grep -x "$LINK".new "$PKGTREES"/"$NAME")" ]; then
-				SYMTREEFLAG="WRITE"
-				echo "$line" to "$LINK" >> "$SYMTREES"/"$NAME"
-				echo "$LINK" >> "$SYMDESTS"/"$NAME"
-			fi
-		fi
+		[ -d "$line" ] && [ -h "$line" ] && echo "$line" >> "$PKGDATA"/SYMTEMP	    
 	done < "$PKGTREES"/"$NAME"
+
+	[ -f "$PKGDATA"/SYMTEMP ] && while read -r dir; do
+		grep ^"$dir" "$PKGTREES"/"$NAME" >> "$PKGDATA"/SYMTEMP2
+	done < "$PKGDATA"/SYMTEMP
+	
+	[ -f "$PKGDATA"/SYMTEMP2 ] && while read -r sym; do
+		unset link
+		unset linkold
+		unset linkOK
+		unset linkoldOK
+
+		symold="${sym%.new}"
+
+		link="$(readlink -e "$sym")" || true
+		linkold="$(readlink -e "$symold")" || true
+
+		[ -n "$(echo "$link")" ] && linkOK=yes
+		[ -n "$(echo "$linkold")" ] && linkoldOK=yes
+
+		unset writeOK
+		unset writeoldOK
+		unset SYMTREEFLAG
+
+		[ "$linkOK" = yes ] && [ -z "$(grep -m 1 -x "$link" "$PKGTREES"/"$NAME")" ] && writeOK=yes
+		[ "$linkoldOK" = yes ] && [ -z "$(grep -m 1 -x "$linkold" "$PKGTREES"/"$NAME")" ] && writeoldOK=yes
+
+		if [ "$writeOK" = yes ] && [ "$writeoldOK" = yes ]; then
+			echo "$symold" to "$linkold" >> "$SYMTREES"/"$NAME" && SYMTREEFLAG="WRITE"
+			echo "$linkold" >> "$SYMDESTS"/"$NAME"
+		elif [ "$writeoldOK" = yes ] && [ -z "$link" ]; then
+			echo "$symold" to "$linkold" >> "$SYMTREES"/"$NAME" && SYMTREEFLAG="WRITE"
+			echo "$linkold" >> "$SYMDESTS"/"$NAME"
+		elif [ "$writeOK" = yes ] && [ -z "$linkold" ]; then
+			echo "$sym" to "$link" >> "$SYMTREES"/"$NAME" && SYMTREEFLAG="WRITE"
+			echo "$link" >> "$SYMDESTS"/"$NAME"
+		fi
+	done < "$PKGDATA"/SYMTEMP2
+
 	if [ "$SYMTREEFLAG" = "WRITE" ]; then
 		echo
 		cat "$SYMTREES"/"$NAME"
@@ -181,22 +256,32 @@ if [ -d "$SYMTREES" ]; then
 	fi
 	echo '	'Done.
 	echo
+	rm -f "$PKGDATA"/SYMTEMP
+	rm -f "$PKGDATA"/SYMTEMP2
 fi
 
 # Run the install script, if any
-if [ -f "$PKGDIR/install.sh" ]; then 
+if [ -x "$PKGDIR/install.sh" ]; then 
 	echo '	'Now running $(tput smul)install.sh$(tput rmul).
 	echo
 	"$PKGDIR"/install.sh
 	echo
 fi
 
-# For the installer's edification and to update library use info
+# For the installer's edification and to update library use info.
 # pkgup handles pkgcheck for upgrades.
-[ "${UPGRADE:-no}" != yes ] && CHECK=no "$SBINDIR"/pkgcheck "$NAME"
+if [ "${UPGRADE:-no}" != yes ]; then
+	YALCONFIG=yes \
+	HEAD="$HEAD" \
+	VARBKUP="$VARBKUP" \
+	ROOTHOME="$ROOTHOME" \
+	TMP="$TMP" \
+	SBINDIR="$SBINDIR" \
+	CHECK=no "$SBINDIR"/pkgcheck "$NAME"
+fi
 
 # Inform about any repaired symlinks
-if [ -f "$PKGDIR"/SYMLINKS ]; then 
+if [ -f "$PKGDIR/SYMLINKS" ]; then 
 	echo '	'The following $(tput smul)absolute symlinks$(tput rmul) were repaired before installation:
 	echo
 	cat "$PKGDIR"/SYMLINKS
@@ -216,7 +301,8 @@ fi
 
 if [ "$SYMTREEFLAG" = "WRITE" ]; then
 	echo '	'$(tput smul)One or more installations under a symlink path have been detected.$(tput rmul)
-	# This may happen from time to time with merged-usr. Without merged-usr, it probably shouldn't.
+	# This may happen from time to time with merged-usr. Without merged-usr, it 
+	# probably shouldn't.
 	if [ ! -h "/bin" ]; then
 		echo '	'This may be a sign that the package was built incorrectly. See 
 		echo '	'$(tput smul)"$SYMTREES"/"$NAME"$(tput rmul) for a list.

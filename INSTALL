@@ -1,4 +1,4 @@
-yalpack-0.1.7 Installation Guide
+yalpack-0.1.8 Installation Guide
 
 To install yalpack to your LFS-type system, run the Makefile as root. 
 The following targets are available:
@@ -9,17 +9,6 @@ The following targets are available:
 	on the system, the new scripts will be used to upgrade yalpack as
 	a package instead. This helps avoid old bugs, etc. that have since
 	been fixed.
-
-	make install: Install yalpack under the chosen DESTDIR; install.sh
-	will run at this time, creating and populating 
-	/var/yalpack/pkgdata/SYMTREES if it does not already exist, as well
-	as package tree backup directories at /var/log/yalpack and
-	/root/.yalpack. A package for yalpack will not be created. This is
-	the recommended method for upgrades; DESTDIR should be 
-	/tmp/yalpack-0.1.7/dest. From here, make the NAME file and use 
-	pkgmake and pkgup as usual. Because the outgoing pkgup script
-	would be used for upgrades, "make package" is recommended for both
-	upgrades and first-time installations.
 
 	make clean: Removes compressed man pages from the source 
 	directory.
@@ -33,7 +22,7 @@ The following targets are available:
 
 The following parameters can be set with the make call:
 
-	DESTDIR: should be set to /tmp/yalpack-0.1.7/dest for upgrades
+	DESTDIR: should be set to /tmp/yalpack-0.1.8/dest for upgrades
 		 with "make install." Please note that "make package"
 		 is the recommended installation and upgrade method.
 	PREFIX (/usr): the prefix for the bin, sbin, doc, share and man
@@ -51,24 +40,9 @@ The following parameters can be set with the make call:
 		    destination.
 
 All yalpack binaries are POSIX-compliant shell scripts, so feel free to
-edit them to make changes to default working and data directories. The 
-defaults are as follows:
-
-	/var/yalpack/pkgdata: contains information on all yalpack 
-	                      packages installed on the system
-	/var/yalpack/packages: package tarballs are stored here if 
-                               retained; all operations except for
-			       package installation can be done without
-			       them, however
-	/var/yalpack/BIN-DEPS: contains files outlining the dynamic 
-			       libraries used by each binary on the 
-			       system
-	/tmp/[NAME]-[VERSION]/dest: when compiling from source, the
-				    output goes here; the target of 
-				    pkgmake in package construction.
-
-Any changes are most conveniently made before yalpack is installed or
-upgraded. Please see "Customization" for details.
+edit them to make changes to default working and data directories. In
+most cases, however, this can be most conveniently done by editing
+src/etc/yalpack.conf before installation. See Customization for details.
 
 As of Linux From Scratch 10.1, three packages in the base book use
 "make install," but do not have PKGDEST capabilities:
@@ -77,5 +51,5 @@ As of Linux From Scratch 10.1, three packages in the base book use
 	sysvinit
 	sysklogd
 
-For workarounds related to  managing these packages with yalpack, see
-README (/usr/share/doc/yalpack-0.1.7/README) or the pkgmake man page.
+For workarounds related to managing these packages with yalpack, see
+README (/usr/share/doc/yalpack-0.1.8/README) or the pkgmake man page.

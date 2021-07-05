@@ -1,85 +1,57 @@
-yalpack-0.1.7 Customization Guide
+yalpack-0.1.8 Customization Guide
 
 By default, the compilation DESTDIR directory for yalpack is under
 /tmp, and the data, library information and package tarball directories
 can be found under /var/yalpack.
 
 Although probably suitable for most needs, these locations can be
-customized by editing the yalpack-provided scripts. In order to avoid
-mismatching directories across scripts, this document is intended as a
-guide to which variables should be changed in case customization is
-desired.
+customized by editing the file at /etc/yalpack.conf. Altering yalpack's
+internal directory structure through direct editing is possible, but
+not recommended.
 
-As a general note, such edits should be made before installing or
-upgrading yalpack. For post-installation changes to the location of
-/var/yalpack, move the yalpack directory before using the edited
-scripts. In principle, /usr/share/yalpack/restore-yalpack could also be
-used in this way.
+Discussions of each variable in /etc/yalpack.conf follow, as well as a
+note about libcheck and libprecise.
 
 ***********************************************************************
-                             Changing DESTDIR                         
+                                HEAD                         
 ***********************************************************************
 
-In order to make packages using DESTDIR other than /tmp, the following
-script variables should be changed:
+Default value:	HEAD=/var/yalpack
 
-  * src/sbin/pkgmake: 		TMP=/tmp
+HEAD is the location of the yalpack data directory. All generated
+information about .new files, library usage, installed programs, and
+package trees can be found here. In addition, package tarballs are
+placed in $HEAD/packages by pkgmake prior to installation.
 
-  * src/sbin/pkginst: 		TMP=/tmp
+Considerations:
 
-  * src/doc/sysvinit.dewit:	TMP=/tmp 
+  * Placing HEAD in a location not owned by root is discouraged.
+  * Except for genuine first-time installations, HEAD and VARBKUP (see
+    below) should not be changed at the same time. Instead, do the
+    following:
 
-And, in the source directory:
+    1) Check the primary backup to make sure it is complete and up-to-
+       date.
+    2) Change HEAD in /etc/yalpack.conf.
+    3) Copy the directory to the new location, or alternatively use
+       /usr/share/yalpack/restore-yalpack.
+    4) Once the new HEAD directory is in place, change VARBKUP in
+       /etc/yalpack.conf. VARBKUP should not be an existing directory.
+    5) Run /usr/share/yalpack/backups to generate the new backup.
+       backups will not make a new backup if a directory is already
+       present at the backup location.
 
-  * Makefile: 	TMP ?= /tmp
-
-For Makefile, TMP can also be set when calling make.
-
-***********************************************************************
-                             Changing SBINDIR                         
-***********************************************************************
-
-With Linux From Scratch set to move to a merged-usr setup from version
-11.0, root-only yalpack scripts are installed to /usr/sbin by default.
-To change this, edit the following variable in pkgup, pkginst and
-pkgcheck:
-
-  SBINDIR=/usr/sbin
-
-Additionally, ensure that SBINDIR is set to the same value when running
-"make package." Changing SBINDIR after installation is unsupported.
-
-***********************************************************************
-                     Changing the yalpack directory
-***********************************************************************
-
-Storing the core yalpack data in a non-root owned location is not
-recommended. Additionally, everything under /var/yalpack should stay
-under the same directory structure.
-
-In order to store yalpack-related data and package tarballs under a
-directory other than /var/yalpack, change the following variable in all
-scripts in src/bin, src/sbin and src/share, as well as make-package.sh
-and src/install.sh:
-
-  HEAD=/var/yalpack
-
-libcheck and libprecise are special cases, in that they rely on "cut"
-instructions to display results. If, against recommendations, the
-internal structure of the yalpack directory is changed, the following
-lines might have to be edited:
-
-  * libcheck: lines 81 and 82
-  * libprecise: lines 71 and 72
-
-Specifically, the "2" in $((*NUM + 2)) refers to the number of
-trailing backslashes following $PKGDEPS and $BINDEPS. Provided that the
-internal structure of $BINDEPS and $PKGDEPS has not been changed, no
-further editing will be necessary.
+Except for first-time installations, do not attempt any package
+operations (including upgrades or installations of yalpack) until the 
+new directory in HEAD is complete, whether through copying or
+restore-yalpack.
 
 ***********************************************************************
-                      Changing backup locations
+                          VARBKUP and ROOTHOME
 ***********************************************************************
+
+Default values:	VARBKUP=/var/log/yalpack
+		ROOTHOME=/root
 
 They say everything is a file on Linux systems. This is both good and
 bad: unfortunately, files can be lost. Fortunately, files can be
@@ -87,35 +59,86 @@ restored! By default, yalpack stores parallel copies of the package
 trees in /var/yalpack/pkgdata/TREES in the following locations:
 
   * /var/log/yalpack
-  * /root/.yalpack-backup
+  * $ROOTHOME/.yalpack-backup
 
-To ensure that good backups are present at all times, it is important
-that all references to these locations match:
+When editing, the new VARBKUP should not point to an existing
+directory. If ROOTHOME is changed, ensure that no ".yalpack-backup"
+exists under the new directory.
 
-  * src/sbin/pkginst
-  * src/sbin/pkgup
-  * src/sbin/pkgremove
-  * src/install.sh
-  * src/share/restore-yalpack
+If either of these variables is changed after installation, run
+/usr/share/yalpack/backups to generate the new backup location or
+locations. backups will not make a new backup if a directory is already
+present at the backup location.
 
-The variables themselves are:
+If changes to VARBKUP and HEAD are both wanted, see the instructions
+in the "HEAD" section above.
 
-  VARBKUP=/var/log/yalpack
-  ROOTHOME=/root
-  ROOTBKUP=$ROOTHOME/.yalpack-backup
+***********************************************************************
+                                TMP                         
+***********************************************************************
 
-If either of these locations is changed after installation, install.sh
-should be edited and run again to generate the new backups.
+Default value:	TMP=/tmp
 
-src/share/restore-yalpack (installed to
-/usr/share/yalpack/restore-yalpack by default) takes a collection
-of package tree files and uses them to regenerate the rest of the
-contents of /var/yalpack. To use a non-default backup directory,
-replace
+When building packages to be installed with yalpack, use 
+DESTDIR=$TMP/[NAME]-[VERSION]/dest. pkgmake will make packages from
+compiled software in such locations.
 
-  VARBKUP=/var/log/yalpack
+No special action is required when changing TMP; simply make sure to
+use the correct DESTDIR when building software.
 
-in the script before running. If the default HEAD directory above is
-changed after installation, restore-yalpack could be used to generate
-a directory structure in the new location once all appropriate script
-edits have been made.
+For pre-installation changes, pass TMP to Makefile, e.g.
+"TMP=/tmp/yalpack make package." If Makefile's TMP does not match the
+TMP in /etc/yalpack.conf, the config validation script will offer to
+change the value in yalpack.conf to match.
+
+If changing TMP after yalpack is already installed, please note that
+the repair of absolute symlinks to the build directory will fail if the
+software was packaged using a different value of TMP. To avoid this
+problem, try to refrain from changing TMP until all installations and
+upgrades are complete. Alternatively, TMP can be changed to match the
+old value temporarily. Packages without absolute symlinks to the build
+directory will install correctly in any case.
+
+***********************************************************************
+                              SBINDIR                         
+***********************************************************************
+
+Default value:	SBINDIR=/usr/sbin
+
+With Linux From Scratch set to move to a merged-usr setup from version
+11.0, root-only yalpack scripts have been installed to /usr/sbin since
+yalpack-0.1.5.
+
+Changing the value of SBINDIR without also upgrading or reinstalling
+yalpack is not supported. Instead, follow the following steps:
+
+   1) In the yalpack source directory, change the value of SBINDIR at
+      src/etc/yalpack.conf.
+   2) Reinstall. Pass the new SBINDIR value to Makefile when running,
+      e.g. "SBINDIR=/sbin make package." 
+   3) At the start of the installation process, the config validation 
+      script will offer to change the value of SBINDIR in
+      /etc/yalpack.conf. Accept the offer, and the installation or
+      upgrade will proceed.
+
+If upgrading from a version of yalpack without /etc/yalpack.conf (any
+version through 0.1.7), it will be sufficient to change the value
+in the source directory and pass SBINDIR to Makefile as above.
+
+***********************************************************************
+                        libcheck and libprecise
+***********************************************************************
+
+libcheck and libprecise are special cases, in that they rely on "cut"
+instructions to display results. If, against recommendations, the
+internal structure of the yalpack directory is changed, the following
+lines might have to be edited in addition to the edits made to change
+the directory itself:
+
+  * libcheck: lines 120 and 121
+  * libprecise: lines 107 and 108
+
+Specifically, the "2" in $((*NUM + 2)) refers to the number of
+trailing backslashes following $PKGDEPS and $BINDEPS. Provided that the
+internal structure of $BINDEPS and $PKGDEPS has not been changed, no
+further editing will be necessary.

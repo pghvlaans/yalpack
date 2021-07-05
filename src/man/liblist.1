@@ -1,6 +1,6 @@
 .\" Manpage for liblist
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "22 June 2021" "0.1.7" "liblist man page"
+.TH man 1 "22 June 2021" "0.1.8" "liblist man page"
 .SH NAME
 liblist \- generate dynamic library usage information for system binaries
 .SH SYNOPSIS
@@ -21,7 +21,7 @@ Running liblist as root will perform ldd(1) on all such programs; information wi
 
 These data are used by liblist(1) and libprecise(1) to reveal which programs use a particular dynamic library. liblist is called in the course of executing pkgcheck(1), pkgup(1) and pkginst(1). These scripts will only call liblist to refresh the entire data collection when a package appears to have installed a library.
 
-The liblist script can be edited to change any of these default locations to suit user preferences. This is best done before installation; all other yalpack scripts should be changed accordingly.
+The liblist script can be edited to change the search locations to suit user preferences. This is best done before installation; for other changes, see /usr/share/doc/yalpack-0.1.8/Customization and /etc/yalpack.conf.
 .SH OPTIONS
 -n|--new - Make a new directory tree in /var/yalpack/BINDEPS (default; if -n is called before the files, a new directory tree will be generated and then updated thereafter)
 

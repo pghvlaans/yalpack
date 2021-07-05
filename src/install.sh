@@ -22,21 +22,63 @@
 #  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# This script sets up the "SYMTREES" directory, if it is not already available. Needed
-# for first-time installations and upgrades from yalpack-0.1.4 and earlier. It can also
-# be used if the SYMTREES directory is deleted by mistake.
+# This script sets up the "SYMTREES" directory, if it is not already available.
+# Needed for first-time installations and upgrades from yalpack-0.1.4 and 
+# earlier. It can also be used if the SYMTREES directory is deleted by mistake.
 #
-# Backup locations for the package trees are also set up, if they do not already exist.
-# The default locations are /var/log/yalpack and /home/root/.yalpack. If this is not
-# acceptable, please feel free to edit the locations here, as well as in pkginst, 
-# pkgremove, pkgup and the recovery script at /usr/share/yalpack/restore-yalpack.
+# Backup locations for the package trees are also set up, if they do not already
+# exist. The default locations are /var/log/yalpack and /root/.yalpack. If this
+# is not acceptable, change VARBKUP and ROOTHOME in /etc/yalpack.conf. See the
+# explanatory comments in that document or
+# /usr/share/doc/yalpack-0.1.8/Customization for details.
 #
-# Finally, the NEWFILES directory is set up and populated with lists of .new files
-# associated with each package on the system. Please note that if multiple versions of
-# a package have been installed, the .new files may (but probably don't) belong to
+# Finally, the NEWFILES directory is set up and populated with lists of .new
+# files associated with each package on the system. Please note that if multiple
+# versions of a package have been installed, the .new files may belong to
 # previously-installed versions.
 
-HEAD=/var/yalpack
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its default state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+
 PKGDATA="$HEAD"/pkgdata
 PKGTREES="$PKGDATA"/TREES
 SYMTREES="$PKGDATA"/SYMTREES
@@ -45,52 +87,72 @@ NEWFILES="$PKGDATA"/NEWFILES
 PKGVERS="$PKGDATA"/VER
 
 # Backups 
-
-VARBKUP=/var/log/yalpack
-ROOTHOME=/root
 ROOTBKUP="$ROOTHOME"/.yalpack-backup
 
-echo '	'Checking for SYMTREE-related directories.
-
-if [ -d "$SYMTREES" ] && [ -d "$SYMDESTS" ]; then
-        echo '	'All clear!
- 	echo
-else
-	echo '	'Sometihing is missing.
-	echo
-	echo '	'Preparing $(tput smul)"$SYMTREES"$(tput rmul) now. Depending
-	echo '	'on how many yalpack-made packages are installed on the system,
-	echo '	'this could take some time. Please wait.
-	echo
-	rm -rf "$SYMTREES" "$SYMDESTS"
-	mkdir -p "$PKGTREES" "$SYMTREES" "$SYMDESTS"
-	# Needed to avoid potential pkgremove errors
-	touch "$SYMTREES"/PLACEHOLDER
-	touch "$SYMDESTS"/PLACEHOLDER
-	find "$PKGTREES"/* -type f | while read -r f; do
-	tree="$(basename "$f")"
-	# Checking for files installed under symlinked paths and documenting the non-symlinked
-	# file path, as well as symlinks pointing to destinations not provided by the package.
-	[ "$tree" != "YALPACK-OUTGOING" ] && while read -r line; do
-		if [ -f "$line" ] || [ -h "$line" ] || [ -d "$line" ]; then
-			unset LINK
-			LINK="$(readlink -e "$line")" || true
-			# Trying to avoid doubles
-			if [ -n "$LINK" ] && \
-			[ "$LINK" != "$line" ] && \
-			[ -z "$(grep -x "$LINK" "$f")" ] && \
-			[ -z "$(grep -x "$LINK".new "$f")" ]; then
-				echo "$line" to "$LINK" >> "$SYMTREES"/"$tree"
-				echo "$LINK" >> "$SYMDESTS"/"$tree"
-			fi
-		fi
+echo '	'Generating or regenerating the SYMTREE-related directories.
+echo
+rm -rf "$SYMTREES" "$SYMDESTS"
+mkdir -p "$PKGTREES" "$SYMTREES" "$SYMDESTS"
+# Needed to avoid potential pkgremove errors
+touch "$SYMTREES"/PLACEHOLDER
+touch "$SYMDESTS"/PLACEHOLDER
+find "$PKGTREES"/* -type f | while read -r f; do
+        rm -f "$PKGDATA"/SYMTEMP
+        rm -f "$PKGDATA"/SYMTEMP2
+        tree="$(basename "$f")"
+        # Checking for files installed under symlinked paths and documenting the
+        # non-symlinked file path.
+        while read -r line; do
+                # Checking for symlinks to directories in the package tree.
+                [ -d "$line" ] && [ -h "$line" ] && echo "$line" >> "$PKGDATA"/SYMTEMP
 	done < "$f"
+	       
+		 # This grep will reveal those directories and all files/symlinks installed
+	        # under them.
+	        [ -f "$PKGDATA"/SYMTEMP ] && while read -r dir; do
+	                grep ^"$dir" "$f" >> "$PKGDATA"/SYMTEMP2
+	        done < "$PKGDATA"/SYMTEMP
+
+	        # If the destinations are not in PKGTREE, list in SYMTREES.
+	        [ -f "$PKGDATA"/SYMTEMP2 ] && while read -r sym; do
+	                unset link
+	                unset linkold
+	                unset linkOK
+	                unset linkoldOK
+
+	                symold="${sym%.new}"
+
+	                link="$(readlink -e "$sym")" || true
+	                linkold="$(readlink -e "$symold")" || true
+
+	                [ -n "$(echo "$link")" ] && linkOK=yes
+	                [ -n "$(echo "$linkold")" ] && linkoldOK=yes
+
+	                unset writeOK
+	                unset writeoldOK
+
+	                [ "$linkOK" = yes ] && [ -z "$(grep -m 1 -x "$link" "$f")" ] && writeOK=yes
+	                [ "$linkoldOK" = yes ] && [ -z "$(grep -m 1 -x "$linkold" "$f")" ] && writeoldOK=yes
+
+	                if [ "$writeOK" = yes ] && [ "$writeoldOK" = yes ]; then
+	                        echo "$symold" to "$linkold" >> "$SYMTREES"/"$tree" && SYMTREEFLAG="WRITE"
+	            		echo "$linkold" >> "$SYMDESTS"/"$tree"
+		    	elif [ "$writeoldOK" = yes ] && [ -z "$link" ]; then
+	                        echo "$symold" to "$linkold" >> "$SYMTREES"/"$tree" && SYMTREEFLAG="WRITE"
+	            		echo "$linkold" >> "$SYMDESTS"/"$tree"
+	                elif [ "$writeOK" = yes ] && [ -z "$linkold" ]; then
+	                        echo "$sym" to "$link" >> "$SYMTREES"/"$tree" && SYMTREEFLAG="WRITE"
+	            		echo "$link" >> "$SYMDESTS"/"$tree"
+	                fi
+
+	        done < "$PKGDATA"/SYMTEMP2
 	done
-	echo
-	echo '	'Thank you for your patience. The $(tput smul)"$SYMTREES"$(tput rmul) directory and
-	echo '	'any associated files have been made.
-	echo
-fi
+# In case, by some coincidence, the last package examined contained files under
+# a symlinked path.
+rm -f "$PKGDATA"/SYMTEMP
+rm -f "$PKGDATA"/SYMTEMP2
+echo '	'The $(tput smul)"$SYMTREES"$(tput rmul) directory has been repopulated.
+echo
 
 echo '	'Updating or creating $(tput smul)"$NEWFILES"$(tput rmul).
 echo
@@ -99,19 +161,20 @@ echo '	'Generating lists of $(tput smul).new$(tput rmul) files now.
 find "$PKGTREES"/* -type f | while read -r f; do
 	g="$(basename "$f")"
 	if [ "$g" != "YALPACK-OUTGOING" ]; then
+		rm -f "$NEWFILES"/"$g"
 		unset VER
 		VER="$(cat "$PKGVERS"/"$g")"
-		[ -n "$VER" ]; echo "$g"-"$VER", updated' '"$(date)" > "$NEWFILES"/"$g"
-		[ -z "$VER" ]; echo "$g", updated' '"$(date)" > "$NEWFILES"/"$g"
 		while read -r file; do
 			h="${file%.new}"
 			# Only existing .new files are written in. 
-			[ "$file" != "$h" ] && [ -f "$file" ] && echo "$file" >> "$NEWFILES"/"$g"
+			if [ "$file" != "$h" ] && [ -f "$file" ]; then
+				if [ ! -f "$NEWFILES"/"$g" ]; then
+					[ -n "$VER" ]; echo "$g"-"$VER" > "$NEWFILES"/"$g"
+					[ -z "$VER" ]; echo "$g" > "$NEWFILES"/"$g"
+				fi
+				echo "$file" >> "$NEWFILES"/"$g"
+			fi
 		done < "$f"
-		# Don't keep empty NEWFILE documents.
-		unset NEWLENGTH
-		NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
-		[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
 	fi
 done
 echo
@@ -151,8 +214,8 @@ else
 		echo '	'one.
 		echo
 		echo '	'Using two separate backup locations is highly recommended.
-		echo '	'Please consider changing the $(tput smul)"ROOTHOME"$(tput rmul) and/or $(tput smul)"ROOTBKUP"$(tput rmul)
-		echo '	'locations in the script and running it again.
+		echo '	'Please consider changing the $(tput smul)"ROOTHOME"$(tput rmul) location in "$CHOME"
+		echo '	'and running the script again.
 		echo
 	fi
 fi

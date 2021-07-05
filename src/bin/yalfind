@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# pkgfind: Use a search term or full file path to find the package providing any matching item or items.
+# yalfind: Use a search term or full file path to find the package providing any
+# matching item or items.
 #
 # Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
 # All rights reserved.
@@ -24,7 +25,48 @@
 #
 # Checking for which yalpack package provided items matching a search term.
 
-HEAD=/var/yalpack
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its default state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+
 PKGDATA="$HEAD"/pkgdata
 TREES="$PKGDATA"/TREES
 SYMDESTS="$PKGDATA"/.SYMDESTS
@@ -104,9 +146,9 @@ echo
 for arg in "$@"; do
 case "$arg" in
 	-h|--help)
-		echo $(tput smul)pkgfind$(tput rmul): Use a search term or full file path to find the yalpack package providing it.
+		echo $(tput smul)yalfind$(tput rmul): Use a search term or full file path to find the yalpack package providing it.
 	echo
-	echo Syntax: pkgfind \(options\) SEARCHTERM1 ...
+	echo Syntax: yalfind \(options\) SEARCHTERM1 ...
 	echo
 	echo Flags:
 	echo " -f | --showfiles : Show the file names matching the search term\(s\)."

@@ -25,20 +25,62 @@
 # Running this script will update the lists of .new files belonging to
 # yalpack-installed packages on the system.
 
-HEAD=/var/yalpack
-PKGDATA=$HEAD/pkgdata
-PKGTREES=$PKGDATA/TREES
-PKGVERS=$PKGDATA/VER
-NEWFILES=$PKGDATA/NEWFILES
-NEWTEMP=$PKGDATA/NEWTEMP
-KLIST=$PKGDATA/.KLIST
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its default state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+
+PKGDATA="$HEAD"/pkgdata
+PKGTREES="$PKGDATA"/TREES
+PKGVERS="$PKGDATA"/VER
+NEWFILES="$PKGDATA"/NEWFILES
+NEWTEMP="$PKGDATA"/NEWTEMP
+KLIST="$PKGDATA"/.KLIST
 
 picker (){
 echo
 newfile="$1"
 oldfile="${newfile%.new}"
 
-# If the old file is missing (for whatever reason), offer to move the .new file over
+# If the old file is missing (for whatever reason), offer to move the .new file
+# over
 if [ ! -f "$oldfile" ] && [ -f "$newfile" ]; then
 	echo '	'"$oldfile" was not found on the system. Enter y to move $(tput smul)"$newfile"$(tput rmul) over.
 	unset INPUT
@@ -52,7 +94,8 @@ if [ ! -f "$oldfile" ] && [ -f "$newfile" ]; then
 		echo '	'or exiting, as appropriate.
 		echo
 	fi
-	main QUIET
+	# main QUIET
+	return
 fi
 
 echo '	'"$newfile"
@@ -76,7 +119,7 @@ case "$INPUT" in
 		echo '	'Copying appears to have failed. Moving on to the next .new file
 		echo '	'or exiting, as appropriate.
 	fi
-	main QUIET
+	return
 	;;
 	b)
 	echo
@@ -86,7 +129,7 @@ case "$INPUT" in
 	else
 		echo '	'Making a backup appears to have failed. Moving on to the next
 		echo '	'.new file or exiting, as appropriate.
-		main QUIET
+		return
 	fi
 	if [ -f "$oldfile" ]; then
 		rm -f "$newfile"
@@ -95,33 +138,36 @@ case "$INPUT" in
 		echo '	'or exiting, as appropriate.
 		echo
 	fi
-	main QUIET
+	return
 	;;
 	r)
 	echo
 	rm -fv "$newfile"
-	main QUIET
+	return
 	;;
 	k)
 	echo
 	echo '	'Keeping $(tput smul)"$newfile"$(tput rmul).
-	# Bug-avoidance strategy for multiple .new files with the same basename; see "staging" comment below.
+	# Bug-avoidance strategy for multiple .new files with the same basename;
+	# see "staging" comment below.
 	unset y
 	y="$(echo "$newfile" | tr '/' '@')"
 	echo "$y" >> "$KLIST"
-	main QUIET
+	return
 	;;
 	d)
 	echo
-	# Trying to use diff on a pair of binaries would not be good. Checking first.
+	# Trying to use diff on a pair of binaries would not be good. Checking
+	# first.
 	unset x
 	unset y
 	x="$(file "$newfile" | cut -d':' -f2- | grep text)"
 	y="$(file "$oldfile" | cut -d':' -f2- | grep text)"
 	[ -z "$x" ] || [ -z "$y" ] && echo '	'One or both of these files is a $(tput smul)non-text file$(tput rmul)\; diff is not available. && main QUIET
-	# Using less is nice, but it isn't in the LFS temporary tools, so check for it
-	[ -x "/usr/bin/less" ] && diff -u "$oldfile" "$newfile" | less && main QUIET
-	diff -u "$oldfile" "$newfile" && main QUIET
+	# Using less is nice, but it isn't in the LFS temporary tools, so check 
+	# for it
+	[ -x "/usr/bin/less" ] && diff -u "$oldfile" "$newfile" | less && picker "$newfile" && return
+	diff -u "$oldfile" "$newfile" && picker "$newfile" && return
 	;;
 	x)
 	echo
@@ -144,8 +190,9 @@ mkdir -p "$NEWTEMP"
 		# Exclude the package name and date line
 		x="$(head -n 1 "$p")"
 		if [ "$n" != "$x" ]; then
-			unset y
-			# Not using the full path leads to bugs when multiple .new files have the same basename.
+			unset y                                                 
+			# Not using the full path leads to bugs when multiple 
+			# .new files have the same basename.
 			y="$(echo "$n" | tr '/' '@')"
 			echo "$n" > "$NEWTEMP"/"$y"
 		fi
@@ -173,22 +220,26 @@ rm -rf "$NEWTEMP"
 
 main (){
 echo
-rm -r "$NEWFILES"
+rm -rf "$NEWFILES"
 mkdir -p "$NEWFILES"
 find "$PKGTREES"/* -type f | while read -r f; do
 	g="$(basename "$f")"
 	VER="$(cat "$PKGVERS"/"$g")"
-	[ -n "$VER" ] && echo "$g"-"$VER", list updated' '"$(date)" > "$NEWFILES"/"$g"
-	[ -z "$VER" ] && echo "$g", list updated' '"$(date)" > "$NEWFILES"/"$g"
 	while read -r file; do
 		h="${file%.new}"
 		# Only existing .new files are written in.
-		[ "$file" != "$h" ] && [ -f "$file" ] && echo "$file" >> "$NEWFILES"/"$g"		
+		if [ "$file" != "$h" ] && [ -f "$file" ]; then
+			if [ ! -f "$NEWFILES"/"$g" ]; then
+				[ -n "$VER" ] && echo "$g"-"$VER" >> "$NEWFILES"/"$g"
+				[ -z "$VER" ] && echo "$g" >> "$NEWFILES"/"$g"
+			fi
+			echo "$file" >> "$NEWFILES"/"$g"		
+		fi
 	done < "$f"
 	# Don't keep empty NEWFILE documents.
-	unset NEWLENGTH
-	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
-	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
+#	unset NEWLENGTH
+#	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
+#	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
 done
 if [ "$1" != "QUIET" ] && [ "$1" != "NORETURN" ]; then
 	echo '	'$(tput smul)"$NEWFILES"$(tput rmul) has been updated.

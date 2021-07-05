@@ -1,38 +1,12 @@
 .\" Manpage for yalpack
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "26 June 2021" "0.1.7" "yalpack man page"
+.TH man 1 "26 June 2021" "0.1.8" "yalpack man page"
 .SH NAME
 yalpack \- a basic POSIX-compliant package management solution for LFS/BLFS systems
 .SH DESCRIPTION
-yalpack is a collection of man pages and POSIX-compliant scripts intended to make managing packages more convenient on Linux From Scratch-based systems, particularly with respect to removing and upgrading packages, managing .new files and tracking dynamic library usage. The following root-use scripts and man pages are included:
-
-\t /usr/sbin/pkgmake - pkgmake(1) - Turning compiled software into a yalpack package, ready to be installed.
-
-\t /usr/sbin/pkginst - pkginst(1) - Installing yalpack-built packages.
-
-\t /usr/sbin/pkgremove - pkgremove (1) - Removing yalpack-built packages.
-
-\t /usr/sbin/pkgup - pkgup(1) - Upgrading yalpack-built packages.
-
-\t /usr/sbin/pkgcheck - pkgcheck(1) - Checking and updating information about yalpack-built packages.
-
-\t /usr/sbin/liblist - liblist(1) - Generating dynamic library usage information for dynamic binaries.
-
-\t /usr/share/restore-yalpack - restore-yalpack(5) - Regenerate the yalpack data directory from a good package tree backup.
-
-\t /usr/share/yalpack/newfiles - newfiles-yalpack(5) - Update, list and manage .new files belonging to yalpack-installed packages.
-
-Another set of utility scripts is available for non-root users:
-
-\t /usr/bin/pkglist - pkglist(1) - Show a list of installed packages with their version numbers (regex searching available).
-
-\t /usr/bin/libcheck - libcheck(1) - Return installation and usage information for libraries matching a search term.
-
-\t /usr/bin/libprecise - libprecise(1) - Return installation and usage information for a specific library.
-
-\t /usr/bin/pkgfind - pkgfind(1) - Determine which yalpack-installed package provides a given file, directory or symlink.
+yalpack is a collection of man pages and POSIX-compliant scripts intended to make managing packages more convenient on Linux From Scratch-based systems, particularly with respect to removing and upgrading packages, managing .new files and tracking dynamic library usage.
 .SH BASIC OPERATIONS
-It is not necessary to know how to operate all of these scripts to get started with yalpack. The following basic commands are good to know:
+It is not necessary to know how to operate every script to get started with yalpack. The following basic commands are good to know:
 
 \t make package
 
@@ -54,17 +28,65 @@ Upgrade a package, removing extraneous files, etc.
 
 Remove a package from the system with any extraneous files.
 
-These commands should be more than enough to get package management with yalpack off the ground. For tips about building software to be managed with yalpack, see /usr/share/doc/yalpack-0.1.7/README.
+These commands should be more than enough to get package management with yalpack off the ground. For tips about building software to be managed with yalpack, see /usr/share/doc/yalpack-0.1.8/README.
+.SH SCRIPTS
+The following root-use scripts are installed by yalpack:
+
+\t /usr/sbin/pkgmake - Turning compiled software into a yalpack package, ready to be installed.
+
+\t /usr/sbin/pkginst - Installing yalpack-built packages.
+
+\t /usr/sbin/pkgremove - Removing yalpack-built packages.
+
+\t /usr/sbin/pkgup - Upgrading yalpack-built packages.
+
+\t /usr/sbin/pkgcheck - Checking and updating information about yalpack-built packages.
+
+\t /usr/sbin/liblist - Generating dynamic library usage information for dynamic binaries.
+
+\t /usr/share/yalpack/restore-yalpack - Regenerate the yalpack data directory from a good package tree backup.
+
+\t /usr/share/yalpack/newfiles - Update, list and manage .new files belonging to yalpack-installed packages.
+
+\t /usr/share/yalpack/backups - Generate backup package trees in a new location.
+
+Another set of utility scripts is available for non-root users:
+
+\t /usr/bin/pkglist - Show a list of installed packages with their version numbers (regex searching available).
+
+\t /usr/bin/libcheck - Return installation and usage information for libraries matching a search term.
+
+\t /usr/bin/libprecise - Return installation and usage information for a specific library.
+
+\t /usr/bin/yalfind - Determine which yalpack-installed package provides a given file, directory or symlink.
+.SH MAN PAGES
+yalpack comes with the following man pages:
+
+\t pkgmake(1)
+\t pkginst(1)
+\t pkgremove(1)
+\t pkgup(1)
+\t pkgcheck(1)
+\t liblist(1)
+\t restore-yalpack(5)
+\t newfiles-yalpack(5)
+\t pkglist(1)
+\t libcheck(1)
+\t libprecise(1)
+\t yalfind(1)
+
 .SH CAUTIONS
-yalpack has been tested with LFS 10.1; it has been verified not to remove the /usr/bin and /usr/sbin symlinks for merged-usr systems. It has not (and most likely will not be) tested with previous versions of Linux From Scratch.
+yalpack-0.1.8 has been tested with LFS 10.1; it has been verified not to remove the /bin, /sbin or /lib symlinks for merged-usr systems. It has not been (and most likely will not be) tested with previous versions of Linux From Scratch.
 
 Because some yalpack scripts call ldd(1) to check dynamic library usage, yalpack should not be used with glibc-2.26 or earlier versions. See the "Security" section in ldd(1) for a detailed explanation.
 
 yalpack can be used at any point once the LFS system is in chroot or independent boot. Never use yalpack on the "host" system.
 .SH SEE ALSO
-Man pages for the scripts listed above; in addition, ldd(1) and the contents of /usr/share/doc/yalpack-0.1.7.
+The man pages for the scripts listed above; in addition, ldd(1) and the contents of /usr/share/doc/yalpack-0.1.8.
 
-Visit yalpack's home on GitHub to see future plans, report bugs or download the latest version: https://github.com/pghvlaans/yalpack.
+For information about the variables in /etc/yalpack.conf, see the explanatory comments in that file or /usr/share/doc/yalpack-0.1.8/Customization.
+
+Visit yalpack's home on GitHub to see future plans, report bugs or download the latest release: https://github.com/pghvlaans/yalpack.
 .SH BUG REPORTING
 Submit a GitHub issue, or contact the author directly by email.
 .SH AUTHOR

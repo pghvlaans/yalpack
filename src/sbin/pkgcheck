@@ -22,27 +22,61 @@
 #  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Checking for a package's installed binaries/executables (and hence, libraries)
+# Checking for a package's installed binaries/executables (and non-executable
+# libraries)
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-	echo
-	echo $(tput smul)pkgcheck$(tput rmul): Check for details about a yalpack package.
-	echo
-	echo Syntax: pkgcheck NAME
-	echo
-	echo Flag:
-	echo "  -h | --help : Display this help menu."
-	echo
-	exit
+# If called by another script, use the passed-in variables to save time.
+if [ "${YALCONFIG:-no}" = no ]; then
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its default state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
 fi
 
-HEAD=/var/yalpack
-STAGING=$HEAD/packages
-PKGDATA=$HEAD/pkgdata
-PKGTREES=$PKGDATA/TREES
-PKGTREE=$PKGTREES/"$1"
-BINDEPS=$HEAD/BIN-DEPS
-SBINDIR=/usr/sbin
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+fi
+
+STAGING="$HEAD"/packages
+PKGDATA="$HEAD"/pkgdata
+PKGTREES="$PKGDATA"/TREES
+BINDEPS="$HEAD"/BIN-DEPS
+
+main () {
+PKGTREE="$PKGTREES"/"$1"
 
 [ "${CHECK:-yes}" = yes ] && echo
 echo '	'Preparing to check for information about $(tput smul)"$1"$(tput rmul).
@@ -55,9 +89,9 @@ unset NAME
 [ ! -f "$PKGTREE" ] && echo '	'$(tput smul)Warning!$(tput rmul) Package not found. Exiting now. && exit
 NAME=$(basename "$PKGTREE")
 
-PKGBIN=$PKGDATA/PKG-BINS/"$NAME"
-PKGDEP=$PKGDATA/PKG-DEPS/"$NAME"
-PKGLIB=$PKGDATA/PKG-LIBS/"$NAME"
+PKGBIN="$PKGDATA"/PKG-BINS/"$NAME"
+PKGDEP="$PKGDATA"/PKG-DEPS/"$NAME"
+PKGLIB="$PKGDATA"/PKG-LIBS/"$NAME"
 
 mkdir -p "$BINDEPS"
 mkdir -p "$PKGBIN"
@@ -70,35 +104,38 @@ mkdir -p "$PKGLIB"
 [ -f "$PKGLIB/libs" ] && mv "$PKGLIB"/libs "$PKGLIB"/.libs.old
 echo '	'Backed up data lists.
 echo
+
+rm -f "$PKGBIN"/real-instbins
+
 # Looking for executables, divided between libraries and others (symlinks also)
-while read -r f; do
-	h="${f%.new}"
-	file="$f"
-	unset NEWFILE
-	[ "$h" != "$file" ] && NEWFILE=yes
-	[ "$NEWFILE" = yes ] && [ -f "$h" ] && [ ! -f "$f" ] && file="$h"
+while read -r file; do
+	# Checking for .new files (this doesn't take long).
+	h="${file%.new}"
+	# The file should not be documented as .new. (Doesn't matter in light
+	# of ldd, since binary files are not .new in principle.)
+	[ "$h" != "$file" ] && [ -f "$h" ] && file="$h"
 	if [ -x "$file" ] && [ -f "$file" ]; then
+		[ -h "$file" ] && i="$(readlink -e "$file")"
 		g="$(basename "$file")"
-		i="$(readlink -e "$file")"
 		# Non-libraries
-		if [ -z "$(echo "$g" | grep -e "[.]so[.]" -e "[.]so\$" -e "[.]la[.]" -e "[.]la\$" -e "[.]a[.]" -e "[.]a\$")" ]; then
-			# [ -x $i ] is sufficient here, because symlinks to directories fail type -f
-			if [ "$i" = "$file" ] || [ -x "$i" ] || [ ! -h "$file" ]; then
-				echo "$file" >> "$PKGBIN"/instbins
-				# liblist will return an error for files that are not dynamic binaries; the script should proceed regardless
-				set +e
+		if [ -z "$(echo "$g" | grep -e "[.]so\$" -e "[.]la\$" -e "[.]a\$" -e "[.]so[.]")" ]; then
+			# [ -x $i ] is sufficient here, because symlinks to
+			# directories fail type -f
+			if [ -x "$i" ] || [ ! -h "$file" ]; then 
+				echo "$file" >> "$PKGBIN"/instbins 
+				YALCONFIG=yes \
+				HEAD="$HEAD" \
+				VARBKUP="$VARBKUP" \
+				ROOTHOME="$ROOTHOME" \
+				TMP="$TMP" \
+				SBINDIR="$SBINDIR" \
 				"$SBINDIR"/liblist "$file" > /dev/null 2>&1
-				set -e
-				[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS/$g/$g.libinfo" >> "$PKGDEP"/libdeps
+				[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS"/"$g"/"$g".libinfo >> "$PKGDEP"/libdeps
 			fi
-		# Libraries
+		# Libraries (symlinks to libraries included).
 		else
-			echo "$f" >> "$PKGLIB/libs"
+			echo "$file" >> "$PKGLIB/libs"
 		fi
-	# The library method above is cheating; some libraries are non-executable. Completing
-	# here.
-	elif [ ! -x "$file" ] && [ -f "$file" ] && [ -n "$(echo "$file" | grep -e "[.]so[.]" -e "[.]so\$" -e "[.]la[.]" -e "[.]la\$" -e "[.]a[.]" -e "[.]a\$")" ]; then
-		echo "$file" >> "$PKGLIB/libs"
 	fi	
 done < "$PKGTREE"
 
@@ -108,15 +145,23 @@ if [ -f "$PKGBIN"/instbins ]; then
 	cat "$PKGBIN"/instbins
 	echo
 fi
+
 if [ -f "$PKGLIB"/libs ]; then
-	echo '	'These libraries were installed by $(tput smul)$"$1"$(tput rmul):
+	echo '	'These libraries were installed by $(tput smul)"$1"$(tput rmul):
 	echo
 	cat "$PKGLIB"/libs
 	echo
-	# Called with CHECK=no from pkginst and pkgup; step is skipped otherwise.
+	# Called with CHECK=no from pkginst and pkgup; step is skipped
+	# otherwise.
 	if [ "${CHECK:-yes}" != yes ]; then
 		echo '	'Now using $(tput smul)liblist -n$(tput rmul) to update all library information...
 		set +e
+		YALCONFIG=yes \
+		HEAD="$HEAD" \
+		VARBKUP="$VARBKUP" \
+		ROOTHOME="$ROOTHOME" \
+		TMP="$TMP" \
+		SBINDIR="$SBINDIR" \
 		"$SBINDIR"/liblist -n > /dev/null 2>&1
 		set -e
 		echo '	'Done.
@@ -128,7 +173,15 @@ if [ "${CHECK:-yes}" != yes ]; then
 	if [ "$NAME" = "yalpack" ] ; then
 		echo '	'This is an installation or upgrade of $(tput smul)yalpack$(tput rmul). Running $(tput smul)liblist -n$(tput rmul) now to make a
 		echo '	'collection of library information...
+		set +e
+		YALCONFIG=yes \
+		HEAD="$HEAD" \
+		VARBKUP="$VARBKUP" \
+		ROOTHOME="$ROOTHOME" \
+		TMP="$TMP" \
+		SBINDIR="$SBINDIR" \
 		"$SBINDIR"/liblist -n > /dev/null 2>&1
+		set -e
 		echo '	'Done.
 		echo
 	fi	
@@ -136,3 +189,24 @@ fi
 
 echo '	'$(tput smul)Check complete.$(tput rmul)
 echo
+}
+
+for arg in "$@"; do
+	case "$arg" in
+		-h|--help)
+		echo
+		echo $(tput smul)pkgcheck$(tput rmul): Check for details about a yalpack package.
+		echo
+		echo Syntax: pkgcheck NAME [NAME ...]
+		echo
+		echo Flag:
+		echo "  -h | --help : Display this help menu."
+		echo
+		exit
+		;;
+		*)
+		[ -n "$(find "$PKGTREES"/"$arg")" ] && main "$arg"
+		;;
+	esac
+done
+

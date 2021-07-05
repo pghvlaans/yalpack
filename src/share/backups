@@ -1,7 +1,7 @@
 #!/bin/sh
-#
-# pkgmake: making a package from compiled source for LFS systems
-#
+
+# yalpack backup generation script
+
 # Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
 # All rights reserved.
 #
@@ -22,9 +22,13 @@
 #  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Making a package from source elements
+# Backup locations for the package trees are set up, if they do not already
+# exist. The default locations are /var/log/yalpack and /home/root/.yalpack.
+# If this is not acceptable, please feel free to edit the locations in
+# /etc/yalpack.conf.
+#
+# This is a partial version of yalpack's install.sh script.
 
-main() {
 unset HEAD
 unset VARBKUP
 unset ROOTHOME
@@ -67,106 +71,52 @@ for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
         done
 done
 
-STAGING="$HEAD"/packages
-BUILDDIR="$TMP"/"$1"
-BUILDDEST="$BUILDDIR"/dest
-NAME="$(cat "$BUILDDIR"/NAME)"
+PKGDATA="$HEAD"/pkgdata
+PKGTREES="$PKGDATA"/TREES
+SYMTREES="$PKGDATA"/SYMTREES
+SYMDESTS="$PKGDATA"/.SYMDESTS
+NEWFILES="$PKGDATA"/NEWFILES
+PKGVERS="$PKGDATA"/VER
+
+# Secondary Backup 
+ROOTBKUP="$ROOTHOME"/.yalpack-backup
 
 echo
-echo '	'Making a package for $(tput smul)"$1"$(tput rmul).
-echo
-set -e
-cd "$BUILDDEST"
-
-# Move all files in etc and home (if any) to .new; exclude symlinks and
-# directories
-for z in etc home
-do
-if [ -d "$BUILDDEST/$z" ]; then
-	# Copy the original directory out for safekeeping
-	rm -rf "$TMP"/"$1"-$z
-	cp -r "$BUILDDEST"/$z $TMP/"$1"-$z
-	# List text files only
-	rm -f "$TMP"/"$1"-"$z"-list
-	echo "$(find "$BUILDDEST"/"$z" -type f -exec file {} \; | grep text | cut -d':' -f1)" >> "$TMP"/"$1"-"$z"-list
-	# Now the renaming can proceed
-	[ -f "$TMP/$1-$z-list" ] && while read -r f; do
-		echo "$f"
-		# A non-text file with "text" in its name could slip through; 
-		# checking again.
-		if [ -n "$(file "$f" | cut -d':' -f2- | grep text)" ]; then
-			# Existence check needed, as etc or home without files
-			# will otherwise crash.
-			[ -f "$f" ] && [ ! -h "$f" ] && mv "$f" "$f".new
-		fi
-	done < "$TMP"/"$1"-"$z"-list
-fi
-done
-
-# Making the package tree document
-echo "$1" > "$BUILDDIR"/TREE
-
-find "$BUILDDEST"/ | while read -r file;
-do
-	i="${file##$BUILDDEST/}"
-	echo /"$i" >> "$BUILDDIR"/TREE
-done
-
-# Adding version information
-VER="${1##$NAME-}"
-# Properly handling no-version packages (like the kernel, if the user wants more
-# than one installed)
-if [ "$VER" != "$NAME" ]; then
-	echo "$VER" > "$BUILDDIR"/VER
-else
-	touch "$BUILDDIR"/VER
-fi
-
-# Compression and move to the correct place
-cd "$TMP"
-tar -czvf "$1".tar.xz "$1"
-mkdir -p "$STAGING"
-mv "$1".tar.xz "$STAGING"
-
-# Check for the existence of an executable install.sh file
-if [ -x "$BUILDDIR/install.sh" ]; then
+echo '	'Checking for a backup package tree directory at $(tput smul)"$VARBKUP"$(tput rmul).
+if [ -d "$VARBKUP" ]; then
+	echo '	'$(tput smul)"$VARBKUP"$(tput rmul) is present. No backup will be created.
 	echo
-	echo '	'Executable $(tput smul)install.sh$(tput rmul) file found.
 else
+	echo '	'Setting up the $(tput smul)"$VARBKUP"$(tput rmul) backup location...
 	echo
-	echo '	'NOTE: No $(tput smul)install.sh$(tput rmul) file was found, or it is not executable.
-	echo '	'Please confirm before installation.
+	mkdir -pv "$VARBKUP"
+	cp "$PKGDATA"/TREES/* "$VARBKUP"
+	echo
+	echo '	'Done. Moving on to the $(tput smul)"$ROOTBKUP"$(tput rmul) backup.
+	echo
 fi
 
-# Restoring the original files to the compiled source and cleaning up.
-for z in etc home
-do
-if [ -d "$TMP/$1-$z" ]; then
-	rm -rf "${BUILDDEST:?}"/$z
-	mv "$TMP"/"$1"-$z "$BUILDDEST"/$z
-	rm -f "$TMP"/"$1"-"$z"-list
+echo '	'Checking for a backup package tree directory at $(tput smul)"$ROOTBKUP"$(tput rmul).
+if [ -d "$ROOTBKUP" ]; then
+	echo '	'$(tput smul)"$ROOTBKUP"$(tput rmul) is present. No backup will be created.
+	echo
+else
+	if [ -d "$ROOTHOME" ]; then
+	        echo	
+		mkdir -pv "$ROOTBKUP"
+		cp "$PKGDATA"/TREES/* "$ROOTBKUP"
+		echo
+		echo '	'Done with backups.
+		echo
+	else
+		echo '	'It appears that there is no directory at the specified
+		echo '	'ROOTHOME location, $(tput smul)"$ROOTHOME"$(tput rmul). Because the default is root\'s
+		echo '	'home directory, this script will not take the responsibility of
+		echo '	'making one.
+		echo
+		echo '	'Using two separate backup locations is highly recommended.
+		echo '	'Please consider changing the $(tput smul)"ROOTHOME"$(tput rmul) location in $(tput smul)"$CHOME"$(tput rmul)
+		echo '	'or making a $(tput smul)"$ROOTHOME"$(tput rmul) directory and running again.
+		echo
+	fi
 fi
-done
-echo
-}
-for arg in "$@"; do
-	case "$arg" in
-		-h|--help)
-		echo
-		echo $(tput smul)pkgmake$(tput rmul): Make a yalpack package from software compiled to a directory at /tmp/NAME-VER/dest
-		echo
-		echo Syntax: pkgmake NAME1-VER1 NAME2-VER2 ...
-		echo
-		echo Before making the package, ensure a file called $(tput smul)\"NAME\"$(tput rmul) with the package name exists 
-		echo above dest. If $(tput smul)\"NAME\"$(tput rmul) contains the entire package-version string, NAME is sufficient
-		echo when calling pkgmake.
-		echo 
-		echo An executable $(tput smul)\"install.sh\"$(tput rmul) above $(tput smul)dest$(tput rmul) will be run before the package checks at the
-		echo end of the installation process.
-		echo
-		exit
-		;;
-		*)
-		main "$arg"
-	esac
-done

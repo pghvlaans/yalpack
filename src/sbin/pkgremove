@@ -1,6 +1,7 @@
 #!/bin/sh
 #
-# pkgremove: to remove packages (made by pkgmake and installed by pkginst) from LFS systems
+# pkgremove: to remove packages (made by pkgmake and installed by pkginst) from
+# LFS systems
 #
 # Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
 # All rights reserved.
@@ -24,45 +25,88 @@
 #
 # Used to remove packages. HANDLE WITH CARE.
 
-main() {
-HEAD=/var/yalpack
-STAGING=$HEAD/packages
-PKGDATA=$HEAD/pkgdata
-PKGTREES=$PKGDATA/TREES
-OLDTREE=$PKGTREES/"$1"
+# If called by another script, use the passed-in variables to save time.
+if [ "${YALCONFIG:-no}" = no ]; then
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its default state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+fi
+
+main (){
+STAGING="$HEAD"/packages
+PKGDATA="$HEAD"/pkgdata
+PKGTREES="$PKGDATA"/TREES
+OLDTREE="$PKGTREES"/"$1"
 [ "${UPGRADE:-no}" = yes ] && OLDTREE="$PKGTREES/YALPACK-OUTGOING"
-SYMTREES=$PKGDATA/SYMTREES
-OLDSYM=$SYMTREES/"$1"
+SYMTREES="$PKGDATA"/SYMTREES
+OLDSYM="$SYMTREES"/"$1"
 [ "${UPGRADE:-no}" = yes ] && OLDSYM="$SYMTREES/YALPACK-OUTGOING"
-SYMDESTS=$PKGDATA/.SYMDESTS
-OLDSYMDEST=$SYMDESTS/"$1"
+SYMDESTS="$PKGDATA"/.SYMDESTS
+OLDSYMDEST="$SYMDESTS"/"$1"
 [ "${UPGRADE:-no}" = yes ] && OLDSYMDEST="$SYMDESTS/YALPACK-OUTGOING"
-BINS=$PKGDATA/PKG-BINS
-DEPS=$PKGDATA/PKG-DEPS
-LIBS=$PKGDATA/PKG-LIBS
-VERS=$PKGDATA/VER
-OLDVER=$VERS/"$1"
+BINS="$PKGDATA"/PKG-BINS
+DEPS="$PKGDATA"/PKG-DEPS
+LIBS="$PKGDATA"/PKG-LIBS
+VERS="$PKGDATA"/VER
+OLDVER="$VERS"/"$1"
 [ "${UPGRADE:-no}" = yes ] && OLDVER="$VERS/YALPACK-OUTGOING"
-NEWFILES=$PKGDATA/NEWFILES
-OLDNEWFILE=$NEWFILES/"$1"
+NEWFILES="$PKGDATA"/NEWFILES
+OLDNEWFILE="$NEWFILES"/"$1"
 [ "${UPGRADE:-no}" = yes ] && OLDNEWFILE="$NEWFILES/YALPACK-OUTGOING"
-RMDOC=$PKGDATA/RMDOC
-CODMR=$PKGDATA/CODMR
-RMTEMP=$PKGDATA/RMTEMP
-SAFE=$PKGDATA/SAFE
+RMDOC="$PKGDATA"/RMDOC
+CODMR="$PKGDATA"/CODMR
+RMTEMP="$PKGDATA"/RMTEMP
+SAFE="$PKGDATA"/SAFE
 
 # Backups
 
-VARBKUP=/var/log/yalpack
-VARTREE=$VARBKUP/"$1"
+VARTREE="$VARBKUP"/"$1"
 [ "${UPGRADE:-no}" = yes ] && VARTREE="$VARBKUP/YALPACK-OUTGOING"
-VARTEMP=$VARBKUP/RMTEMP
-# Putting yalpack data directories in locations not owned by root is not recommended.
-ROOTHOME=/root
-ROOTBKUP=$ROOTHOME/.yalpack-backup
-ROOTTREE=$ROOTBKUP/"$1"
+VARTEMP="$VARBKUP"/RMTEMP
+# Putting yalpack data directories in locations not owned by root is not
+# recommended.
+ROOTBKUP="$ROOTHOME"/.yalpack-backup
+ROOTTREE="$ROOTBKUP"/"$1"
 [ "${UPGRADE:-no}" = yes ] && ROOTTREE="$ROOTBKUP/YALPACK-OUTGOING"
-ROOTTEMP=$ROOTBKUP/RMTEMP
+ROOTTEMP="$ROOTBKUP"/RMTEMP
 
 if [ "$2" != "NOCONFIRM" ] && [ "${UPGRADE:-no}" != yes ]; then
 	echo
@@ -78,12 +122,11 @@ elif [ "$2" = "NOCONFIRM" ] && [ "${UPGRADE:-no}" != yes ]; then
 fi
 
 set -e
-# Although there are protections against deleting symlinks to items that are needed
-# by other packages, using pkgremove on a system with few packages could conceivably
-# cause the deletion of important symlinks. For LFS 11.0 onward, these include the
-# merged-usr symlinks. Creating the SAFE file will prevent this edge case from
-# causing potentially serious problems. (rmdir is used for handling directories, so
-# this precaution is not needed for non-symlinks)
+# Using pkgremove on a system with few packages could conceivably cause the
+# deletion of important symlinks on merged-usr systems. For LFS 11.0 onward,
+# these include the merged-usr symlinks. Creating the SAFE file will prevent
+# this edge case from causing potentially serious problems. (rmdir is used for
+# handling directories, so this precaution is not needed for non-symlinks)
 cat > "$SAFE" << "EOF"
 /bin
 /sbin
@@ -114,29 +157,26 @@ rm -f "$RMDOC" "$CODMR"
 # Producing RMDOC; it will exclude the package title and the home directory.
 while read -r line;
 do
-	[ -n "$VER" ] && [ "$line" != "$NAME"-"$VER" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
-	[ -z "$VER" ] && [ "$line" != "$NAME" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
+	[ -n "$VER" ] && [ "$line" != "$NAME"-"$VER" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> "$RMDOC"
+	[ -z "$VER" ] && [ "$line" != "$NAME" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> "$RMDOC"
 done < "$OLDTREE"
 mv "$OLDTREE" "$RMTEMP"/TREE
 # The backup location(s) only have TREE files.
 [ -f "$VARTREE" ] && mv "$VARTREE" "$VARTEMP"/TREE
 [ -f "$ROOTTREE" ] && mv "$ROOTTREE" "$ROOTTEMP"/TREE
 
-# Finishing RMDOC and moving the SYMTREE document, if any.
+# Moving the SYMTREE document, if any.
 if [ -f "$OLDSYMDEST" ]; then
-while read -r line;
-do
-	[ -n "$VER" ] && [ "$line" != "$NAME"-"$VER" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
-	[ -z "$VER" ] && [ "$line" != "$NAME" ] && [ "$(echo "$line" | cut -c1-5)" != "/home" ] && echo "$line" >> $RMDOC
-done < "$OLDSYMDEST"
 mv "$OLDSYM" "$RMTEMP"/SYMTREE
 mv "$OLDSYMDEST" "$RMTEMP"/SYMDEST
 fi
 
-# Making CODMR, a line-reversed version of RMDOC. Needed for the proper handling of empty directories.
+# Making CODMR, a line-reversed version of RMDOC. Needed for the proper handling
+# of empty directories.
 tac "$RMDOC" > "$CODMR"
 
-# This is not done in case of upgrades, as these files will already belong to the new version of the package.
+# This is not done in case of upgrades, as these files will already belong to
+# the new version of the package.
 if [ "${UPGRADE:-no}" != yes ]; then
 	mkdir -p "$RMTEMP"/BIN "$RMTEMP"/DEP "$RMTEMP"/LIB
 	mv ${BINS:?}/"$NAME" "$RMTEMP"/BIN/
@@ -146,18 +186,20 @@ if [ "${UPGRADE:-no}" != yes ]; then
 	echo
 fi
 
-# Checking package for matches in other installed packages. Should be safe on a package-oriented system.
-# For files
+unset ECHOHERE
+# Checking package for matches in other installed packages. Should be safe on a 
+# package-oriented system. For files.
 while read -r line;
 do
 	if [ -f "$line" ] && [ ! -h "$line" ]; then
 		# If grep -x turns up nothing, not needed by remaining packages.
 		unset LINK
-		# Using "or true" to avoid errors when examining an already-deleted file
+		# Using "or true" to avoid errors when examining an already-
+		# deleted file
 		LINK="$(readlink -e "$line")" || true
-		if [ -z "$(grep -x "$line" "$PKGTREES"/* "$SYMDESTS"/*)" ] && \
-		[ -z "$(grep -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
-			rm -fv "$line"
+		if [ -z "$(grep -m 1 -x -e "$line" -e "${line%.new}" "$PKGTREES"/* "$SYMDESTS"/*)" ] && \
+		[ -z "$(grep -m 1 -x -e "$LINK" -e "$LINK.new" -e "${LINK%.new}" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
+			rm -fv "$line" && ECHOHERE=yes
 		fi
 	fi
 done < "$RMDOC"
@@ -166,15 +208,17 @@ done < "$RMDOC"
 while read -r line;
 do
 	if [ -h "$line" ]; then
-		# Don't want to knock out symlinks to things that are still needed.
-		# Important examples for LFS 11.0 and after: /sbin, /bin
+		# Don't want to knock out symlinks to things that are still
+		# needed. Important examples for LFS 11.0 and after: /sbin,
+		# /bin
 		unset LINK
 		LINK="$(readlink -e "$line")" || true
 		# If grep -x turns up nothing, not needed by remaining packages.
-		# SAFE preserves merged-usr symlinks against low-package edge cases.
-		if [ -z "$(grep -x "$line" "$PKGTREES"/* "$SYMDESTS"/* "$SAFE")" ] && \
-		[ -z "$(grep -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
-			rm -fv "$line"
+		# SAFE preserves merged-usr symlinks against low-package edge
+		# cases.
+		if [ -z "$(grep -m 1 -x "$line" "$PKGTREES"/* "$SYMDESTS"/* "$SAFE")" ] && \
+		[ -z "$(grep -m 1 -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
+			rm -fv "$line" && ECHOHERE=yes
 		fi
 	fi
 done < "$RMDOC"
@@ -186,18 +230,20 @@ do
 		unset LINK
 		LINK="$(readlink -e "$line")" || true
 		# Directories are protected by rmdir, etc.
-		if [ -z "$(grep -x "$line" "$PKGTREES"/* "$SYMDESTS"/*)" ] && \
-		[ -z "$(grep -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
-			# For directories (ls -A condition is to cut down on unnecessary and alarming messages)
+		if [ -z "$(grep -m 1 -x "$line" "$PKGTREES"/* "$SYMDESTS"/*)" ] && \
+		[ -z "$(grep -m 1 -x "$LINK" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
+			# For directories (ls -A condition is to cut down on
+			# unnecessary and alarming messages)
 			unset x	
-			x=$(ls -A "$line") && [ -z "$x" ] && rmdir -v --ignore-fail-on-non-empty "$line"
+			x=$(ls -A "$line") && [ -z "$x" ] && ECHOHERE=yes && rmdir -v --ignore-fail-on-non-empty "$line"
 		fi
 	fi
-# The reversed document is used here to catch directories containing only empty directories.
+# The reversed document is used here to catch directories containing only empty
+# directories.
 done < "$CODMR"
+[ "$ECHOHERE" = yes ] && echo
 
 # In case of library changes
-echo
 ldconfig
 echo '	'Done running $(tput smul)ldconfig$(tput rmul).
 echo
@@ -205,8 +251,8 @@ echo
 rm -f "$RMDOC" "$CODMR"
 rm -rf "$RMTEMP" "$VARTEMP" "$ROOTTEMP"
 rm -f "$SAFE"
-[ -n "$VER" ] && rm -fv $STAGING/"$NAME"-"$VER".tar.xz
-[ -z "$VER" ] && rm -fv $STAGING/"$NAME".tar.xz
+[ -n "$VER" ] && rm -f "$STAGING"/"$NAME"-"$VER".tar.xz
+[ -z "$VER" ] && rm -f "$STAGING"/"$NAME".tar.xz
 
 if [ "${UPGRADE:-no}" != yes ]; then
 	echo '	'The package $(tput smul)"$1"$(tput rmul) has been removed. 
