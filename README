@@ -212,7 +212,7 @@ As the Linux From Scratch documentation indicates, glibc upgrades generally
 entail a full system rebuild. Although yalpack-0.1.4+ has been tested to
 upgrade glibc up to 2.33, this type of upgrade should be treated with care and is
 not necessarily advisable. glibc downgrades (especially downgrades to versions
-older than the version used to build LFS) are unsupported altogether.
+older than the version used to build LFS) are unsupported altogether
 
 In order to avoid unmounting problems at the next halt or reboot, pkgup uses
 /sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected.
