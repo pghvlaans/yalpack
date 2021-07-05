@@ -132,7 +132,8 @@ dev).
 
 As might be expected, the situation for glibc is more complicated. For
 yalpack-0.1.7, it was possible to move between glibc-2.32 and 2.33 on a 10.1
-LFS (stable) system that had been built with glibc-2.32.
+LFS (stable) system that had been built with glibc-2.32, provided that no
+critical package had been built with glibc-2.33 in the meantime.
 
 The 10.1 LFS dev system used for testing had been built with glibc-2.33; an
 attempted downgrade to 2.32 managed to install the files, but calls of cat,
@@ -192,7 +193,7 @@ Upgrading glibc and SysVinit:
 As the Linux From Scratch documentation indicates, glibc upgrades generally
 entail a full system rebuild. Although yalpack-0.1.4+ has been tested to
 upgrade glibc up to 2.33, this type of upgrade should be treated with care and is
-not necessarily advisable. glibc downgrades (in particular, downgrades to
+not necessarily advisable. glibc downgrades (especially downgrades to
 versions older than the version used to build LFS) are unsupported altogether.
 
 In order to avoid unmounting problems at the next halt or reboot, pkgup uses
