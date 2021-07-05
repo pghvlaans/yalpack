@@ -1,0 +1,173 @@
+#!/bin/sh
+
+# yalfind: Use a search term or full file path to find the package providing any
+# matching item or items.
+#
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Checking for which yalpack package provided items matching a search term.
+
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its originally-installed state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+
+PKGDATA="$HEAD"/pkgdata
+TREES="$PKGDATA"/TREES
+SYMDESTS="$PKGDATA"/.SYMDESTS
+
+TREESNUM="$(echo "$TREES" | tr -cd '/' | wc -c)"
+TREESNUM=$((TREESNUM + 2))
+
+main() {
+unset SEARCH
+unset SEARCHNEW
+SEARCH="$1"
+# Enables detection of .new files for "--exact" calls.
+SEARCHNEW="$SEARCH".new
+echo '	'$(tput smul)"$SEARCH"$(tput rmul):
+echo
+
+if [ "$EXACT" = "EXACT" ] && [ "$FILE" = "FILE" ]; then
+	grep -x "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"-
+	grep -x "$SEARCHNEW" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"-
+	echo
+	if [ -n "$(grep -x "$SEARCH" "$SYMDESTS"/*)" ] || [ -n "$(grep -x "$SEARCHNEW" "$SYMDESTS"/*)" ]; then 
+		echo '	'The following matches were found as destinations corresponding
+		echo '	'to symlinks or symlinked paths installed by the package\(s\) noted.
+		echo
+		# SYMDESTS needs uniq; it is messy and not intended for viewing.
+		grep -x "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | uniq
+		grep -x "$SEARCHNEW" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- |uniq
+		echo
+	fi
+	return
+fi
+
+if [ "$FILE" = "FILE" ]; then
+	grep "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- 
+	echo  
+	if [ -n "$(grep "$SEARCH" "$SYMDESTS"/*)" ]; then
+		echo '	'The following matches were found as destinations corresponding
+		echo '	'to symlinks or symlinked paths installed by the package\(s\) noted.
+		echo
+		# SYMDESTS is messy and not intended for viewing. uniq needed.
+		grep "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | uniq 
+		echo
+	fi
+	return
+fi
+
+if [ "$EXACT" = "EXACT" ]; then
+	grep -x "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+	grep -x "$SEARCHNEW" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+	echo
+	if [ -n "$(grep -x "$SEARCH" "$SYMDESTS"/*)" ] || [ -n "$(grep -x "$SEARCHNEW" "$SYMDESTS"/*)" ]; then 
+		echo '	'A match was found as a destination corresponding to a symlink or
+		echo '	'symlinked path installed by the package\(s\) noted.
+		echo
+		grep -x "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+		grep -x "$SEARCHNEW" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+		echo
+	fi
+	return
+fi
+
+grep "$SEARCH" "$TREES"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+echo
+if [ -n "$(grep "$SEARCH" "$SYMDESTS"/*)" ]; then
+	echo '	'Matches were found as destinations corresponding to symlinks
+	echo '	'or symlinked paths installed by the package\(s\) noted.
+	echo
+	grep "$SEARCH" "$SYMDESTS"/* | grep ":/" | cut -d'/' -f"$TREESNUM"- | cut -d':' -f-1 | uniq
+	echo
+fi
+return
+}
+
+unset FILE
+unset EXACT
+echo
+for arg in "$@"; do
+case "$arg" in
+	-h|--help)
+		echo $(tput smul)yalfind$(tput rmul): Use a search term or full file path to find the yalpack package providing it.
+	echo
+	echo Syntax: yalfind \(options\) SEARCHTERM1 ...
+	echo
+	echo Flags:
+	echo " -f | --showfiles : Show the file names matching the search term\(s\)."
+	echo " -x | --exact : Search for an exact match of a full file or directory path."
+	echo " -h | --help : Display this help menu."
+	echo
+	exit
+	;;
+	-f|--showfiles)
+	FILE="FILE"
+	;;
+	-x|--exact)
+	EXACT="EXACT"
+	;;
+	-fx|-xf)
+	FILE="FILE"
+	EXACT="EXACT"
+	;;
+	*)
+	main "$arg" $FILE $EXACT
+esac
+done
