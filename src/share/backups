@@ -1,0 +1,122 @@
+#!/bin/sh
+
+# yalpack backup generation script
+
+# Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Backup locations for the package trees are set up, if they do not already
+# exist. The default locations are /var/log/yalpack and /home/root/.yalpack.
+# If this is not acceptable, please feel free to edit the locations in
+# /etc/yalpack.conf.
+#
+# This is a partial version of yalpack's install.sh script.
+
+unset HEAD
+unset VARBKUP
+unset ROOTHOME
+unset TMP
+unset SBINDIR
+
+CHOME=/etc/yalpack.conf
+HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
+VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
+ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
+TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
+SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+
+if [ ! -f "$CHOME" ]; then
+        echo
+        echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
+        echo The document can be found in its originally-installed state at
+        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo
+        echo Exiting now
+        echo
+        exit 1
+fi
+
+COUNT1=0
+for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+        COUNT1=$((COUNT1 + 1))
+        COUNT2=0
+        [ -z "$v" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '   'an absolute file path. Exiting now. && echo && exit 1
+        [ -n "$(echo "$v" | grep ' ')" ] && echo && echo '      'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        [ "$(echo "$v" | cut -c1)" != "/" ] && echo && echo '   'One or more variables in $(tput smul)"$CHOME"$(tput rmul) is missing, contains a space, or is not && echo '      'an absolute file path. Exiting now. && echo && exit 1
+        for y in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
+                COUNT2=$((COUNT2 + 1))
+                if [ "$v" = "$y" ] && [ "$COUNT1" != "$COUNT2" ]; then
+                        echo '  '$(tput smul)Warning!$(tput rmul) Two of the current variables have the same value.
+                        echo '  'Exiting now. Please edit $(tput smul)"$CHOME"$(tput rmul).
+                        echo
+                        exit 1
+                fi
+        done
+done
+
+PKGDATA="$HEAD"/pkgdata
+PKGTREES="$PKGDATA"/TREES
+SYMTREES="$PKGDATA"/SYMTREES
+SYMDESTS="$PKGDATA"/.SYMDESTS
+NEWFILES="$PKGDATA"/NEWFILES
+PKGVERS="$PKGDATA"/VER
+
+# Secondary Backup 
+ROOTBKUP="$ROOTHOME"/.yalpack-backup
+
+echo
+echo '	'Checking for a backup package tree directory at $(tput smul)"$VARBKUP"$(tput rmul).
+if [ -d "$VARBKUP" ]; then
+	echo '	'$(tput smul)"$VARBKUP"$(tput rmul) is present. No backup will be created.
+	echo
+else
+	echo '	'Setting up the $(tput smul)"$VARBKUP"$(tput rmul) backup location...
+	echo
+	mkdir -pv "$VARBKUP"
+	cp "$PKGDATA"/TREES/* "$VARBKUP"
+	echo
+	echo '	'Done. Moving on to the $(tput smul)"$ROOTBKUP"$(tput rmul) backup.
+	echo
+fi
+
+echo '	'Checking for a backup package tree directory at $(tput smul)"$ROOTBKUP"$(tput rmul).
+if [ -d "$ROOTBKUP" ]; then
+	echo '	'$(tput smul)"$ROOTBKUP"$(tput rmul) is present. No backup will be created.
+	echo
+else
+	if [ -d "$ROOTHOME" ]; then
+	        echo	
+		mkdir -pv "$ROOTBKUP"
+		cp "$PKGDATA"/TREES/* "$ROOTBKUP"
+		echo
+		echo '	'Done with backups.
+		echo
+	else
+		echo '	'It appears that there is no directory at the specified
+		echo '	'ROOTHOME location, $(tput smul)"$ROOTHOME"$(tput rmul). Because the default is root\'s
+		echo '	'home directory, this script will not take the responsibility of
+		echo '	'making one.
+		echo
+		echo '	'Using two separate backup locations is highly recommended.
+		echo '	'Please consider changing the $(tput smul)"ROOTHOME"$(tput rmul) location in $(tput smul)"$CHOME"$(tput rmul)
+		echo '	'or making a $(tput smul)"$ROOTHOME"$(tput rmul) directory and running again.
+		echo
+	fi
+fi
