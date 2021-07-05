@@ -1,0 +1,31 @@
+.\" Manpage for yalfind
+.\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
+.TH man 1 "07 June 2021" "0.1.8" "yalfind man page"
+.SH NAME
+yalfind \- search for which package provided matching files/symlinks/directories 
+.SH SYNOPSIS
+yalfind [-xf|--exact --showfile] SEARCHTERM1 ...
+.SH DESCRIPTION
+yalfind is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for checking which yalpack package or packages provide files, symlinks or directories matching a search term. yalfind searches the TREE and SYMTREE files for all installed packages, located by default in /var/yalpack/pkgdata/TREES.
+
+-x (--exact) can be passed as a parameter to search for exact matches with the user-provided path. If -x is used, yalfind will display .new files as matches, as in this example:
+
+\t yalfind -xf /etc/pulse/client.conf
+
+\t /etc/pulse/client.conf:
+
+\t pulseaudio:/etc/pulse/client.conf.new
+
+For files installed under a path with a symlink, either file path should generate results.
+.SH OPTIONS
+SEARCHTERM - A search term for the desired file, directory or link path.
+
+-x|--exact - Show results for an exact file path.
+
+-f|--showfile - Show the file name(s) along with the package(s).
+
+-h|--help - Display the help menu.
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+K. Eugene Carlson (kvngncrlsn@gmail.com)

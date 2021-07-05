@@ -1,6 +1,6 @@
 .\" Manpage for pkgcheck
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "22 June 2021" "0.1.7" "pkgcheck man page"
+.TH man 1 "22 June 2021" "0.1.8" "pkgcheck man page"
 .SH NAME
 pkgcheck \- generate and display information about a yalpack package
 .SH SYNOPSIS
@@ -12,23 +12,17 @@ pkgcheck is a shell program provided by yalpack (Yet Another Lfs PACKage manager
 
 \t /var/yalpack/pkgdata/PKG-BINS/[NAME]/instbins (any installed programs)
 
-\t /var/yalpack/pkgdata/PKG-LIBS/[NAME]/libs (any installed libraries)
+\t /var/yalpack/pkgdata/PKG-LIBS/[NAME]/libs (any installed executable libraries)
 
 pkgcheck invokes liblist(1) to generate dynamic library usage information, which entails calling ldd(1). For this reason, pkgcheck (and yalpack in general) should not be used on systems with glibc-2.26 and earlier. See "Security" in the ldd(1) man page for details. Library usage information will not be available for packages that are not installed. 
 
-If libraries appear to have been installed by the package, a new collection of dynamic library usage information will be generated (provided that pkgcheck was called by pkginst(1) or pkgup(1)). Otherwise, the existing collection will be updated with any new dynamic binaries. By default, a new collection will be triggered when recognized library files are installed under the following locations or their subdirectories:
-
-\t /lib
-\t /lib64
-\t /usr/lib
-\t /usr/libexec
-\t /usr/include
+If libraries appear to have been installed by the package, a new collection of dynamic library usage information will be generated (provided that pkgcheck was called by pkginst(1) or pkgup(1)). Otherwise, the existing collection will be updated with any new dynamic binaries. By default, a new collection will be triggered when executable files with recognized library suffixes are installed.
 
 pkgcheck will not generate duplicate entries on systems where one or more of these locations is a symlink.
 
 In the case of executable .new files, pkgcheck will generate information for the .new version if it is installed as such; otherwise, it will use the non-.new file.
 
-The pkgcheck script can be edited to change any of these default locations to suit user preferences. This is best done before installation, and in conjunction with the other yalpack scripts.
+The pkgcheck script can be edited to change any of these default search locations to suit user preferences. This is best done before installation, and in conjunction with the other yalpack scripts.
 .SH OPTIONS
 NAME - The name of the package to be checked. Note that if the package name in the original NAME directory included versioning information, the call will be incomplete without it. Use "pkglist -n" to check full package names.
 

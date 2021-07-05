@@ -1,10 +1,10 @@
 .\" Manpage for libcheck
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "22 June 2021" "0.1.7" "libcheck man page"
+.TH man 1 "22 June 2021" "0.1.8" "libcheck man page"
 .SH NAME
 libcheck \- generate information about which binaries use dynamic libraries conforming to a search term
 .SH SYNOPSIS
-libcheck LIBRARY
+libcheck [-d|--deep] LIBRARY
 .SH DESCRIPTION
 libcheck is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for collecting information which binaries use dynamic libraries conforming to a search term. Information on individual binaries is based on the most recent run of liblist(1), so the binaries are those in the following locations (unless /usr/sbin/liblist was edited):
 
@@ -18,6 +18,8 @@ libcheck will not produce duplicate results on systems where one or more of thes
 In addition, a list of dynamic libraries conforming to the original search term is provided; for more exact results, libprecise(1) can be used on a specific library prefix.
 .SH OPTIONS
 LIBRARY - A search term for the desired library.
+
+-d|--deep - Default searches use -maxdepth 0; although this is appropriate in most cases, a (slower) recursive search can be requested. Spurious results, including non-library files, are more likey to be reported with --deep.
 
 -h|--help - Display the help menu.
 .SH SEE ALSO
