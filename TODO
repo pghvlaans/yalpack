@@ -1,5 +1,13 @@
 TODO list for after yalpack-0.1.8
 
+Next release:
+* Try to avoid extra extraction and repackaging calls as much as possible (pkginst, pkgup)
+* Test systemd compatibility (pkgup)
+* Streamline newfiles (look at initial confirmation prompts)
+* Probably merge libcheck and libprecise (very similar functionality)
+* More concise documentation
+* Further optimizations
+
 For the future:
 * Retest glibc downgrades with selected compatible binaries already installed to the system
 * Full testing on the future LFS 11.0 release candidate
