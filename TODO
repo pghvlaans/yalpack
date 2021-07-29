@@ -2,11 +2,15 @@ TODO list for after yalpack-0.1.8
 
 Next release:
 * Try to avoid extra extraction and repackaging calls as much as possible (pkginst, pkgup)
-* Test systemd compatibility (pkgup)
+    Status: Probable working solution found. More testing needed.
+* Compatibility with both SysVInit and systemd (pkgup)
+    Status: Testing this will require new build scripts for systemd-based LFS
 * Streamline newfiles (look at initial confirmation prompts)
+    Status: Ready; will be in next release.
 * Probably merge libcheck and libprecise (very similar functionality)
 * More concise documentation
 * Further optimizations
+    Status: liblist and pkgcheck are faster. Except for installing and updating heavy packages, gains won't be as dramatic as 0.1.7 > 0.1.8. 
 
 For the future:
 * Retest glibc downgrades with selected compatible binaries already installed to the system
