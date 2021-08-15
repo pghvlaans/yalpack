@@ -42,7 +42,7 @@ if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
         echo The document can be found in its default state at
-        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo $(tput smul)/usr/share/doc/yalpack-0.2.0/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
         echo
@@ -236,10 +236,6 @@ find "$PKGTREES"/* -type f | while read -r f; do
 			echo "$file" >> "$NEWFILES"/"$g"		
 		fi
 	done < "$f"
-	# Don't keep empty NEWFILE documents.
-#	unset NEWLENGTH
-#	NEWLENGTH="$(wc -l "$NEWFILES"/"$g" | cut -d' ' -f1)"
-#	[ "$NEWLENGTH" = "1" ] && rm -f "$NEWFILES"/"$g"
 done
 if [ "$1" != "QUIET" ] && [ "$1" != "NORETURN" ]; then
 	echo '	'$(tput smul)"$NEWFILES"$(tput rmul) has been updated.
@@ -248,18 +244,12 @@ fi
 unset x
 x="$(ls -A "$NEWFILES")"
 if [ -n "$x" ] && [ "$1" != "QUIET" ] && [ "$1" != "NORETURN" ]; then
-	echo '	'See the following to examine $(tput smul).new$(tput rmul) files:
+	echo '	'The following $(tput smul).new$(tput rmul) files were found:
 	echo
-	find "$NEWFILES"/* -type f
-	echo
-	echo '	'To display the $(tput smul).new$(tput rmul) files now, enter $(tput smul)y$(tput rmul). To exit, enter any other character.
-	unset INPUT
-	read -r INPUT && [ "$INPUT" != "y" ] && exit
 	find "$NEWFILES"/* -type f | while read -r f; do
-		echo
 		cat "$f"
+		echo
 	done
-	echo
 	echo '	'To manage, enter $(tput smul)y$(tput rmul). To exit, enter any other character.
 	unset INPUT
 	read -r INPUT && [ "$INPUT" != "y" ] && exit
