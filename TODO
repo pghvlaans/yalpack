@@ -1,16 +1,20 @@
-TODO list for after yalpack-0.1.8
+TODO list for yalpack-0.2.0
 
-Next release:
 * Try to avoid extra extraction and repackaging calls as much as possible (pkginst, pkgup)
     Status: Probable working solution found. More testing needed.
+    (fix is in dev branch)
 * Compatibility with both SysVInit and systemd (pkgup)
     Status: Testing this will require new build scripts for systemd-based LFS
 * Streamline newfiles (look at initial confirmation prompts)
     Status: Ready; will be in next release.
+    (fix is in dev branch)
 * Probably merge libcheck and libprecise (very similar functionality)
 * More concise documentation
 * Further optimizations
-    Status: liblist and pkgcheck are faster. Except for installing and updating heavy packages, gains won't be as dramatic as 0.1.7 > 0.1.8. 
+    Status: liblist and pkgcheck are faster. Except for installing and upgrading heavy packages, gains won't be as dramatic as 0.1.7 > 0.1.8. 
+    (fix is in dev branch)
+
+An upgrade from glibc-2.33 to 2.34 was successful on the development LFS version on Aug. 16th. This was a merged-usr installation; further testing is needed on systems with true /bin, /lib and /sbin directories.
 
 For the future:
 * Retest glibc downgrades with selected compatible binaries already installed to the system
