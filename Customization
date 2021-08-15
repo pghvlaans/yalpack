@@ -1,4 +1,4 @@
-yalpack-0.1.8 Customization Guide
+yalpack-0.2.0 Customization Guide
 
 By default, the compilation DESTDIR directory for yalpack is under
 /tmp, and the data, library information and package tarball directories

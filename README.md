@@ -1,4 +1,6 @@
-**yalpack-0.1.8**
+*This is the dev branch. Although it will eventually become yalpack-0.2.0, it has not been tested as thoroughly as the most recent release version in `main`. The documentation has not yet been updated except for the version name, and may be inaccurate.*
+
+**yalpack-0.2.0**
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
 
@@ -22,7 +24,7 @@ For installation and upgrades of yalpack, see INSTALL or run `make all` for deta
 
 *POSIX compliance*
 
-Providing a POSIX-compliant package management solution is a priority for this project. All yalpack-0.1.8 scripts have been tested to run with /bin/sh linked to dash, bash and zsh. As indicated in the Linux From Scratch instructions, /bin/sh should nevertheless be a symlink to /bin/bash when building the base system.
+Providing a POSIX-compliant package management solution is a priority for this project. All yalpack-0.2.0 scripts have been tested to run with /bin/sh linked to dash, bash and zsh. As indicated in the Linux From Scratch instructions, /bin/sh should nevertheless be a symlink to /bin/bash when building the base system.
 
 **USING YALPACK OUTSIDE OF AN LFS BOOT OR CHROOT CONTEXT WOULD INSTALL AND/OR REMOVE PACKAGES ON THE HOST SYSTEM, RESULTING IN MAYHEM.**
 
@@ -76,11 +78,11 @@ Aside from linux-vdso and ld-linux, the yalpack package installation and/or upgr
 
 Upgrade and downgrade tests were successful for acl and attr (10.1 stable and dev).
 
-As might be expected, the situation for glibc is more complicated. For yalpack-0.1.8, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32, provided that no critical packages (e.g. acl, attr) had been built with glibc-2.33 in the mean time.
+As might be expected, the situation for glibc is more complicated. For yalpack-0.2.0, it was possible to move between glibc-2.32 and 2.33 on a 10.1 LFS (stable) system that had been built with glibc-2.32, provided that no critical packages (e.g. acl, attr) had been built with glibc-2.33 in the mean time.
 
 The 10.1 LFS dev system used for testing had been built with glibc-2.33; an attempted downgrade to 2.32 managed to install the files, but calls of cat, etc. relying on glibc-2.33 subsequently failed, resulting in the full installation process being incomplete. The system was bricked thereafter.
 
-In summary, then, findings for glibc upgrades and downgrades with yalpack-0.1.8 are as follows:
+In summary, then, findings for glibc upgrades and downgrades with yalpack-0.2.0 are as follows:
 
 * With LFS 10.1 stable:
 	* Upgrades: tested to work (2.32 to 2.33)
@@ -98,17 +100,17 @@ As of LFS 10.1, some packages in the book cannot use DESTDIR with `make install`
 * bzip2: Use `make PREFIX=/tmp/bzip2-1.0.8/dest/usr install` in lieu of `make PREFIX=/usr install`
 * sysvinit: Use the following steps:
 	* Extract the sysvinit source tarball.
-	* Copy /usr/share/doc/yalpack-0.1.8/sysvinit.dewit into the source directory.
+	* Copy /usr/share/doc/yalpack-0.2.0/sysvinit.dewit into the source directory.
 	* To install a version other than 2.98, or to upgrade, edit the file accordingly (explanatory comments included).
 	* Make the script executable and run.
 * sysklogd: Use the following steps:
 	* Extract the sysklogd source tarball.
-	* Copy /usr/share/doc/yalpack-0.1.8/sysklogd.dewit into the source directory.
+	* Copy /usr/share/doc/yalpack-0.2.0/sysklogd.dewit into the source directory.
 	* To install a version other than 1.5.1, select a job level or upgrade, edit the file accordingly (explanatory comments included).
 	* Make the script executable and run.
 	* Follow the post-installation instructions in the LFS book, or write them in to an install.sh script.
 
-The build scripts provided in /usr/share/doc/yalpack-0.1.8 have hardcoded values. If TMP was changed in /etc/yalpack.conf, the value of TMP in the scripts should be changed accordingly.
+The build scripts provided in /usr/share/doc/yalpack-0.2.0 have hardcoded values. If TMP was changed in /etc/yalpack.conf, the value of TMP in the scripts should be changed accordingly.
 
 The installation procedure in sysvinit.dewit was adapted from sysvinit.SlackBuild, provided by Slackware. Except for inordinately complicated installation procedures for packages in the Linux From Scratch book, distributing build scripts is beyond the scope of this project.
 

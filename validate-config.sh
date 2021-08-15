@@ -88,7 +88,7 @@ OLDBKUP="$OLDCONF".yal
 getnewvars
 validatenew
 
-# Upgrades from pre-0.1.8 versions will not have /etc/yalpack.conf. If the file
+# Upgrades from pre-0.2.0 versions will not have /etc/yalpack.conf. If the file
 # does not exist, offer to copy it in.
 
 unset COPIEDCONF
@@ -187,7 +187,7 @@ if [ "$OLDSBIN" != "$1" ] || [ "$NEWSBIN" != "$1" ]; then
 	if [ "$NEWSBIN" != "$1" ] && [ "$COPIEDCONF" != yes ]; then
 		echo '	'Because SBINDIR in "$NEWCONF" does not match the value passed from Makefile,
 		echo '	'the yalpack scripts will not be operational once "$OLDCONF".new is copied
-		echo '	'to "$OLDCONFIG". To change the value of SBINDIR in "$NEWCONF" now,
+		echo '	'to "$OLDCONF". To change the value of SBINDIR in "$NEWCONF" now,
 		echo '	'enter y. To continue as-is, enter any other character.
 		unset INPUT
 		read -r INPUT && if [ -n "$INPUT" ] && [ "$INPUT" = "y" ]; then

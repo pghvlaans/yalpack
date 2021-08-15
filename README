@@ -1,4 +1,4 @@
-yalpack-0.1.8
+yalpack-0.2.0
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package
 management tools for LFS-based systems. yalpack was inspired by pkgtools from
@@ -29,7 +29,7 @@ details.
 POSIX compliance:
 
 Providing a POSIX-compliant package management solution is a priority for this
-project. All yalpack-0.1.8 scripts have been tested to run with /bin/sh linked
+project. All yalpack-0.2.0 scripts have been tested to run with /bin/sh linked
 to dash, bash and zsh. As indicated in the Linux From Scratch instructions,
 /bin/sh should nevertheless be a symlink to /bin/bash when building the base
 system.
@@ -144,7 +144,7 @@ Upgrade and downgrade tests were successful for acl and attr (10.1 stable and
 dev).
 
 As might be expected, the situation for glibc is more complicated. For
-yalpack-0.1.8, it was possible to move between glibc-2.32 and 2.33 on a 10.1
+yalpack-0.2.0, it was possible to move between glibc-2.32 and 2.33 on a 10.1
 LFS (stable) system that had been built with glibc-2.32, provided that no
 critical packages (e.g., acl or attr) had been built with glibc-2.33 in the
 mean time.
@@ -155,7 +155,7 @@ etc. relying on glibc-2.33 subsequently failed, resulting in the full
 installation process being incomplete. The system was bricked thereafter.
 
 In summary, then, findings for glibc upgrades and downgrades with
-yalpack-0.1.8 are as follows:
+yalpack-0.2.0 are as follows:
 
 	* With LFS 10.1 stable:
 		* Upgrades: tested to work (2.32 to 2.33)
@@ -181,14 +181,14 @@ workarounds:
 	  "make PREFIX=/usr install"
 	* sysvinit: Use the following steps:
 		* Extract the sysvinit source tarball.
-		* Copy /usr/share/doc/yalpack-0.1.8/sysvinit.dewit into the
+		* Copy /usr/share/doc/yalpack-0.2.0/sysvinit.dewit into the
 		  source directory.
 		* To install a version other than 2.98, or to upgrade, edit
 		  the file accordingly (explanatory comments included).
 		* Make the script executable and run.  
 	* sysklogd: Use the following steps:
 		* Extract the sysvinit source tarball.
-		* Copy /usr/share/doc/yalpack-0.1.8/sysklogd.dewit into the
+		* Copy /usr/share/doc/yalpack-0.2.0/sysklogd.dewit into the
 		  source directory.
 		* To install a version other than 1.5.1, select a job level 
 		  or upgrade, edit the file accordingly (explanatory 
@@ -197,7 +197,7 @@ workarounds:
 		* Follow the LFS post-installation instructions, or write
 		  them in to an install.sh script.  
 
-The build scripts provided in /usr/share/doc/yalpack-0.1.8 have hardcoded values. 
+The build scripts provided in /usr/share/doc/yalpack-0.2.0 have hardcoded values. 
 If TMP was changed in /etc/yalpack.conf, the value of TMP in the scripts should be 
 changed accordingly.
 

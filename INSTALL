@@ -1,4 +1,4 @@
-yalpack-0.1.8 Installation Guide
+yalpack-0.2.0 Installation Guide
 
 To install yalpack to your LFS-type system, run the Makefile as root. 
 The following targets are available:
@@ -22,7 +22,7 @@ The following targets are available:
 
 The following parameters can be set with the make call:
 
-	DESTDIR: should be set to /tmp/yalpack-0.1.8/dest for upgrades
+	DESTDIR: should be set to /tmp/yalpack-0.2.0/dest for upgrades
 		 with "make install." Please note that "make package"
 		 is the recommended installation and upgrade method.
 	PREFIX (/usr): the prefix for the bin, sbin, doc, share and man
@@ -52,4 +52,4 @@ As of Linux From Scratch 10.1, three packages in the base book use
 	sysklogd
 
 For workarounds related to managing these packages with yalpack, see
-README (/usr/share/doc/yalpack-0.1.8/README) or the pkgmake man page.
+README (/usr/share/doc/yalpack-0.2.0/README) or the pkgmake man page.
