@@ -30,7 +30,7 @@
 # exist. The default locations are /var/log/yalpack and /root/.yalpack. If this
 # is not acceptable, change VARBKUP and ROOTHOME in /etc/yalpack.conf. See the
 # explanatory comments in that document or
-# /usr/share/doc/yalpack-0.1.8/Customization for details.
+# /usr/share/doc/yalpack-0.2.0/Customization for details.
 #
 # Finally, the NEWFILES directory is set up and populated with lists of .new
 # files associated with each package on the system. Please note that if multiple
@@ -54,7 +54,7 @@ if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
         echo The document can be found in its default state at
-        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo $(tput smul)/usr/share/doc/yalpack-0.2.0/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
         echo
@@ -89,6 +89,8 @@ PKGVERS="$PKGDATA"/VER
 # Backups 
 ROOTBKUP="$ROOTHOME"/.yalpack-backup
 
+TEMPDOC="$PKGDATA"/TEMPDOC
+
 echo '	'Generating or regenerating the SYMTREE-related directories.
 echo
 rm -rf "$SYMTREES" "$SYMDESTS"
@@ -107,7 +109,7 @@ find "$PKGTREES"/* -type f | while read -r f; do
                 [ -d "$line" ] && [ -h "$line" ] && echo "$line" >> "$PKGDATA"/SYMTEMP
 	done < "$f"
 	       
-		 # This grep will reveal those directories and all files/symlinks installed
+		# This grep will reveal those directories and all files/symlinks installed
 	        # under them.
 	        [ -f "$PKGDATA"/SYMTEMP ] && while read -r dir; do
 	                grep ^"$dir" "$f" >> "$PKGDATA"/SYMTEMP2
@@ -152,34 +154,13 @@ find "$PKGTREES"/* -type f | while read -r f; do
 rm -f "$PKGDATA"/SYMTEMP
 rm -f "$PKGDATA"/SYMTEMP2
 echo '	'The $(tput smul)"$SYMTREES"$(tput rmul) directory has been repopulated.
-echo
 
-echo '	'Updating or creating $(tput smul)"$NEWFILES"$(tput rmul).
-echo
-mkdir -p "$NEWFILES"
-echo '	'Generating lists of $(tput smul).new$(tput rmul) files now.
-find "$PKGTREES"/* -type f | while read -r f; do
-	g="$(basename "$f")"
-	if [ "$g" != "YALPACK-OUTGOING" ]; then
-		rm -f "$NEWFILES"/"$g"
-		unset VER
-		VER="$(cat "$PKGVERS"/"$g")"
-		while read -r file; do
-			h="${file%.new}"
-			# Only existing .new files are written in. 
-			if [ "$file" != "$h" ] && [ -f "$file" ]; then
-				if [ ! -f "$NEWFILES"/"$g" ]; then
-					[ -n "$VER" ]; echo "$g"-"$VER" > "$NEWFILES"/"$g"
-					[ -z "$VER" ]; echo "$g" > "$NEWFILES"/"$g"
-				fi
-				echo "$file" >> "$NEWFILES"/"$g"
-			fi
-		done < "$f"
-	fi
-done
-echo
-echo '	'Done. The lists \(if any\) can be found in $(tput smul)"$NEWFILES"$(tput rmul).
-echo
+if [ -x "/usr/share/yalpack/newfiles" ]; then
+	/usr/share/yalpack/newfiles
+else
+	echo
+fi
+
 echo '	'Moving on to the backups.
 echo
 echo '	'Checking for a backup package tree directory at $(tput smul)"$VARBKUP"$(tput rmul).
