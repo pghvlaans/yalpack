@@ -44,7 +44,7 @@ if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
         echo The document can be found in its default state at
-        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo $(tput smul)/usr/share/doc/yalpack-0.2.0/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
         echo
@@ -96,8 +96,8 @@ for d in /bin /usr /sbin /opt; do
 	# Only look in if directory exists, is not a symlink and is non-empty
 	if [ -d "$d" ] && [ ! -h "$d" ] && [ -n "$(ls -A "$d")" ]; then
 		echo Checking $d
-		find "$d"/* -executable -type f | while read -r file; do 
-			[ -z "$(basename "$file" | grep -m 1 -e "[.]so[.]" -e "[.]so\$" -e "[.]la\$" -e "[.]a\$")" ] && populate "$file" 
+		find "$d"/* -executable -type f | grep -v -e "[.]so[.]" -e "[.]so\$" -e "[.]la\$" -e "[.]a\$" | while read -r file; do 
+			populate "$file"
 		done
 	fi
 done

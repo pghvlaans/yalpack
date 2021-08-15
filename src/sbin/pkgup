@@ -42,7 +42,7 @@ if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
         echo The document can be found in its default state at
-        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo $(tput smul)/usr/share/doc/yalpack-0.2.0/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
         echo
@@ -104,11 +104,14 @@ unset INITVER
 
 set -e
 cd $STAGING
-[ ! -d "$NEWDIR" ] && tar -xf $STAGING/"$2".tar.xz
 # Sanity checks
-[ ! -f "$NEWDIR/TREE" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)TREE$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
-[ ! -f "$NEWDIR/NAME" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)NAME$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
-NAME="$(cat "$NEWDIR/NAME")"
+[ -z "$(tar -tf "$2".tar.xz | grep -x -m 1 "$2"/TREE)" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)TREE$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
+[ -z "$(tar -tf "$2".tar.xz | grep -x -m 1 "$2"/NAME)" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)NAME$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
+[ -z "$(tar -tf "$2".tar.xz | grep -x -m 1 "$2"/dest/)" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)dest$(tput rmul) directory for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
+
+tar -xf "$2".tar.xz "$2"/NAME
+NAME="$(cat "$2"/NAME)"
+rm -rf "$2"
 
 # The new version will overwrite the outgoing TREE and VER, but they need to be
 # saved for comparison.
@@ -125,10 +128,8 @@ cp "$PKGVERS"/"$1" "$PKGVERS/YALPACK-OUTGOING"
 mkdir -p "$NEWFILES"
 [ -f "$NEWFILES"/"$1" ] && cp "$NEWFILES"/"$1" "$NEWFILES/YALPACK-OUTGOING"
 
-# pkgremove, pkginst and pkgcheck can use their own error handling
-#YALFLAGS='YALCONFIG=yes HEAD="$HEAD" VARBKUP="$VARBKUP" ROOTHOME="$ROOTHOME" TMP="$TMP" SBINDIR="$SBINDIR"'
 YALCONFIG=yes HEAD="$HEAD" VARBKUP="$VARBKUP" ROOTHOME="$ROOTHOME" TMP="$TMP" SBINDIR="$SBINDIR"
-
+# pkgremove, pkginst and pkgcheck can use their own error handling
 set +e
 [ "$3" = "KEEP" ] && [ "$5" = "CHOWN" ] && UPGRADE=yes YALCONFIG=yes HEAD="$HEAD" VARBKUP="$VARBKUP" ROOTHOME="$ROOTHOME" TMP="$TMP" SBINDIR="$SBINDIR" "$SBINDIR"/pkginst -kr "$2"
 [ "$3" = "KEEP" ] && [ "$5" != "CHOWN" ] && UPGRADE=yes YALCONFIG=yes HEAD="$HEAD" VARBKUP="$VARBKUP" ROOTHOME="$ROOTHOME" TMP="$TMP" SBINDIR="$SBINDIR" "$SBINDIR"/pkginst -k "$2"
@@ -147,7 +148,9 @@ unset MESSAGE
 # Adding "or true" means the script will not crash when performing glibc or init
 # upgrades in chroot (all the actual work is already done, but it's potentially
 # alarming).
-[ -n "$(grep -m 1 /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && telinit U || true
+[ -x "/sbin/init" ] && [ ! -h "/sbin/init" ] && [ -n "$(grep -m 1 /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && telinit U || true
+[ -x "/sbin/systemctl" ] && [ ! -h "/sbin/systemctl" ] && [ -n "$(grep -m 1 /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && systemctl daemon-reexec || true
+
 [ "$MESSAGE" = "WRITE" ] && echo '	'$(tput smul)init$(tput rmul) has been reloaded, if not in chroot. && echo
 
 echo '	'The upgrade of $(tput smul)"$1"$(tput rmul) to $(tput smul)"$2"$(tput rmul) is complete.

@@ -44,7 +44,7 @@ if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
         echo The document can be found in its default state at
-        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo $(tput smul)/usr/share/doc/yalpack-0.2.0/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
         echo
@@ -77,6 +77,7 @@ BINDEPS="$HEAD"/BIN-DEPS
 
 main () {
 PKGTREE="$PKGTREES"/"$1"
+TEMPDOC="$PKGDATA"/TEMPDOC
 
 [ "${CHECK:-yes}" = yes ] && echo
 echo '	'Preparing to check for information about $(tput smul)"$1"$(tput rmul).
@@ -105,10 +106,14 @@ mkdir -p "$PKGLIB"
 echo '	'Backed up data lists.
 echo
 
-rm -f "$PKGBIN"/real-instbins
-
-# Looking for executables, divided between libraries and others (symlinks also)
-while read -r file; do
+# Non-libraries
+unset POTENTIALS
+# I can't think of any packages that wouldn't qualify off the top of my head,
+# but hooray for error checking, anyhow.
+POTENTIALS="$(grep -v -e "[.]so\$" -e "[.]la\$" -e "[.]a\$" -e "[.]so[.]" "$PKGTREE")" || true
+[ -n "$POTENTIALS" ] && echo "$POTENTIALS" > "$TEMPDOC"
+# Looking for non-library executables
+[ -f "$TEMPDOC" ] && while read -r file; do
 	# Checking for .new files (this doesn't take long).
 	h="${file%.new}"
 	# The file should not be documented as .new. (Doesn't matter in light
@@ -117,27 +122,25 @@ while read -r file; do
 	if [ -x "$file" ] && [ -f "$file" ]; then
 		[ -h "$file" ] && i="$(readlink -e "$file")"
 		g="$(basename "$file")"
-		# Non-libraries
-		if [ -z "$(echo "$g" | grep -e "[.]so\$" -e "[.]la\$" -e "[.]a\$" -e "[.]so[.]")" ]; then
-			# [ -x $i ] is sufficient here, because symlinks to
-			# directories fail type -f
-			if [ -x "$i" ] || [ ! -h "$file" ]; then 
-				echo "$file" >> "$PKGBIN"/instbins 
-				YALCONFIG=yes \
-				HEAD="$HEAD" \
-				VARBKUP="$VARBKUP" \
-				ROOTHOME="$ROOTHOME" \
-				TMP="$TMP" \
-				SBINDIR="$SBINDIR" \
-				"$SBINDIR"/liblist "$file" > /dev/null 2>&1
-				[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS"/"$g"/"$g".libinfo >> "$PKGDEP"/libdeps
-			fi
-		# Libraries (symlinks to libraries included).
-		else
-			echo "$file" >> "$PKGLIB/libs"
+		if [ -x "$i" ] || [ ! -h "$file" ]; then 
+			echo "$file" >> "$PKGBIN"/instbins 
+			YALCONFIG=yes \
+			HEAD="$HEAD" \
+			VARBKUP="$VARBKUP" \
+			ROOTHOME="$ROOTHOME" \
+			TMP="$TMP" \
+			SBINDIR="$SBINDIR" \
+			"$SBINDIR"/liblist "$file" > /dev/null 2>&1
+			[ -f "$BINDEPS/$g/$g.libinfo" ] && cat "$BINDEPS"/"$g"/"$g".libinfo >> "$PKGDEP"/libdeps
 		fi
-	fi	
-done < "$PKGTREE"
+	fi
+done < "$TEMPDOC"
+
+rm -f "$TEMPDOC"
+
+# Looking for libraries (executable and non-executable)
+LIBRARIES="$(grep -e "[.]so\$" -e "[.]la\$" -e "[.]a\$" -e "[.]so[.]" "$PKGTREE")" || true
+[ -n "$LIBRARIES" ] && echo "$LIBRARIES" > "$PKGLIB"/libs 
 
 if [ -f "$PKGBIN"/instbins ]; then
 	echo '	'These programs were installed by $(tput smul)"$1"$(tput rmul):

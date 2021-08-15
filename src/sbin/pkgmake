@@ -42,7 +42,7 @@ if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
         echo The document can be found in its default state at
-        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo $(tput smul)/usr/share/doc/yalpack-0.2.0/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
         echo
@@ -78,6 +78,9 @@ echo
 set -e
 cd "$BUILDDEST"
 
+# Changing the permissions of BUILDDEST to 0755 for safety.
+chmod 0755 "$BUILDDEST"
+
 # Move all files in etc and home (if any) to .new; exclude symlinks and
 # directories
 for z in etc home
@@ -112,6 +115,28 @@ do
 	echo /"$i" >> "$BUILDDIR"/TREE
 done
 
+# Preparing and reporting on symlinks; absolute symlinks can have been pointed
+# at either the ultimate destination or a file/directory in the build directory.
+# Symlinks that required repair will be reported.
+while read -r f;
+do
+        if [ -h "$BUILDDEST"/"$g" ]; then
+        i="${f#/}"
+        j=$(readlink "$i")
+        if [ -n "$(echo "$j" | grep -m 1 "$BUILDDEST")" ]; then
+                # Pointing at BUILDDEST from time of building.
+                k="${j##$BUILDDEST}"
+                echo /"$i" "to" "$k" >> "$BUILDDIR"/SYMLINKS
+                ln -sfn "$k" "$i"
+                echo
+        fi
+        fi
+done < "$BUILDDIR"/TREE
+
+[ -f "$BUILDDIR/SYMLINKS" ] && echo '     'Symlink checks and repairs complete. && echo
+# This file is not wanted in the actual package.
+rm -f "$BUILDDIR/SYMLINKS"
+
 # Adding version information
 VER="${1##$NAME-}"
 # Properly handling no-version packages (like the kernel, if the user wants more
@@ -124,7 +149,7 @@ fi
 
 # Compression and move to the correct place
 cd "$TMP"
-tar -czvf "$1".tar.xz "$1"
+tar -cavf "$1".tar.xz "$1"
 mkdir -p "$STAGING"
 mv "$1".tar.xz "$STAGING"
 

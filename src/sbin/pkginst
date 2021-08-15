@@ -44,7 +44,7 @@ if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
         echo The document can be found in its default state at
-        echo $(tput smul)/usr/share/doc/yalpack-0.1.8/yalpack.conf.backup.$(tput rmul)
+        echo $(tput smul)/usr/share/doc/yalpack-0.2.0/yalpack.conf.backup.$(tput rmul)
         echo
         echo Exiting now
         echo
@@ -80,12 +80,14 @@ SYMTREES="$PKGDATA"/SYMTREES
 SYMDESTS="$PKGDATA"/.SYMDESTS
 PKGVER="$PKGDATA"/VER
 NEWFILES="$PKGDATA"/NEWFILES
-BUILDDEST="$TMP"/dest/"$PACK"
+TEMPDOC="$PKGDATA"/TEMPDOC
+TEMPDIR="$PKGDATA"/TEMPDIR
+EXCLUDE="$PKGDATA"/EXCLUDE
 
 # Backups
 
 # Placing yalpack data directories in locations not owned by root is not
-#i recommended.
+# recommended.
 ROOTBKUP="$ROOTHOME"/.yalpack-backup
 
 echo
@@ -95,91 +97,104 @@ set -e
 mkdir -p "$STAGING"
 mkdir -p "$PKGDATA" "$PKGTREES" "$PKGVER" "$NEWFILES"
 cd "$STAGING"
-tar -xf "$PACK".tar.xz
-NAME=$(cat "$PKGDIR"/NAME)
+# Sanity checks
+[ -z "$PACK" ] && echo && echo '	'$(tput smul)pkginst$(tput rmul) needs a package as a parameter. && echo && exit 1
+[ -z "$(tar -tf "$PACK".tar.xz | grep -x -m 1 "$PACK"/dest/)" ] && echo '	'$(tput smul)Warning! The "dest" directory$(tput rmul) was not found. Exiting. && echo && exit 1
+tar -xf "$PACK".tar.xz --exclude="$PACK"/dest
+NAME=$(cat "$PACK"/NAME)
+[ ! -f "$PACK"/NAME ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)NAME$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
+[ ! -f "$PACK"/TREE ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)TREE$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
 
-# Exit code not necessary because pkgup already checks for TREE.
-[ ! -d "$PKGDEST" ] && echo '	'$(tput smul)Warning! "$PKGDEST"$(tput rmul) was not found. Exiting. && exit
+# install.sh (if any) stays for now to be run later.
+mv "$PACK"/TREE "$PKGTREES"/"$NAME"
+mv "$PACK"/VER "$PKGVER"/"$NAME"
+[ -x "$PACK"/install.sh ] && mv "$PACK"/install.sh "$STAGING"
+rm -rf "$PACK"
 
-cd "$PKGDEST"
-# Patrick Volkerding says non-755 root is dangerous, so it can't hurt (for
-# safety when extracting the package to root).
-chmod 755 "$PKGDEST"
 # If --root-own was passed in, change ownership to root:root. Ownership is
 # preserved at the actual install stage.
-[ "$3" = "CHOWN" ] && chown -R root:root "$PKGDEST"
-
+if [ "$3" = "CHOWN" ] && [ -n "$(tar -tvf "$PACK".tar.xz | grep -v " root/root ")" ]; then
+	# If a non-root-owned item is found, extracting and repacking can't be
+	# helped.
+	tar -xf "$PACK".tar.xz
+       	chown -R root:root "$PKGDEST"
+	rm -f "$PACK".tar.xz
+	tar -caf "$PACK".tar.xz "$PKGDIR"
+fi
+rm -rf "$TEMPDIR"
+rm -f "$EXCLUDE"
+mkdir -p "$TEMPDIR"
+cd "$TEMPDIR"
 # Non-directories, non-symlinks and non-binaries in etc and home will be .new;
 # check for identical/unique. Doing nothing means .new installed. (Any other
 # file named .new manually will be checked similarly.)
-rm -f "$NEWFILES"/"$NAME"
-find "$PKGDEST"/ -type f | while read -r f;	
-do
-	h="${f##$PKGDEST/}"
-	i="${h%.new}"
-	# Proceed if the file is .new
-	if [ "$i" != "$h" ]; then
-		# The non-.new version will be called this, if needed
-		j="${f%.new}"
-		# If file exists, check for differences
-		if [ -f "/$i" ]; then
-			md5f=$(md5sum "$f" | cut -d' ' -f-1)
-			md5i=$(md5sum "/$i" | cut -d' ' -f-1)
-			# If not different, new file is not needed
-			if [ "$md5f" = "$md5i" ]; then
-				rm -f "$f"
-			else
-				# If .new file will be installed, log it and
-				# show the user afterwards.
-				[ ! -f "$NEWFILES"/"$NAME" ] && echo "$PACK" >> "$NEWFILES"/"$NAME"
-				echo "/$h" >> "$NEWFILES"/"$NAME"
-				# Change the .new file ownership and mode to 
-				# match the existing file (mostly relevant for 
-				# rc files)
-				chown "$(stat -c "%U:%G" "/$i")" "$f"
-				chmod "$(stat -c "%a" "/$i")" "$f"
-			fi
-		# If file DNE, don't call the new one .new
+rm -f "$NEWFILES"/"$NAME" "$TEMPDOC"
+NEWS="$(grep ".new$" "$PKGTREES"/"$NAME")" || true
+[ -n "$NEWS" ] && echo "$NEWS" > "$TEMPDOC"
+
+# This flag will be used if a secondary package tarball is needed for .new file
+# changes.
+unset SUPPLEMENTARY
+
+[ -f "$TEMPDOC" ] && while read -r f; do
+	y="$PACK"/dest"$f"
+	tar -xf "$STAGING"/"$PACK".tar.xz --strip-components 2 "$y"
+	g="${f#/}"
+	h="${f%.new}"
+	# If file exists, check for differences
+	if [ -f "$h" ]; then
+		md5g=$(md5sum "$g" | cut -d' ' -f-1)
+		md5h=$(md5sum "$h" | cut -d' ' -f-1)
+		# If not different, new file is not needed
+		if [ "$md5g" = "$md5h" ]; then
+			# Keeping TEMPDIR's directory tree tidy.
+			i="$(dirname "$g")"
+			rm -f "$g"
+			rmdir --parents --ignore-fail-on-non-empty "$i"
+			echo "$y" >> "$EXCLUDE"
 		else
-			mv "$f" "$j"
+			# If .new file will be installed, log it and
+			# show the user afterwards.
+			[ ! -f "$NEWFILES"/"$NAME" ] && echo "$PACK" >> "$NEWFILES"/"$NAME"
+			echo "$f" >> "$NEWFILES"/"$NAME"
+			# Change the .new file ownership and mode to 
+			# match the existing file (mostly relevant for 
+			# rc files)
+			chown "$(stat -c "%U:%G" "$h")" "$g"
+			chmod "$(stat -c "%a" "$h")" "$g"
+			SUPPLEMENTARY=yes
 		fi
+	# If file DNE, don't call the new one .new
+	else
+		j="${g%.new}"
+		mv "$g" "$j"
+		echo "$y" >> "$EXCLUDE"
+		SUPPLEMENTARY=yes
 	fi
-done
-echo '	'Done evaluating the $(tput smul).new$(tput rmul) files, if any.
-echo
+done < "$TEMPDOC"
 
-# Preparing and reporting on symlinks; absolute symlinks can have been pointed 
-# at either the ultimate destination or a file/directory in the build directory.
-# Symlinks that required repair will be reported.
-while read -r f;
-do
-	if [ -h "$PKGDEST"/"$f" ]; then
-	i="${f#/}"
-	j=$(readlink "$i")
-	# If the symlink is absolute; BUILDDEST needed to test it out. (Just the
-	# string; the directory itself doesn't need to exist for pkginst to
-	# work.)
-	if [ -n "$(echo "$j" | grep -m 1 "$BUILDDEST")" ]; then
-		# Pointing at BUILDDEST from time of building.
-		k="${j##$BUILDDEST}"
-		echo /"$i" "to" "$k" >> "$PKGDIR"/SYMLINKS
-		ln -sfn "$k" "$i"
-		echo
-	fi
-	fi
-done < "$PKGDIR"/TREE
+# If any .new files will be installed to the system (under any name), a second
+# package tarball will be required. Making it now.
+[ "$SUPPLEMENTARY" = "yes" ] && tar -caf "$STAGING"/SUPPLEMENTARY.tar.xz ./*
 
-[ -f "$PKGDIR/SYMLINKS" ] && echo '	'Symlink checks and repairs complete. && echo
+if [ -f "$TEMPDOC" ]; then
+	echo '	'Done evaluating the $(tput smul).new$(tput rmul) files.
+	echo
+fi
 
-# Now that changes have been made to dest, make a new tarball for extraction...
-echo '	'$(tput smul)Repackaging$(tput rmul)...
-tar -czf "$STAGING"/INPACKAGE.tar.xz ./*
-# And extract over root. (dereferencing for links; don't change directory mode or
+rm -f "$TEMPDOC"
+
+# Starting with 0.2.0, symlink repair has been handled by pkgmake.
+
+# Extract over root. (dereferencing for links; don't change directory mode or
 # ownership)
 cd /
 echo '	'$(tput smul)Extracting now$(tput rmul)...
-tar --dereference --hard-dereference -xf "$STAGING"/INPACKAGE.tar.xz --no-overwrite-dir
-cd "$PKGDIR"
+touch "$EXCLUDE"
+tar --dereference --hard-dereference -xf "$STAGING"/"$PACK".tar.xz --wildcards --strip-components 2 "$PACK"/dest/* --no-overwrite-dir --exclude-from="$EXCLUDE"
+# Extract the supplementary tarball as well, if present.
+[ -f "$STAGING"/SUPPLEMENTARY.tar.xz ] && tar --dereference --hard-dereference -xf "$STAGING"/SUPPLEMENTARY.tar.xz --no-overwrite-dir
+cd "$STAGING"
 echo '	'Done.
 echo
 
@@ -191,15 +206,10 @@ if [ "${UPGRADE:-no}" != yes ]; then
 	echo
 fi
 
-# Populate the TREE entry for future updating
-cat "$PKGDIR"/TREE > "$PKGTREES"/"$NAME"
 # Saving to the backup locations as well, if they exist. The install script for
 # yalpack will make and populate them otherwise.
-[ -d "$VARBKUP" ] && cat "$PKGDIR"/TREE > "$VARBKUP"/"$NAME"
-[ -d "$ROOTBKUP" ] && cat "$PKGDIR"/TREE > "$ROOTBKUP"/"$NAME"
-
-# Add version information to /var/yalpack/pkgdata
-cat "$PKGDIR"/VER > "$PKGVER"/"$NAME"
+[ -d "$VARBKUP" ] && cat "$PKGTREES"/"$NAME" > "$VARBKUP"/"$NAME"
+[ -d "$ROOTBKUP" ] && cat "$PKGTREES"/"$NAME" > "$ROOTBKUP"/"$NAME"
 
 # Make the SYMTREES document, if needed. If the directory does not yet exist,
 # the install script for yalpack will make and populate it.
@@ -207,7 +217,6 @@ unset SYMTREEFLAG
 if [ -d "$SYMTREES" ]; then
 	rm -f "$PKGDATA"/SYMTEMP
 	rm -f "$PKGDATA"/SYMTEMP2
-	echo '	'Checking for installations under paths with symlinks.
 	while read -r line; do
 		[ -d "$line" ] && [ -h "$line" ] && echo "$line" >> "$PKGDATA"/SYMTEMP	    
 	done < "$PKGTREES"/"$NAME"
@@ -254,17 +263,15 @@ if [ -d "$SYMTREES" ]; then
 		cat "$SYMTREES"/"$NAME"
 		echo
 	fi
-	echo '	'Done.
-	echo
 	rm -f "$PKGDATA"/SYMTEMP
 	rm -f "$PKGDATA"/SYMTEMP2
 fi
 
 # Run the install script, if any
-if [ -x "$PKGDIR/install.sh" ]; then 
+if [ -x "$STAGING/install.sh" ]; then 
 	echo '	'Now running $(tput smul)install.sh$(tput rmul).
 	echo
-	"$PKGDIR"/install.sh
+	"$STAGING"/install.sh
 	echo
 fi
 
@@ -278,14 +285,6 @@ if [ "${UPGRADE:-no}" != yes ]; then
 	TMP="$TMP" \
 	SBINDIR="$SBINDIR" \
 	CHECK=no "$SBINDIR"/pkgcheck "$NAME"
-fi
-
-# Inform about any repaired symlinks
-if [ -f "$PKGDIR/SYMLINKS" ]; then 
-	echo '	'The following $(tput smul)absolute symlinks$(tput rmul) were repaired before installation:
-	echo
-	cat "$PKGDIR"/SYMLINKS
-	echo
 fi
 
 # Inform about any .new files
@@ -312,10 +311,12 @@ if [ "$SYMTREEFLAG" = "WRITE" ]; then
 	echo
 fi
 
-# Clean up afterwards (INPACKAGE is never retained)
+# Clean up afterwards (SUPPLEMENTARY.tar.xz is never retained)
+cd "$PKGDATA"
+rm -f "$STAGING"/SUPPLEMENTARY.tar.xz "$TEMPDOC" "$EXCLUDE"
+rm -rf "$TEMPDIR"
 cd "$STAGING"
-rm -f "$STAGING"/INPACKAGE.tar.xz
-rm -rf "${PKGDIR:?}"
+rm -f install.sh
 if [ "$2" != "KEEP" ]; then
 	rm -f $STAGING/"$PACK".tar.xz
 	echo '	'The package tarball has been removed. See $(tput smul)$PKGTREES/"$NAME"$(tput rmul)
