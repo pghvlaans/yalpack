@@ -1,6 +1,6 @@
 .\" Manpage for yalpack
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "26 June 2021" "0.1.8" "yalpack man page"
+.TH man 1 "26 June 2021" "0.2.0" "yalpack man page"
 .SH NAME
 yalpack \- a basic POSIX-compliant package management solution for LFS/BLFS systems
 .SH DESCRIPTION
@@ -28,7 +28,7 @@ Upgrade a package, removing extraneous files, etc.
 
 Remove a package from the system with any extraneous files.
 
-These commands should be more than enough to get package management with yalpack off the ground. For tips about building software to be managed with yalpack, see /usr/share/doc/yalpack-0.1.8/README.
+These commands should be more than enough to get package management with yalpack off the ground. For tips about building software to be managed with yalpack, see /usr/share/doc/yalpack-0.2.0/README.
 .SH SCRIPTS
 The following root-use scripts are installed by yalpack:
 
@@ -76,15 +76,15 @@ yalpack comes with the following man pages:
 \t yalfind(1)
 
 .SH CAUTIONS
-yalpack-0.1.8 has been tested with LFS 10.1; it has been verified not to remove the /bin, /sbin or /lib symlinks for merged-usr systems. It has not been (and most likely will not be) tested with previous versions of Linux From Scratch.
+yalpack-0.2.0 has been tested with LFS 10.1; it has been verified not to remove the /bin, /sbin or /lib symlinks for merged-usr systems. It has not been (and most likely will not be) tested with previous versions of Linux From Scratch.
 
 Because some yalpack scripts call ldd(1) to check dynamic library usage, yalpack should not be used with glibc-2.26 or earlier versions. See the "Security" section in ldd(1) for a detailed explanation.
 
 yalpack can be used at any point once the LFS system is in chroot or independent boot. Never use yalpack on the "host" system.
 .SH SEE ALSO
-The man pages for the scripts listed above; in addition, ldd(1) and the contents of /usr/share/doc/yalpack-0.1.8.
+The man pages for the scripts listed above; in addition, ldd(1) and the contents of /usr/share/doc/yalpack-0.2.0.
 
-For information about the variables in /etc/yalpack.conf, see the explanatory comments in that file or /usr/share/doc/yalpack-0.1.8/Customization.
+For information about the variables in /etc/yalpack.conf, see the explanatory comments in that file or /usr/share/doc/yalpack-0.2.0/Customization.
 
 Visit yalpack's home on GitHub to see future plans, report bugs or download the latest release: https://github.com/pghvlaans/yalpack.
 .SH BUG REPORTING

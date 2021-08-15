@@ -34,15 +34,15 @@ If an executable install.sh file is not present, pkgmake will issue a notice to 
 
 The end result is a package in tar.xz format at /var/yalpack/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation. pkgmake retains the ownership and permissions of the compiled package contents; if installation in this state is not desirable (for example, if an unprivileged user still owns the package contents when pkgmake is run), pkginst(1) can be run with the --root-own (-r) option to change the ownership of the package contents to root:root before installation.
 
-The working directory (/tmp) and package tarball destination (/var/yalpack/packages) can be changed by editing /etc/yalpack.conf. Follow the instructions in the explanatory comments, or see /usr/share/docs/yalpack-0.1.8/Customization.
+The working directory (/tmp) and package tarball destination (/var/yalpack/packages) can be changed by editing /etc/yalpack.conf. Follow the instructions in the explanatory comments, or see /usr/share/docs/yalpack-0.2.0/Customization.
 .SH NO DESTDIR
 As of Linux From Scratch 10.1, some packages using "make install" do not have DESTDIR capabilities. To manage these packages with yalpack, use the following steps during installation:
 
 \t bzip2: Use "make PREFIX=/tmp/bzip2-1.0.8/dest/usr install" at the installation stage.
 
-\t sysvinit: Copy /usr/share/doc/yalpack-0.1.8/sysvinit.dewit into the sysvinit source directory. After making edits to install a version other than 2.98, or to upgrade the package with pkgup, make the script executable and run. The script contains explanatory comments on editing.
+\t sysvinit: Copy /usr/share/doc/yalpack-0.2.0/sysvinit.dewit into the sysvinit source directory. After making edits to install a version other than 2.98, or to upgrade the package with pkgup, make the script executable and run. The script contains explanatory comments on editing.
 
-\t sysklogd: Copy /usr/share/doc/yalpack-0.1.8/sysklogd.dewit into the sysvinit source directory. After making edits to install a version other than 1.5.1, or to upgrade the package with pkgup, make the script executable and run. The script contains explanatory comments on editing. Follow the post-installation instructions in the LFS book, or write them in to an install.sh script, uncommenting the install.sh-related lines in sysklogd.dewit. install.sh should be placed in the source directory at the time of running.
+\t sysklogd: Copy /usr/share/doc/yalpack-0.2.0/sysklogd.dewit into the sysvinit source directory. After making edits to install a version other than 1.5.1, or to upgrade the package with pkgup, make the script executable and run. The script contains explanatory comments on editing. Follow the post-installation instructions in the LFS book, or write them in to an install.sh script, uncommenting the install.sh-related lines in sysklogd.dewit. install.sh should be placed in the source directory at the time of running.
 .SH OPTIONS
 NAME - The intended name of the package.
 
