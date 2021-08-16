@@ -7,7 +7,8 @@ For next release:
     Status: Probable working solution found. More testing needed.
     (fix is in dev branch)
 * Compatibility with both SysVInit and systemd (pkgup)
-    Status: Testing this will require new build scripts for systemd-based LFS
+    Status: Restarting the init daemon for systemd tested successfully; this was the only compatibility issue.
+    (fix is in dev branch)
 * Streamline newfiles (look at initial confirmation prompts)
     Status: Ready; will be in next release.
     (fix is in dev branch)
@@ -23,4 +24,5 @@ An upgrade from glibc-2.33 to 2.34 was successful on the development LFS version
 For the future:
 * Retest glibc downgrades with selected compatible binaries already installed to the system
 * Full testing on the future LFS 11.0 release candidate
+    Status: dev branch is looking good so far.
 * Full testing on the future LFS 11.0 stable release
