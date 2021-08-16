@@ -105,7 +105,9 @@ NAME=$(cat "$PACK"/NAME)
 [ ! -f "$PACK"/NAME ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)NAME$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
 [ ! -f "$PACK"/TREE ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)TREE$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
 
-# install.sh (if any) stays for now to be run later.
+# If install.sh is not removed here, a previous failed install.sh run could
+# remain and re-run.
+rm -f "$STAGING"/install.sh
 mv "$PACK"/TREE "$PKGTREES"/"$NAME"
 mv "$PACK"/VER "$PKGVER"/"$NAME"
 [ -x "$PACK"/install.sh ] && mv "$PACK"/install.sh "$STAGING"

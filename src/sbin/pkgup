@@ -100,7 +100,11 @@ echo
 # If init is upgraded, or in case of a glibc upgrade, it will need to reload
 # before a halt or reboot is attempted.
 unset INITVER
-[ -x "/sbin/init" ] && INITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+if [ -x "/usr/bin/systemctl" ]; then
+	INITVER="$(/usr/bin/systemctl --version)"
+elif [ -x "/sbin/init" ]; then
+	INITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+fi
 
 set -e
 cd $STAGING
@@ -141,15 +145,26 @@ CHECK=no YALCONFIG=yes HEAD="$HEAD" VARBKUP="$VARBKUP" ROOTHOME="$ROOTHOME" TMP=
 set -e
 
 # Checking for a new version of init
-[ -x "/sbin/init" ] && NEWINITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+if [ -x "/usr/bin/systemctl" ]; then
+	NEWINITVER="$(/usr/bin/systemctl --version)"
+elif [ -x "/sbin/init" ]; then
+	NEWINITVER="$(/sbin/init --version | cut -d' ' -f4-)"
+fi
 
 # Reload init if new glibc or new sysvinit
 unset MESSAGE
 # Adding "or true" means the script will not crash when performing glibc or init
 # upgrades in chroot (all the actual work is already done, but it's potentially
 # alarming).
-[ -x "/sbin/init" ] && [ ! -h "/sbin/init" ] && [ -n "$(grep -m 1 /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && telinit U || true
-[ -x "/sbin/systemctl" ] && [ ! -h "/sbin/systemctl" ] && [ -n "$(grep -m 1 /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ] && MESSAGE="WRITE" && systemctl daemon-reexec || true
+if [ ! -x "/usr/bin/systemctl" ] && [ -x "/sbin/init" ] && [ ! -h "/sbin/init" ]; then
+	if [ -n "$(grep -m 1 /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ]; then
+		MESSAGE="WRITE" && telinit U && echo || true
+	fi
+elif [ -x "/usr/bin/systemctl" ]; then
+	if [ -n "$(grep -m 1 /lib/libc.so.6 "$PKGTREES"/"$NAME")" ] || [ "$INITVER" != "$NEWINITVER" ]; then
+		MESSAGE="WRITE" && systemctl daemon-reexec && echo|| true
+	fi
+fi
 
 [ "$MESSAGE" = "WRITE" ] && echo '	'$(tput smul)init$(tput rmul) has been reloaded, if not in chroot. && echo
 
