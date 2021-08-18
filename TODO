@@ -12,6 +12,9 @@ For next release:
 * Streamline newfiles (look at initial confirmation prompts)
     Status: Ready; will be in next release.
     (fix is in dev branch)
+* Restore "make install" functionality so that yalpack can be packaged and not actually used.
+    (fix is in dev branch; Makefile will allow for "make no-use" for only packaging yalpack; this should not be called without DESTDIR)
+    ("make package" is still strongly preferred for actually using the scripts)
 * Probably merge libcheck and libprecise (very similar functionality)
 * More concise documentation
 * Further optimizations
