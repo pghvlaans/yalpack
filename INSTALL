@@ -10,6 +10,11 @@ The following targets are available:
 	a package instead. This helps avoid old bugs, etc. that have since
 	been fixed.
 
+	make DESTDIR=/your/choice no-use: Recommended only for packaging
+	yalpack. install.sh and validate-config.sh are placed in the root of
+	DESTDIR. Installing or upgrading yalpack in this way for use on the
+	system is unsupported; call 'make package' instead.
+
 	make clean: Removes compressed man pages from the source 
 	directory.
 	
@@ -22,9 +27,9 @@ The following targets are available:
 
 The following parameters can be set with the make call:
 
-	DESTDIR: should be set to /tmp/yalpack-0.2.0/dest for upgrades
-		 with "make install." Please note that "make package"
-		 is the recommended installation and upgrade method.
+	DESTDIR: Please note that "make package" is the recommended 
+	         installation and upgrade method. 'make no-use' should never be 
+	         called without DESTDIR.
 	PREFIX (/usr): the prefix for the bin, sbin, doc, share and man
                        directories
 	SHAREDIR (PREFIX/share): yalpack's directory under share
