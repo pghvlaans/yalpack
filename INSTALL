@@ -49,7 +49,7 @@ edit them to make changes to default working and data directories. In
 most cases, however, this can be most conveniently done by editing
 src/etc/yalpack.conf before installation. See Customization for details.
 
-As of Linux From Scratch 10.1, three packages in the base book use
+As of Linux From Scratch 11.0, three packages in the base book use
 "make install," but do not have PKGDEST capabilities:
 	
 	bzip2
@@ -57,4 +57,4 @@ As of Linux From Scratch 10.1, three packages in the base book use
 	sysklogd
 
 For workarounds related to managing these packages with yalpack, see
-README (/usr/share/doc/yalpack-0.2.0/README) or the pkgmake man page.
+the pkgmake man page.
