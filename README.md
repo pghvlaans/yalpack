@@ -18,7 +18,7 @@ yalpack requires only a POSIX-compliant shell, `coreutils`, `util-linux`, `findu
 
 Although the envisioned use case of yalpack is to add, upgrade and remove packages from on top of a "core" LFS system, it could also be used to manage every package once the temporary toolchain has been completed. This has been tested successfully for LFS 10.1 (SysVinit) and 11.0 (SysVInit, systemd).
 
-yalpack has not been tested on earlier versions of Linux from Scratch. Because `ldd` is used to collect information about binaries, moreover, it should never be used with versions of glibc earlier than 2.27. For an explanation, see the "Security" section in the ldd man page.
+yalpack has not been tested on earlier versions of Linux from Scratch. Because `ldd` is used to collect information about binaries, moreover, it should never be used with versions of glibc earlier than 2.27. For an explanation, see the "Security" section in the `ldd` man page.
 
 For installation and upgrades of yalpack, see INSTALL or run `make all` for details.
 
@@ -106,7 +106,7 @@ yalpack makes use of the following directories, which will be made when the scri
 
 The yalpack main data directory, backup locations, build destination and sbin directory can all be changed by editing `/etc/yalpack.conf`. See "Customization" for details and instructions. 
 
-Please note that the `/var/yalpack` directory and the backup locations will not be removed by running `pkgremove yalpack.`
+Please note that the `/var/yalpack` directory and the backup locations will not be removed by running `pkgremove yalpack`.
 
 **Package tree backups**
 
