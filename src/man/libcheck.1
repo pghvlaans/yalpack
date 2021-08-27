@@ -5,6 +5,8 @@
 libcheck \- generate information about which binaries use dynamic libraries conforming to a search term
 .SH SYNOPSIS
 libcheck [-d|--deep] LIBRARY
+libcheck [-p|--precise] LIBRARY
+libcheck ... [-s|--search] LIBRARY
 .SH DESCRIPTION
 libcheck is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for collecting information which binaries use dynamic libraries conforming to a search term. Information on individual binaries is based on the most recent run of liblist(1), so the binaries are those in the following locations (unless /usr/sbin/liblist was edited):
 
@@ -15,15 +17,25 @@ libcheck is a shell program provided by yalpack (Yet Another Lfs PACKage manager
 
 libcheck will not produce duplicate results on systems where one or more of these locations is a symlink.
 
-In addition, a list of dynamic libraries conforming to the original search term is provided; for more exact results, libprecise(1) can be used on a specific library prefix.
+In addition, a list of dynamic libraries conforming to the original search term is provided; for more exact results, the --precise (-p) flag can be used.
+.SH PRECISE MODE
+Precise mode searches for an exact library name among yalpack-installed packages. Extensions are not needed: "libcheck -p libc" will return a single result for libc.so.6, libc.so, etc. while excluding libcrypt*, etc.
+
+When searching for multiple libraries, precise mode can be turned off for subsequent terms using the --search (-s) flag:
+
+\t libcheck -p libcrypt -s libcrypto
 .SH OPTIONS
 LIBRARY - A search term for the desired library.
 
--d|--deep - Default searches use -maxdepth 0; although this is appropriate in most cases, a (slower) recursive search can be requested. Spurious results, including non-library files, are more likey to be reported with --deep.
+-d|--deep - Default searches use -maxdepth 0; although this is appropriate in most cases, a (slower) recursive search can be requested. Spurious results, including non-library files, are more likey to be reported with --deep. Incompatible with --precise.
+
+-p | --precise - Use an exact library name (suffix not included). Faster, but only works with yalpack-installed libraries.
+
+-s | --search - Return to the default search mode after calling -p. This flag has no effect unless -p is used first.
 
 -h|--help - Display the help menu.
 .SH SEE ALSO
-pkgcheck(1), liblist(1), libprecise(1)
+pkgcheck(1), liblist(1)
 .SH BUGS
 No known bugs.
 .SH AUTHOR

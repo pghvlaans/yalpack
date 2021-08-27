@@ -19,7 +19,7 @@ Running liblist as root will perform ldd(1) on all such programs; information wi
 
 \t /var/yalpack/BINDEPS/[NAME]/[NAME].libinfo
 
-These data are used by liblist(1) and libprecise(1) to reveal which programs use a particular dynamic library. liblist is called in the course of executing pkgcheck(1), pkgup(1) and pkginst(1). These scripts will only call liblist to refresh the entire data collection when a package appears to have installed a library.
+These data are used by libcheck(1) to reveal which programs use a particular dynamic library. liblist is called in the course of executing pkgcheck(1), pkgup(1) and pkginst(1). These scripts will only call liblist to refresh the entire data collection when a package appears to have installed a library.
 
 The liblist script can be edited to change the search locations to suit user preferences. This is best done before installation; for other changes, see /usr/share/doc/yalpack-0.2.0/Customization and /etc/yalpack.conf.
 .SH OPTIONS
@@ -31,7 +31,7 @@ file - Add library usage information for the specified file. A full path is need
 .SH WARNING
 Because ldd is called, liblist (and yalpack in general) should never be used on systems with glibc-2.26 or earlier. See "Security" in ldd(1) for details.
 .SH SEE ALSO
-pkginst(1), pkgup(1), pkgcheck(1), liblist(1), libprecise(1), ldd(1)
+pkginst(1), pkgup(1), pkgcheck(1), libcheck(1), ldd(1)
 .SH BUGS
 No known bugs.
 .SH AUTHOR

@@ -56,9 +56,11 @@ Another set of utility scripts is available for non-root users:
 
 \t /usr/bin/libcheck - Return installation and usage information for libraries matching a search term.
 
-\t /usr/bin/libprecise - Return installation and usage information for a specific library.
-
 \t /usr/bin/yalfind - Determine which yalpack-installed package provides a given file, directory or symlink.
+.SH DIRECTORIES
+The main yalpack data directory can be found at /var/yalpack. It contains the following subdirectories:
+
+\t 
 .SH MAN PAGES
 yalpack comes with the following man pages:
 
@@ -72,11 +74,10 @@ yalpack comes with the following man pages:
 \t newfiles-yalpack(5)
 \t pkglist(1)
 \t libcheck(1)
-\t libprecise(1)
 \t yalfind(1)
 
 .SH CAUTIONS
-yalpack-0.2.0 has been tested with LFS 10.1; it has been verified not to remove the /bin, /sbin or /lib symlinks for merged-usr systems. It has not been (and most likely will not be) tested with previous versions of Linux From Scratch.
+yalpack-0.2.0 has been tested with LFS 11.0; it has been verified not to remove the /bin, /sbin or /lib symlinks for merged-usr systems. It has not been (and most likely will not be) tested with previous versions of Linux From Scratch.
 
 Because some yalpack scripts call ldd(1) to check dynamic library usage, yalpack should not be used with glibc-2.26 or earlier versions. See the "Security" section in ldd(1) for a detailed explanation.
 
