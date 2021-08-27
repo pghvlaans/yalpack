@@ -1,6 +1,6 @@
 .\" Manpage for yalpack
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "26 June 2021" "0.2.0" "yalpack man page"
+.TH man 1 "27 August 2021" "0.2.0" "yalpack man page"
 .SH NAME
 yalpack \- a basic POSIX-compliant package management solution for LFS/BLFS systems
 .SH DESCRIPTION
@@ -60,20 +60,62 @@ Another set of utility scripts is available for non-root users:
 .SH DIRECTORIES
 The main yalpack data directory can be found at /var/yalpack. It contains the following subdirectories:
 
-\t 
+\t BIN-DEPS
+
+\t BIN-DEPS.old
+
+\t packages
+
+\t pkgdata
+.SH /var/yalpack/BIN-DEPS
+BIN-DEPS contains ldd(1)-derived library usage information for every binary on the system that uses dynamic libraries. It is organized into subdirectories, one for each binary. These subdirectories contain a document entitled NAME.libinfo with the library information (e.g., /var/yalpack/BIN-DEPS/grep/grep.libinfo).
+
+Whenever liblist(1) is run, the existing BIN-DEPS directory (if any) is saved under BIN-DEPS.old.
+.SH /var/yalpack/packages
+This is the staging area for installing packages packaged by pkgmake(1). Temporary files and subdirectories are made and removed here during the package upgrade and installation process.
+.SH /var/yalpack/pkgdata
+pkgdata is where most of the information about yalpack-installed packages is stored. It has the following subdirectories:
+
+\t NEWFILES
+
+NEWFILES contains documents with ".new" files (if any) installed to the system on a per-package basis. It is regenerated whenever /usr/share/yalpack/newfiles is run.
+
+\t PKG-BINS
+
+PKG-BINS contains a list of installed executable files for each package.
+
+\t PKG-DEPS
+
+PKG-DEPS contains a list of dynamic libraries used on a per-package basis.
+
+\t PKG-LIBS
+
+PKG-LIBS shows the libraries installed by each package.
+
+\t SYMTREES
+
+SYMTREES has per-package lists of files installed under a path containing symlinks. This is mostly relevant for post-LFS 10.1 systems, which have merged-usr setups. For earlier versions of LFS (i.e., those with genuine /bin, /sbin and /lib directories), the presence of a SYMTREE file may be an indication that a package was built incorrectly.
+
+\t TREES
+
+TREES contains a package tree document for each package.
+
+\t VER
+
+Every yalpack-installed package leaves a file with the version number, if any, in VER upon installation.
 .SH MAN PAGES
 yalpack comes with the following man pages:
 
 \t pkgmake(1)
 \t pkginst(1)
+\t pkglist(1)
 \t pkgremove(1)
 \t pkgup(1)
 \t pkgcheck(1)
 \t liblist(1)
-\t restore-yalpack(5)
-\t newfiles-yalpack(5)
-\t pkglist(1)
 \t libcheck(1)
+\t restore-yalpack(8)
+\t newfiles-yalpack(8)
 \t yalfind(1)
 
 .SH CAUTIONS
@@ -87,7 +129,7 @@ The man pages for the scripts listed above; in addition, ldd(1) and the contents
 
 For information about the variables in /etc/yalpack.conf, see the explanatory comments in that file or /usr/share/doc/yalpack-0.2.0/Customization.
 
-Visit yalpack's home on GitHub to see future plans, report bugs or download the latest release: https://github.com/pghvlaans/yalpack.
+Visit yalpack's home on GitHub to see future plans, report bugs or download the latest release: https://github.com/pghvlaans/yalpack. A "dev" branch is intermittently available.
 .SH BUG REPORTING
 Submit a GitHub issue, or contact the author directly by email.
 .SH AUTHOR

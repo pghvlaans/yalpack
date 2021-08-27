@@ -1,38 +1,14 @@
 .\" Manpage for pkgup
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "24 June 2021" "0.2.0" "pkgup man page"
+.TH man 1 "27 August 2021" "0.2.0" "pkgup man page"
 .SH NAME
 pkgup \- upgrade a pkgmake-made and pkginst-installed package in LFS
 .SH SYNOPSIS
 pkgup [-ykr|--yes --keep --root-own] OLDNAME NEWNAME-NEWVERSION
 .SH DESCRIPTION
-pkgup is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to upgrade packages made by pkgmake and installed by pkginst. The TREE and VER (if applicable) files for the old version must be present, along with a package tarball for the new version. In case of damage to the data directories at /var/yalpack, restore-yalpack(5) can be used to regenerate the needed files, provided that a good backup of /var/yalpack/TREES is available.
+pkgup is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to upgrade packages made by pkgmake and installed by pkginst. The TREE and VER (if applicable) files for the old version must be present, along with a package tarball for the new version. In case of damage to the data directories at /var/yalpack, restore-yalpack(8) can be used to regenerate the needed files, provided that a good backup of /var/yalpack/TREES is available.
 
 pkgup begins by installing the new package with pkginst(1); from here, /var/yalpack/pkgdata/TREES is referenced to remove any unneeded files, symlinks or directories installed by the old version of the package. Because the home directory is the responsibility of the user/administrator, pkgup will never remove anything from /home.
-
-By default, pkgup references and writes to the following directories:
-
-\t /var/yalpack/pkgdata/TREES/[NAME] (a copy of the package tree is written here for reference)
-
-\t /var/yalpack/pkgdata/VER/[NAME] (a file with the package's version number)
-
-\t /var/yalpack/pkgdata/SYMTREES/[NAME] (a file with symlink-pathed items and their destinations, as well as symlinks pointing to items not provided by the package)
-
-\t /var/yalpack/pkgdata/.SYMDESTS/[NAME] (the same list, but with destinations only)
-
-\t /var/yalpack/pkgdata/PKG-DEPS/[NAME]/libdeps (any libraries used by installed binaries)
-
-\t /var/yalpack/pkgdata/PKG-BINS/[NAME]/instbins (any installed programs)
-
-\t /var/yalpack/pkgdata/PKG-LIBS/[NAME]/libs (any installed libraries)
-
-\t /var/yalpack/pkgdata/NEWFILES/[NAME] (any installed .new files)
-
-\t /var/log/yalpack/[NAME] (primary package tree backup location)
-
-\t /root/.yalpack-backup/[NAME] (secondary package tree backup location
-
-To change these default locations, edit /etc/yalpack.conf. See the explanatory comments for instructions, or refer to /usr/share/doc/yalpack-0.2.0/Customization.
 
 The first "NAME" field must include the name of the outgoing package in its entirety, e.g.
 
@@ -44,11 +20,13 @@ In cases where versioning information is included in the name,
 
 would be appropriate. Check "pkglist -n" with a search term to find the exact package name.
 .SH GLIBC AND INIT
-If /sbin/init or glibc has been upgraded, init may need to reload in order to reboot or halt safely. If such an upgrade is detected, 
+If sysvinit, systemd or glibc has been upgraded, init may need to reload in order to reboot or halt safely. If such an upgrade is detected, one of the following commands will be run, as appropriate:
 
-\t telinit U 
+\t telinit U			# SysVInit
 
-is used to reload init before the pkgup upgrade process concludes. Although "telinit U" will fail to run in a chroot context, the error is ignored. 
+\t systemctl daemon-reexec	# systemd
+
+This will reload init so that the computer can be powered off or rebooted safely afterwards. Although this will fail in a chroot context, the resulting error is harmless and therefore ignored. 
 .SH OPTIONS
 OLDNAME - The name of the outgoing package.
 
@@ -64,7 +42,7 @@ NEWVERSION - The incoming package's version number. Not needed if NEWNAME contai
 
 -h|--help - Display the help menu.
 .SH SEE ALSO
-pkgmake(1), pkginst(1), pkgcheck(1), pkgremove(1), restore-yalpack(5)
+pkgmake(1), pkginst(1), pkgcheck(1), pkgremove(1), restore-yalpack(8)
 .SH BUGS
 If the value of TMP in /etc/yalpack.conf has been changed since a package was originally made with pkgmake(1), absolute symlinks relative to the compiled software destination will not be fixed automatically. To avoid this issue, run pkginst or pkgup immediately after pkgmake if possible, or refrain from changing TMP until all new software is installed. TMP can also be changed back to its former value temporarily. If all symlinks are relative, or all absolute symlinks are relative to root, the package will be installed correctly regardless.
 

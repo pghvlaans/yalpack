@@ -1,6 +1,6 @@
 .\" Manpage for pkginst
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "24 June 2021" "0.2.0" "pkginst man page"
+.TH man 1 "27 August 2021" "0.2.0" "pkginst man page"
 .SH NAME
 pkginst \- install a pkgmake-made package in LFS
 .SH SYNOPSIS
@@ -8,13 +8,13 @@ pkginst [-kr|--keep --root-own] NAME1-VERSION1 [NAME2-VERSION2] ...
 .SH DESCRIPTION
 pkginst is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for installing one or more packages made by pkgmake in LFS.
 
-pkginst begins by evaluating .new files (all text files in /etc and /home, by default; others can be designated .new before making the package). .new files are renamed or removed as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILES/[NAME] for administrator convenience. When the package is extracted to root, such .new files will have the same ownership and permissions as the existing file on the system.
+pkginst begins by evaluating .new files (all text files in /etc and /home, by default; others can be designated .new before making the package). .new files are renamed or simply excluded from extraction as necessary by comparing md5sums. Any remaining .new files are logged to /var/yalpack/pkgdata/NEWFILES/[NAME] for administrator convenience. When the package is extracted to root, such .new files will have the same ownership and permissions as the existing file on the system.
 
-The handling of symlinks follows. Any absolute symlinks pointing to locations within the package tarball are redone relative to root. Such symlinks are reported at the end of the installation process.
+Prior to yalpack-0.2.0, pkginst also handled repairing absolute symlinks; this now happens when calling pkgmake(1). For this reason, packages made by previous versions of pkgmake(1) may be installed with improper absolute symlinks.
 
 The default behavior of pkginst is to preserve the ownership of all package contents. If this is not desirable (for example, an unprivileged user built the package contents and still owns them), the --root-own option will change ownership of all package contents to root before installation actually occurs. Regardless of the ownership of any directories in the package tarball, the names and permissions of previously-existing directories will not be changed.
 
-Once these modifications to the package have been completed, the contents of [NAME]-[VERSION]/dest are re-archived as INPACKAGE.tar.xz and extracted over the root directory.
+Once these modifications to the package have been completed, the contents of [NAME]-[VERSION]/dest are extracted over the root directory, in addition to any renamed .new files.
 
 pkginst writes the TREE file to /var/yalpack/pkgdata/TREES, as well as to the default backup locations at /var/log/yalpack and /root/.yalpack-backup, if they exist.
 
@@ -24,29 +24,7 @@ No SYMTREE file will be generated if such items are not included in the package.
 
 pkginst will run any executable install.sh file in the top level of the package tarball once the .new files, symlinks, name and versioning information have been documented and the contents have been installed.
 
-From here, pkginst calls pkgcheck(1) to return information about installed programs, installed libraries, and any dynamic libraries used by the binaries in the package. By default, pkginst makes use of the following files for data recording:
-
-\t /var/yalpack/pkgdata/TREES/[NAME] (a copy of the package tree is written here for reference)
-
-\t /var/yalpack/pkgdata/SYMTREES/[NAME] (the list of items installed under a symlink and their destinations, and symlinks pointing to destinations not provided by the package is generated here)
-
-\t /var/yalpack/pkgdata/.SYMDESTS/[NAME] (the same list, but with destinations only)
-
-\t /var/yalpack/pkgdata/VER/[NAME] (a file with the package's version number)
-
-\t /var/yalpack/pkgdata/PKG-DEPS/[NAME]/libdeps (any libraries used by installed binaries)
-
-\t /var/yalpack/pkgdata/PKG-BINS/[NAME]/instbins (any installed programs)
-
-\t /var/yalpack/pkgdata/PKG-LIBS/[NAME]/libs (any installed executable libraries)
-
-\t /var/yalpack/pkgdata/NEWFILES/[NAME] (any installed .new files; can be updated with /usr/share/yalpack/newfiles)
-
-\t /var/log/yalpack/[NAME] (primary package tree backup)
-
-\t /root/.yalpack-backup/[NAME] (secondary package tree backup)
-
-When called in the course of pkginst, pkgcheck(1) will invoke liblist(1) to make a new collection of dynamic library information if executable files with recognized library suffixes (.so, .la, .a)  have been installed.
+From here, pkginst calls pkgcheck(1) to return information about installed programs, installed libraries, and any dynamic libraries used by the binaries in the package. When called in the course of pkginst, pkgcheck(1) will invoke liblist(1) to make a new collection of dynamic library information if executable files with recognized library suffixes (.so, .la, .a)  have been installed.
 .SH OPTIONS
 NAME - The name of the package.
 
@@ -56,9 +34,11 @@ VERSION - The package's version number. NAME alone is sufficient if the package 
 
 -r|--root-own - Set the ownership of all package contents to root:root before installation. Useful for package contents that were built and are owned by a non-privileged user.
 .SH SEE ALSO
-pkgmake(1), pkgremove(1), pkgup(1), pkgcheck(1), liblist(1), newfiles-yalpack(5)
+pkgmake(1), pkgremove(1), pkgup(1), pkgcheck(1), liblist(1), newfiles-yalpack(8)
 .SH BUGS
 If the value of TMP in /etc/yalpack.conf has been changed since a package was originally made with pkgmake(1), absolute symlinks relative to the compiled software destination will not be fixed automatically. To avoid this issue, run pkginst immediately after pkgmake if possible, or refrain from changing TMP until all new software is installed. TMP can also be changed back to its former value temporarily. If all symlinks are relative, or all absolute symlinks are relative to root, the package will be installed correctly regardless.
+
+pkginst has minor incompatibilities with packages made by pkgmake(1) from versions of yalpack prior to 0.2.0 related to absolute symlinks.
 
 Although this might not be a pkginst bug per se, upgrades to versions of glibc older than the glibc used to build the system have been tested to cause system failure.
 .SH AUTHOR

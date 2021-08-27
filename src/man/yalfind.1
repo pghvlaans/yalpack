@@ -1,12 +1,12 @@
 .\" Manpage for yalfind
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "07 June 2021" "0.2.0" "yalfind man page"
+.TH man 1 "27 August 2021" "0.2.0" "yalfind man page"
 .SH NAME
 yalfind \- search for which package provided matching files/symlinks/directories 
 .SH SYNOPSIS
 yalfind [-xf|--exact --showfile] SEARCHTERM1 ...
 .SH DESCRIPTION
-yalfind is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for checking which yalpack package or packages provide files, symlinks or directories matching a search term. yalfind searches the TREE and SYMTREE files for all installed packages, located by default in /var/yalpack/pkgdata/TREES.
+yalfind is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for checking which yalpack package or packages provided files, symlinks or directories matching a search term. yalfind searches the TREE and SYMTREE files for all installed packages, located by default in /var/yalpack/pkgdata/TREES.
 
 -x (--exact) can be passed as a parameter to search for exact matches with the user-provided path. If -x is used, yalfind will display .new files as matches, as in this example:
 

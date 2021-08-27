@@ -1,6 +1,6 @@
 .\" Manpage for pkgremove
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "07 June 2021" "0.2.0" "pkgremove man page"
+.TH man 1 "27 August 2021" "0.2.0" "pkgremove man page"
 .SH NAME
 pkgremove \- remove a pkgmake-made and pkginst-installed package from LFS
 .SH SYNOPSIS
@@ -11,12 +11,6 @@ pkgremove is a shell program provided by yalpack (Yet Another Lfs PACKage manage
 pkgremove references /var/yalpack/pkgdata/TREES and /var/yalpack/pkgdata/SYMTREES to remove any unneeded files, symlinks or directories installed by the package. Because the home directory is the responsibility of the user/administrator, pkgremove will never remove anything from /home. All files and directories related to the removed package will be deleted from /var/yalpack/pkgdata.
 
 In case of library changes, ldconfig will be invoked.
-
-By default, pkgup references the following directories:
-
-\t /var/yalpack/pkgdata/TREES
-
-\t /var/yalpack/pkgdata/SYMTREES
 
 Please note that the SYMTREES directory and all needed SYMTREE files will be created by yalpack's install.sh script upon first-time installation or upgrade from yalpack-0.1.4 or earlier. See pkginst(1) for a more complete discussion.
 

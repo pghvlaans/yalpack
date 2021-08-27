@@ -1,6 +1,6 @@
 .\" Manpage for pkgmake
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "07 June 2021" "0.1.4" "pkgmake man page"
+.TH man 1 "27 August 2021" "0.1.4" "pkgmake man page"
 .SH NAME
 pkgmake \- make a package from compiled source in LFS
 .SH SYNOPSIS
@@ -25,6 +25,8 @@ In addition, a file called "NAME" with the package's name is needed in /tmp/[NAM
 If more than one version of a package is to be on the system at the same time (different kernel versions, for example), NAME should contain a string with both name and version information, matching the directory name under /tmp. In case of conflicting files, only those of the more recently-installed package will be present on the system.
 
 pkgmake will designate all text files in /etc and /home as .new. If other files in the package should be designated .new as well, rename them manually before making the package. pkginst(1) will handle the renaming and removal of .new files from here, regardless of location.
+
+If absolute symlinks relative to the build destination (rather than root) are made in the course of building software, pkgmake will redo them such that they are relative to root.
 
 If anything should be done after all files have been installed and all symlinks have been made, pkginst(1) will execute a file at the following location, if any:
 
