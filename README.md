@@ -97,12 +97,12 @@ Everything under `dest/` is installed relative to root. `NAME` (and `install.sh`
 
 yalpack makes use of the following directories, which will be made when the script in parentheses is run for the first time:
 
-	`/var/yalpack/packages`	(`pkgmake`)
+	/var/yalpack/packages	(pkgmake)
 		Holds package tarballs; once a package has been installed, the package tarball need not be retained.
-	`/var/yalpack/pkgdata`	(`pkginst` or yalpack's `install.sh` script)
+	/var/yalpack/pkgdata	(pkginst or yalpack's install.sh script)
 		Holds reference information about installed packages.
-	`/var/yalpack/BIN-DEPS`	(`liblist`; called by `pkginst`)
-		Holds information about the dynamic libraries used by those binaries checked by `liblist`.
+	/var/yalpack/BIN-DEPS	(liblist; called by pkginst)
+		Holds information about the dynamic libraries used by those binaries checked by liblist.
 
 The yalpack main data directory, backup locations, build destination and sbin directory can all be changed by editing `/etc/yalpack.conf`. See "Customization" for details and instructions. 
 
