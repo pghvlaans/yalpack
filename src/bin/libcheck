@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# libcheck: a "fuzzy" reverse library usage check for LFS systems; see 
-# libprecise for more exact results
+# libcheck: a "fuzzy" reverse library usage check for LFS systems; use
+# libcheck -p for more exact results
 #
 # Copyright 2021 K. Eugene Carlson  Tsukuba, Japan
 # All rights reserved.
@@ -131,28 +131,69 @@ echo
 echo '	'The following $(tput smul)programs$(tput rmul) use one of these libraries:
 echo
 grep "$1" "$BINDEPS"/*/* | cut -d'/' -f"$BINSNUM"- | cut -d'/' -f-1 | uniq
-echo
-echo '	'If closer matches are needed, consider using $(tput smul)libprecise$(tput rmul) with one of these libraries:
-echo
-cat "$TEMP".new
+if [ -f "$TEMP".new ] && [ "$(cat "$TEMP".new | wc -l)" -gt 1 ]; then
+	echo
+	echo '	'If closer matches are needed, consider using $(tput smul)libcheck -p$(tput rmul) with one of these libraries:
+	echo
+	cat "$TEMP".new
+fi
 echo
 rm -f "$TEMP" "$TEMP".new
 [ -f "$TEMP.yal" ] && mv "$TEMP".yal "$TEMP"
 }
 
+precise () {
+y="$1[.]"
+
+echo
+echo '  'Checking for information about the library $(tput smul)"$1"$(tput rmul). If the intended
+echo '  'library does not exist in the form $(tput smul)"$1".*$(tput rmul), results will be
+echo '  'incomplete or inaccurate.
+echo
+
+for PKG in "$PKGLIBS"/*; do
+	if [ -f "$PKG/libs" ]; then
+		x=$(grep -m 1 "$y" "$PKG/libs")
+		PKG=$(basename "$PKG")
+		[ -n "$x" ] && echo '   '$(tput smul)"$1"$(tput rmul) appears to have been installed by the $(tput smul)"$PKG"$(tput rmul) package.
+	fi
+done
+
+echo
+# Determining the correct number of cut backslashes
+DEPSNUM=$(echo "$PKGDEPS" | tr -cd '/' | wc -c)
+BINSNUM=$(echo "$BINDEPS" | tr -cd '/' | wc -c)
+# Adjusting
+DEPSNUM=$((DEPSNUM + 2))
+BINSNUM=$((BINSNUM + 2))
+echo '  'The following $(tput smul)packages$(tput rmul) use this library:
+echo
+grep "$y" "$PKGDEPS"/*/* | cut -d'/' -f"$DEPSNUM"- | cut -d'/' -f-1 | uniq
+echo
+echo '  'The following $(tput smul)programs$(tput rmul) use this library:
+echo
+grep "$y" $BINDEPS/*/* | cut -d'/' -f"$BINSNUM"- | cut -d'/' -f-1 | uniq
+echo
+}
+
 unset DEEP
 unset LIB
+unset PRECISE
 
 for arg in "$@"; do
 	case "$arg" in
 		-h|--help)
 	        echo
 		echo $(tput smul)libcheck$(tput rmul): Check for details about dynamic libraries matching
-		echo a search term.
+		echo a name or search term.
 	        echo
 	        echo Syntax: libcheck SEARCHTERM
 	        echo
-	        echo Flag:
+	        echo Flags:
+		echo
+		echo "	-p | --precise : Search for an exact library title \(without the extension\)."
+		echo "	-s | --search : Turn off precise mode \(default behavior\)."
+		echo "	-d | --deep : Search in subdirectories of /usr/lib, /lib, etc. \(incompatible with -p\)."
 	        echo "  -h | --help : Display this help menu."
        		echo
 		exit
@@ -160,8 +201,22 @@ for arg in "$@"; do
 		-d|--deep)
 		DEEP=DEEP
 		;;
+		-p|--precise)
+		PRECISE=PRECISE
+		;;
+		-s|--search)
+		unset PRECISE
+		;;
+		-sd|-ds)
+		unset PRECISE
+		DEEP=DEEP
+		;;
 		*)
 		LIB="$arg"
-		main "$LIB" "$DEEP"
+		if [ -z "$PRECISE" ]; then
+			main "$LIB" "$DEEP"
+		else
+			precise "$LIB"
+		fi
 	esac
 done
