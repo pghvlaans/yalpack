@@ -44,7 +44,6 @@ yalpack provides the following tools for package management on LFS-based systems
 	  To add more locations, edit the shell script at `/sbin/liblist`. A full file path can be passed to liblist to update information about a single binary.
 * For all users:
 	* libcheck: Checking for binaries and yalpack packages using dynamic libraries matching a search term
-	* libprecise: Checking for binaries and yalpack packages using a particular dynamic library
 	* pkglist: Providing a list of yalpack-installed packages
 	* yalfind: Use search terms or exact file paths to determine which package provided matching files, directories and symlinks
 

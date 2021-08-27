@@ -10,7 +10,7 @@ internal directory structure through direct editing is possible, but
 not recommended.
 
 Discussions of each variable in /etc/yalpack.conf follow, as well as a
-note about libcheck and libprecise.
+note about libcheck.
 
 ***********************************************************************
                                 HEAD                         
@@ -126,17 +126,15 @@ version through 0.1.7), it will be sufficient to change the value
 in the source directory and pass SBINDIR to Makefile as above.
 
 ***********************************************************************
-                        libcheck and libprecise
+                              libcheck
 ***********************************************************************
 
-libcheck and libprecise are special cases, in that they rely on "cut"
-instructions to display results. If, against recommendations, the
-internal structure of the yalpack directory is changed, the following
-lines might have to be edited in addition to the edits made to change
-the directory itself:
+libcheck is a special case, in that it relies on "cut" instructions to
+display results. If, against recommendations, the internal structure of 
+the yalpack directory is changed, the following lines might have to be
+edited in addition to the edits made to change the directory itself:
 
-  * libcheck: lines 120 and 121
-  * libprecise: lines 107 and 108
+  * libcheck: lines 120, 121, 164 and 165
 
 Specifically, the "2" in $((*NUM + 2)) refers to the number of
 trailing backslashes following $PKGDEPS and $BINDEPS. Provided that the

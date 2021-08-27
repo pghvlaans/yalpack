@@ -15,10 +15,10 @@ as aids to dependency management, however.
 Although the envisioned use case of yalpack is to add, upgrade and remove
 packages from on top of a "core" LFS system, it could also be used to manage
 every package once the temporary toolchain has been completed. This has been
-tested successfully for LFS 10.1 (SysVinit) (x86_64, Linx 5.12.3, host gcc 10.3)
-and the LFS r10.1-99 development version, which has a merged-usr setup.
+tested successfully for LFS 11.0-rc1 (both) (x86_64, Linux 5.13.10)
+which has a merged-usr setup.
 
-yalpack has not been tested on earlier versions of Linux From Scratch. Because
+yalpack has not been tested versions of Linux From Scratch prior to 10.1. Because
 ldd is used to collect information about binaries, moreover, it should never
 be used with versions of glibc earlier than 2.27. For an explanation, see the
 "Security" section in the ldd man page.
@@ -67,9 +67,6 @@ systems:
 		* libcheck
 			Checking for binaries and yalpack packages using
 			dynamic libraries matching a search term
-		* libprecise
-			Checking for binaries and yalpack packages using a
-			particular dynamic library
 		* pkglist
 			Providing a list of yalpack-installed packages
 		* yalfind
@@ -82,7 +79,6 @@ In addition, the following utility scripts can be found in /usr/share/yalpack:
 	* newfiles
 		Update the NEWFILES directory to reflect currently-existing
 		files; optionally, manage .new files.
-
 	* restore-yalpack
 		Regenerate the yalpack data directory using a package tree backup
 		in case of data loss or other accidents.
@@ -105,10 +101,6 @@ please remember the following considerations:
 	  /tmp/[NAME]-[VERSION]/NAME containing the package's name, e.g.
 		echo frotz > /tmp/frotz-2.52/NAME
 	
-	* pkginst repairs absolute symlinks such that they are relative to the
-	  root directory once installed. Absolute symlinks can be pointed
-	  relative to either root or /tmp/[NAME]-[VERSION]/dest.
-
 	* All installed text files in /etc and /home are marked as .new by
 	  pkgmake. If other .new files are needed, they should be renamed manually
 	  prior to making the package. pkginst handles the renaming of .new
@@ -141,35 +133,9 @@ upgrade process involves the following libraries:
 	* libm.so.6	(glibc)
 
 Upgrade and downgrade tests were successful for acl and attr (10.1 stable and
-dev).
-
-As might be expected, the situation for glibc is more complicated. For
-yalpack-0.2.0, it was possible to move between glibc-2.32 and 2.33 on a 10.1
-LFS (stable) system that had been built with glibc-2.32, provided that no
-critical packages (e.g., acl or attr) had been built with glibc-2.33 in the
-mean time.
-
-The 10.1 LFS dev system used for testing had been built with glibc-2.33; an
-attempted downgrade to 2.32 managed to install the files, but calls of cat,
-etc. relying on glibc-2.33 subsequently failed, resulting in the full
-installation process being incomplete. The system was bricked thereafter.
-
-In summary, then, findings for glibc upgrades and downgrades with
-yalpack-0.2.0 are as follows:
-
-	* With LFS 10.1 stable:
-		* Upgrades: tested to work (2.32 to 2.33)
-		* Downgrades: unknown and highly likely to fail if the "new"
-		  version is older than the version used to build the system.
-	* With LFS 10.1 dev:
-		* Upgrades: to remain untested until glibc-2.34
-		* Downgrades: known to fail if the "new" version is older than
-		  the version used to build the system.
-
-Once glibc-2.34 is released in August 2021, upgrading glibc with yalpack will
-be tested again and this document updated accordingly. In the meantime, glibc
-downgrades (which may be somewhat questionable as a use case in the first
-place) and upgrades to versions beyond glibc-2.33 are unsupported.
+dev). glibc downgrades to versions earlier than the version used to build the
+LFS system have been tested to fail catastrophically. Such downgrades should
+not be attempted.
 
 Packages without DESTDIR:
 
@@ -206,20 +172,23 @@ provided by Slackware. Except for relatively complicated installation procedures
 for packages in the LFS book, distributing build scripts is beyond the scope of
 this project.
 
-Upgrading glibc and SysVinit:
+Upgrading glibc, SysVinit and systemd:
 
-As the Linux From Scratch documentation indicates, glibc upgrades generally
-entail a full system rebuild. Although yalpack-0.1.4+ has been tested to
-upgrade glibc up to 2.33, this type of upgrade should be treated with care and is
-not necessarily advisable. glibc downgrades (especially downgrades to versions
-older than the version used to build LFS) are unsupported altogether.
+As the Linux From Scratch documentation indicates, glibc upgrades should
+always be treated with care. glibc downgrades to versions predating the
+version used to build the system are known to fail with yalpack, and are
+unsupported altogether.
 
 In order to avoid unmounting problems at the next halt or reboot, pkgup uses
 /sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected.
-This procedure is untested on systemd-based installations.
+On LFS systems using systemd, "systemctl daemon-reexec" is called in case of
+glibc and systemd upgrades.
 
 Upgrades of sysvinit and (especially) glibc should not be attempted with
 versions of yalpack prior to 0.1.4.
+
+The systemd upgrade procedure was first tested on yalpack-0.2.0; to be safe,
+no version prior to 0.2.0 should be used on a systemd-based installation.
 
 The directory structure of a yalpack package:
 

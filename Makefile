@@ -38,7 +38,6 @@ package:
 	@chmod 744 $(DESTDIR)$(SBINDIR)/pkgup
 	@chmod 744 $(DESTDIR)$(SBINDIR)/liblist
 	@chmod 755 $(DESTDIR)$(BINDIR)/libcheck
-	@chmod 755 $(DESTDIR)$(BINDIR)/libprecise
 	@chmod 755 $(DESTDIR)$(BINDIR)/pkglist
 	@chmod 755 $(DESTDIR)$(BINDIR)/yalfind
 	@rm -rvf $(PKGDEST)
@@ -71,7 +70,6 @@ package:
 	@chmod 744 $(PKGDEST)$(SBINDIR)/pkgup
 	@chmod 744 $(PKGDEST)$(SBINDIR)/liblist
 	@chmod 755 $(PKGDEST)$(BINDIR)/libcheck
-	@chmod 755 $(PKGDEST)$(BINDIR)/libprecise
 	@chmod 755 $(PKGDEST)$(BINDIR)/pkglist
 	@chmod 755 $(PKGDEST)$(BINDIR)/yalfind
 	@chmod 744 $(PKGDEST)$(SHAREDIR)/yalpack/*
@@ -99,7 +97,6 @@ no-use:
 	@chmod 744 $(DESTDIR)$(SBINDIR)/pkgup
 	@chmod 744 $(DESTDIR)$(SBINDIR)/liblist
 	@chmod 755 $(DESTDIR)$(BINDIR)/libcheck
-	@chmod 755 $(DESTDIR)$(BINDIR)/libprecise
 	@chmod 755 $(DESTDIR)$(BINDIR)/pkglist
 	@chmod 755 $(DESTDIR)$(BINDIR)/yalfind
 	@mkdir -pv $(DESTDIR)$(SYSCONFDIR)
@@ -146,7 +143,6 @@ uninstall:
 	@rm -vf $(DESTDIR)$(SBINDIR)/pkgup
 	@rm -vf $(DESTDIR)$(SBINDIR)/liblist
 	@rm -vf $(DESTDIR)$(BINDIR)/libcheck
-	@rm -vf $(DESTDIR)$(BINDIR)/libprecise
 	@rm -vf $(DESTDIR)$(BINDIR)/pkglist
 	@rm -vf $(DESTDIR)$(BINDIR)/yalfind
 	@rm -vf $(SYSCONFDIR)/yalpack.conf
@@ -159,7 +155,6 @@ uninstall:
 	@rm -vf $(DESTDIR)$(MANDIR)/man1/pkgup.1*
 	@rm -vf $(DESTDIR)$(MANDIR)/man1/liblist.1*
 	@rm -vf $(DESTDIR)$(MANDIR)/man1/libcheck.1*
-	@rm -vf $(DESTDIR)$(MANDIR)/man1/libprecise.1*
 	@rm -vf $(DESTDIR)$(MANDIR)/man5/restore-yalpack.5*
 	@rm -vf $(DESTDIR)$(MANDIR)/man5/newfile-yalpack.5*
 	@rm -rvf $(DESTDIR)$(SHAREDIR)/yalpack
