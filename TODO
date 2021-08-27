@@ -16,6 +16,8 @@ TODO list for yalpack-0.2.0
      Status: Merged libprecise into libcheck.
      (fix is in dev branch)
 * More concise documentation
+     Status: Some of the unneeded lists have been cut out, along with other changes to make things a little tighter.
+     (fix is in dev branch)
 * Further optimizations
     Status: liblist and pkgcheck are faster. Except for installing and upgrading heavy packages, gains won't be as dramatic as 0.1.7 > 0.1.8. 
     (fix is in dev branch)
