@@ -47,7 +47,7 @@ package:
 	@mkdir -pv $(PKGDEST)$(SYSCONFDIR)
 	@mkdir -pv $(PKGDEST)$(SHAREDIR)/yalpack
 	@mkdir -pv $(PKGDEST)$(MANDIR)/man1
-	@mkdir -pv $(PKGDEST)$(MANDIR)/man5
+	@mkdir -pv $(PKGDEST)$(MANDIR)/man8
 	@mkdir -pv $(PKGDEST)$(DOCDIR)/yalpack-$(VER)
 	@mkdir -pv man-gz
 	@cp -v --preserve=mode,timestamps ./LICENSE src/doc/
@@ -62,7 +62,7 @@ package:
 	@cp -v --preserve=mode,timestamps src/man/* man-gz/
 	@gzip man-gz/*
 	@cp -v --preserve=mode,timestamps man-gz/*1* $(PKGDEST)$(MANDIR)/man1
-	@cp -v --preserve=mode,timestamps man-gz/*5* $(PKGDEST)$(MANDIR)/man5
+	@cp -v --preserve=mode,timestamps man-gz/*8* $(PKGDEST)$(MANDIR)/man8
 	@chmod 744 $(PKGDEST)$(SBINDIR)/pkgcheck
 	@chmod 744 $(PKGDEST)$(SBINDIR)/pkginst
 	@chmod 744 $(PKGDEST)$(SBINDIR)/pkgmake
@@ -102,7 +102,7 @@ no-use:
 	@mkdir -pv $(DESTDIR)$(SYSCONFDIR)
 	@mkdir -pv $(DESTDIR)$(SHAREDIR)/yalpack
 	@mkdir -pv $(DESTDIR)$(MANDIR)/man1
-	@mkdir -pv $(DESTDIR)$(MANDIR)/man5
+	@mkdir -pv $(DESTDIR)$(MANDIR)/man8
 	@mkdir -pv $(DESTDIR)$(DOCDIR)/yalpack-$(VER)
 	@mkdir -pv man-gz
 	@cp -v --preserve=mode,timestamps ./LICENSE src/doc/
@@ -115,7 +115,7 @@ no-use:
 	@cp -v --preserve=mode,timestamps src/man/* man-gz/
 	@gzip man-gz/*
 	@cp -v --preserve=mode,timestamps man-gz/*1* $(DESTDIR)$(MANDIR)/man1
-	@cp -v --preserve=mode,timestamps man-gz/*5* $(DESTDIR)$(MANDIR)/man5
+	@cp -v --preserve=mode,timestamps man-gz/*8* $(DESTDIR)$(MANDIR)/man8
 	@chmod 744 $(DESTDIR)$(SHAREDIR)/yalpack/*
 	@cp -v --preserve=mode,timestamps src/install.sh $(DESTDIR)
 	@cp -v --preserve=mode,timestamps validate-config.sh $(DESTDIR)
@@ -155,8 +155,8 @@ uninstall:
 	@rm -vf $(DESTDIR)$(MANDIR)/man1/pkgup.1*
 	@rm -vf $(DESTDIR)$(MANDIR)/man1/liblist.1*
 	@rm -vf $(DESTDIR)$(MANDIR)/man1/libcheck.1*
-	@rm -vf $(DESTDIR)$(MANDIR)/man5/restore-yalpack.5*
-	@rm -vf $(DESTDIR)$(MANDIR)/man5/newfile-yalpack.5*
+	@rm -vf $(DESTDIR)$(MANDIR)/man8/restore-yalpack.8*
+	@rm -vf $(DESTDIR)$(MANDIR)/man8/newfile-yalpack.8*
 	@rm -rvf $(DESTDIR)$(SHAREDIR)/yalpack
 	@rm -rvf $(DESTDIR)$(DOCDIR)/yalpack-$(VER)
 	@echo

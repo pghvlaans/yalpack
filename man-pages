@@ -3,17 +3,17 @@ yalpack-related man pages
 For information about using yalpack, please feel free to refer to the
 following man pages:
 
-	* pkgmake(1)
-	* pkginst(1)
-	* pkgup(1)
-	* pkgremove(1)
-	* liblist(1)
-	* pkgcheck(1)
-	* pkglist(1)
-	* yalfind(1)
 	* libcheck(1)
-	* libprecise(1)
-	* restore-yalpack(5)
-	* newfiles-yalpack(5)
+	* liblist(1)
+	* newfiles-yalpack(8)
+	* pkgcheck(1)
+	* pkginst(1)
+	* pkglist(1)
+	* pkgmake(1)
+	* pkgremove(1)
+	* pkgup(1)
+	* restore-yalpack(8)
+	* yalfind(1)
 
-yalpack(1) is an 'executive summary' page with general information.
+yalpack(1) has general information, a startup guide, and a description of the
+yalpack data directories.
