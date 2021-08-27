@@ -13,6 +13,8 @@ TODO list for yalpack-0.2.0
     (fix is in dev branch; Makefile now allows for "make no-use" for only packaging yalpack; this should not be called without DESTDIR)
     ("make package" is still strongly preferred for actually using the software)
 * Probably merge libcheck and libprecise (very similar functionality)
+     Status: Merged libprecise into libcheck.
+     (fix is in dev branch)
 * More concise documentation
 * Further optimizations
     Status: liblist and pkgcheck are faster. Except for installing and upgrading heavy packages, gains won't be as dramatic as 0.1.7 > 0.1.8. 
