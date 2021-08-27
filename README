@@ -15,8 +15,7 @@ as aids to dependency management, however.
 Although the envisioned use case of yalpack is to add, upgrade and remove
 packages from on top of a "core" LFS system, it could also be used to manage
 every package once the temporary toolchain has been completed. This has been
-tested successfully for LFS 11.0-rc1 (both) (x86_64, Linux 5.13.10)
-which has a merged-usr setup.
+tested successfully for LFS 11.0-rc1, which has a merged-usr setup.
 
 yalpack has not been tested versions of Linux From Scratch prior to 10.1. Because
 ldd is used to collect information about binaries, moreover, it should never
@@ -87,6 +86,8 @@ In addition, the following utility scripts can be found in /usr/share/yalpack:
 		necessary. Can be used in case of data loss or changes to 
 		/etc/yalpack.conf.		
 
+Building software:
+
 When building from source with the objective of installing a yalpack package,
 please remember the following considerations:
 
@@ -100,6 +101,11 @@ please remember the following considerations:
 	* Before running pkgmake, supply a file at
 	  /tmp/[NAME]-[VERSION]/NAME containing the package's name, e.g.
 		echo frotz > /tmp/frotz-2.52/NAME
+
+	* pkgmake repairs absolute symlinks such that they are relative to the
+	  root directory once installed. LFS/BLFS instructions to make
+	  absolute symlinks can be done either as-is or by using
+	  /tmp/[NAME]-[VERSION]/dest/ rather than /.
 	
 	* All installed text files in /etc and /home are marked as .new by
 	  pkgmake. If other .new files are needed, they should be renamed manually
@@ -122,7 +128,11 @@ please remember the following considerations:
 	  input, the version information will also be required:
 		pkgup linux-5.12.2 linux-5.12.3
 
-Library upgrades:
+As of LFS 11.0, some packages in the book cannot use DESTDIR with "make
+install". To install or upgrade bzip2, sysvinit or sysklogd with yalpack, see
+the man page for pkgmake.
+
+Libraries:
 
 Aside from linux-vdso and ld-linux, the yalpack package installation and/or
 upgrade process involves the following libraries:
@@ -132,63 +142,22 @@ upgrade process involves the following libraries:
 	* libc.so.6	(glibc)
 	* libm.so.6	(glibc)
 
-Upgrade and downgrade tests were successful for acl and attr (10.1 stable and
-dev). glibc downgrades to versions earlier than the version used to build the
-LFS system have been tested to fail catastrophically. Such downgrades should
-not be attempted.
-
-Packages without DESTDIR:
-
-As of LFS 10.1, some packages in the book cannot use DESTDIR with "make install."
-To install or upgrade bzip2, sysvinit or sysklogd with yalpack, use the following
-workarounds:
-
-	* bzip2: Use "make PREFIX=/tmp/bzip2-1.0.8/dest/usr install" in lieu of
-	  "make PREFIX=/usr install"
-	* sysvinit: Use the following steps:
-		* Extract the sysvinit source tarball.
-		* Copy /usr/share/doc/yalpack-0.2.0/sysvinit.dewit into the
-		  source directory.
-		* To install a version other than 2.98, or to upgrade, edit
-		  the file accordingly (explanatory comments included).
-		* Make the script executable and run.  
-	* sysklogd: Use the following steps:
-		* Extract the sysvinit source tarball.
-		* Copy /usr/share/doc/yalpack-0.2.0/sysklogd.dewit into the
-		  source directory.
-		* To install a version other than 1.5.1, select a job level 
-		  or upgrade, edit the file accordingly (explanatory 
-		  comments included).
-		* Make the script executable and run.
-		* Follow the LFS post-installation instructions, or write
-		  them in to an install.sh script.  
-
-The build scripts provided in /usr/share/doc/yalpack-0.2.0 have hardcoded values. 
-If TMP was changed in /etc/yalpack.conf, the value of TMP in the scripts should be 
-changed accordingly.
-
-The installation procedure in sysvinit.dewit was adapted from sysvinit.SlackBuild,
-provided by Slackware. Except for relatively complicated installation procedures
-for packages in the LFS book, distributing build scripts is beyond the scope of
-this project.
-
 Upgrading glibc, SysVinit and systemd:
 
 As the Linux From Scratch documentation indicates, glibc upgrades should
-always be treated with care. glibc downgrades to versions predating the
-version used to build the system are known to fail with yalpack, and are
-unsupported altogether.
+always be treated with care. Although yalpack-0.1.4+ has been tested to upgrade
+glibc, this type of upgrade should be treated with care and is not necessarily
+advisable.
 
-In order to avoid unmounting problems at the next halt or reboot, pkgup uses
-/sbin/telinit to reload /sbin/init if glibc or sysvinit upgrades are detected.
-On LFS systems using systemd, "systemctl daemon-reexec" is called in case of
-glibc and systemd upgrades.
+glibc downgrades (especially downgrades to versions older than the one used to
+build LFS) are unsupported altogether.
 
-Upgrades of sysvinit and (especially) glibc should not be attempted with
-versions of yalpack prior to 0.1.4.
+In order to avoid unmounting problems at the next halt or reboot, pkgup
+reloads init if glibc, sysvinit or systemd upgrades are detected.
 
-The systemd upgrade procedure was first tested on yalpack-0.2.0; to be safe,
-no version prior to 0.2.0 should be used on a systemd-based installation.
+If upgrades to any of these packages are desired, please ensure that yalpack's
+version is at least 0.1.4. systemd upgrades were tested for the first time in
+yalpack-0.2.0.
 
 The directory structure of a yalpack package:
 
