@@ -47,7 +47,7 @@ new directory in HEAD is complete, whether through copying or
 restore-yalpack.
 
 ***********************************************************************
-                          VARBKUP and ROOTHOME
+                        VARBKUP and ROOTHOME
 ***********************************************************************
 
 Default values:	VARBKUP=/var/log/yalpack
@@ -74,7 +74,7 @@ If changes to VARBKUP and HEAD are both wanted, see the instructions
 in the "HEAD" section above.
 
 ***********************************************************************
-                                TMP                         
+                                 TMP                         
 ***********************************************************************
 
 Default value:	TMP=/tmp
@@ -100,7 +100,7 @@ old value temporarily. Packages without absolute symlinks to the build
 directory will install correctly in any case.
 
 ***********************************************************************
-                              SBINDIR                         
+                               SBINDIR                         
 ***********************************************************************
 
 Default value:	SBINDIR=/usr/sbin
