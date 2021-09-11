@@ -1,21 +1,38 @@
 .\" Manpage for pkglist
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "27 August 2021" "0.2.0" "pkglist man page"
+.TH man 1 "10 September 2021" "0.2.0" "pkglist man page"
 .SH NAME
-pkglist \- return a list of installed yalpack packages
+.B pkglist
+\(em return a list of installed yalpack packages
 .SH SYNOPSIS
-pkglist [-n|--name] [SEARCHTERM1] [SEARCHTERM2] ...
+.B pkglist [-n|--name] [SEARCHTERM1] [SEARCHTERM2] ...
 .SH DESCRIPTION
-pkglist is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for listing installed packages.
+.B pkglist
+is a shell program provided by
+.B yalpack
+(Yet Another Lfs PACKage manager) for listing installed packages.
 
-Calling pkglist with a search term is supported, providing an easy way to get the version number for a package.
+Calling
+.B pkglist
+with a search term is supported, providing an easy way to get the version number for a package.
 .SH OPTIONS
--n|--name - Return a list with package names only (no version).
+.TQ
+.B -n|--name
+.br
+Return a list with package names only (no version).
 
-SEARCHTERM - pkglist will return only those packages matching one or more search terms. Note that packages conforming to more than one search term will appear multiple times.
+.TQ
+.B SEARCHTERM
+.br
+.B pkglist
+will return only those packages matching one or more search terms. Note that packages conforming to more than one search term will appear multiple times.
 .SH SEE ALSO
-pkginst(1), pkgup(1)
+.B pkginst(1)\fR\
+,
+.B pkgup(1)
 .SH BUGS
 None known.
 .SH AUTHOR
-K. Eugene Carlson (kvngncrlsn@gmail.com)
+K. Eugene Carlson
+.MT kvngncrlsn@gmail.com
+.ME

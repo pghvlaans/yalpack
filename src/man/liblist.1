@@ -1,38 +1,102 @@
 .\" Manpage for liblist
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "27 August 2021" "0.2.0" "liblist man page"
+.TH man 1 "10 September 2021" "0.2.0" "liblist man page"
 .SH NAME
-liblist \- generate dynamic library usage information for system binaries
+.B liblist
+\(em generate dynamic library usage information for system binaries
 .SH SYNOPSIS
-liblist [-n|--new] [file1] [file2] ...
+.B liblist [-n|--new] [file1] [file2] ...
 .SH DESCRIPTION
-liblist is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for collecting information about dynamic library usage by programs in the following locations:
+.B liblist
+is a shell program provided by 
+.B yalpack
+(Yet Another Lfs PACKage manager) for collecting information about dynamic library usage by programs in the following locations:
 
-\t /bin
-\t /usr/*
-\t /opt/*
-\t /sbin
+.TQ
+.I \t /bin
+.TQ
+.I \t /usr/*
+.TQ
+.I \t /opt/*
+.TQ
+.I \t /sbin
 
-liblist will not generate duplicate entries on systems where one or more of these locations is a symlink.
+.P
+.B liblist
+will not generate duplicate entries on systems where one or more of these locations is a symlink.
 
-Running liblist as root will perform ldd(1) on all such programs; information will be written to the following directory on a per-file basis:
+Running
+.B liblist
+as root will perform 
+.B ldd(1)
+on all such programs; information will be written to the following directory on a per-file basis:
 
-\t /var/yalpack/BINDEPS/[NAME]/[NAME].libinfo
+.I \t /var/yalpack/BINDEPS/[NAME]/[NAME].libinfo
 
-These data are used by libcheck(1) to reveal which programs use a particular dynamic library. liblist is called in the course of executing pkgcheck(1), pkgup(1) and pkginst(1). These scripts will only call liblist to refresh the entire data collection when a package appears to have installed a library.
+These data are used by
+.B libcheck(1)
+to reveal which programs use a particular dynamic library.
+.B liblist
+is called in the course of executing 
+.B pkgcheck(1)\fR\
+, 
+.B pkgup(1)
+and 
+.B pkginst(1)\fR\
+. These scripts will only call
+.B liblist
+to refresh the entire data collection when a package appears to have installed a library.
 
-The liblist script can be edited to change the search locations to suit user preferences. This is best done before installation; for other changes, see /usr/share/doc/yalpack-0.2.0/Customization and /etc/yalpack.conf.
+The
+.B liblist
+script can be edited to change the search locations to suit user preferences. This is best done before installation; for other changes, see
+.I /usr/share/doc/yalpack-0.2.0/Customization
+and
+.I /etc/yalpack.conf.
 .SH OPTIONS
--n|--new - Make a new directory tree in /var/yalpack/BINDEPS (default; if -n is called before the files, a new directory tree will be generated and then updated thereafter)
+.TQ
+.B -n|--new
+.br
+Make a new directory tree in
+.I /var/yalpack/BINDEPS
+(default; if 
+.B --new
+is called before the files, a new directory tree will be generated and then updated thereafter)
 
-file - Add library usage information for the specified file. A full path is needed.
+.TQ
+.B file
+.br
+Add library usage information for the specified file. A full path is needed.
 
--h|--help - Display a help menu.
+.TQ
+.B -h|--help
+.br
+Display a help menu.
 .SH WARNING
-Because ldd is called, liblist (and yalpack in general) should never be used on systems with glibc-2.26 or earlier. See "Security" in ldd(1) for details.
+Because
+.B ldd
+is called, 
+.B liblist
+(and
+.B yalpack
+in general) should never be used on systems with 
+.B glibc-2.26
+or earlier. See \(lqSecurity\(rq in
+.B ldd(1)
+for details.
 .SH SEE ALSO
-pkginst(1), pkgup(1), pkgcheck(1), libcheck(1), ldd(1)
+.B pkginst(1)\fR\
+,
+.B pkgup(1)\fR\
+,
+.B pkgcheck(1)\fR\
+,
+.B libcheck(1)\fR\
+,
+.B ldd(1)
 .SH BUGS
 No known bugs.
 .SH AUTHOR
-K. Eugene Carlson (kvngncrlsn@gmail.com)
+K. Eugene Carlson
+.MT kvngncrlsn@gmail.com
+.ME

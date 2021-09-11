@@ -1,59 +1,180 @@
 .\" Manpage for pkgmake
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "27 August 2021" "0.1.4" "pkgmake man page"
+.TH man 1 "10 September 2021" "0.1.4" "pkgmake man page"
 .SH NAME
-pkgmake \- make a package from compiled source in LFS
+.B pkgmake
+\(em make a package from compiled source in LFS
 .SH SYNOPSIS
-pkgmake NAME1-VERSION1 [NAME2-VERSION2] ...
+.B pkgmake NAME1-VERSION1 [NAME2-VERSION2] ...
 .SH DESCRIPTION
-pkgmake is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for making one or more packages out of compiled source, by default in /tmp/[NAME]-[VERSION].
+.B pkgmake
+is a shell program provided by
+.B yalpack
+(Yet Another Lfs PACKage manager) for making one or more packages out of compiled source, by default in
+.I /tmp/[NAME]-[VERSION]\fR\
+\&.
 
 The directory structure of the package is as follows:
 
-[NAME]-[VERSION] ->
+.I [NAME]-[VERSION]
+.B ->
 
-\t NAME VER TREE dest ->
+.I \t NAME VER TREE dest
+.B ->
 
-\t \t (package contents)
+.I \t \t (package contents)
 
-When compiling from source to produce a package with yalpack, ensure that the "installation" portion uses an option similar to:
+When compiling from source to produce a package with
+.B yalpack\fR\
+, ensure that the \(lqinstallation\(rq portion uses an option similar to:
 
-\t DESTDIR=/tmp/[NAME]-VERSION]/dest
+.B \t DESTDIR=/tmp/[NAME]-VERSION]/dest
 
-In addition, a file called "NAME" with the package's name is needed in /tmp/[NAME]-[VERSION]. The other files will be generated automatically by pkgmake. For an example of how LFS-centric build instructions might be wrapped in a script for semi-automation purposes, see sample-dewit.sh in the doc directory for yalpack.
+In addition, a file called
+.I NAME
+with the package's name is needed in
+.I /tmp/[NAME]-[VERSION]\fR\
+\&. The other files will be generated automatically by
+.B pkgmake\fR\
+\&. For an example of how LFS-centric build instructions might be wrapped in a script for semi-automation purposes, see
+.I sample-dewit.sh
+in the doc directory for
+.B yalpack\fR\
+\&.
 
-If more than one version of a package is to be on the system at the same time (different kernel versions, for example), NAME should contain a string with both name and version information, matching the directory name under /tmp. In case of conflicting files, only those of the more recently-installed package will be present on the system.
+If more than one version of a package is to be on the system at the same time (different kernel versions, for example),
+.I NAME
+should contain a string with both name and version information, matching the directory name under
+.I /tmp\fR\
+\&. In case of conflicting files, only those of the more recently-installed package will be present on the system.
 
-pkgmake will designate all text files in /etc and /home as .new. If other files in the package should be designated .new as well, rename them manually before making the package. pkginst(1) will handle the renaming and removal of .new files from here, regardless of location.
+.B pkgmake will designate all text files in
+.I /etc
+and
+.I /home
+as .new. If other files in the package should be designated .new as well, rename them manually before making the package.
+.B pkginst(1)
+will handle the renaming and removal of .new files from here, regardless of location.
 
-If absolute symlinks relative to the build destination (rather than root) are made in the course of building software, pkgmake will redo them such that they are relative to root.
+If absolute symlinks relative to the build destination (rather than
+.I root\fR\
+) are made in the course of building software,
+.B pkgmake
+will redo them such that they are relative to
+.I root\fR\
+\&.
 
-If anything should be done after all files have been installed and all symlinks have been made, pkginst(1) will execute a file at the following location, if any:
+If anything should be done after all files have been installed and all symlinks have been made,
+.B pkginst(1)
+will execute a file at the following location, if any:
 
-\t /tmp/NAME-VERSION/install.sh
+.I \t /tmp/NAME-VERSION/install.sh
 
-If an executable install.sh file is not present, pkgmake will issue a notice to that effect.
+If an executable
+.I install.sh
+file is not present,
+.B pkgmake
+will issue a notice to that effect.
 
-The end result is a package in tar.xz format at /var/yalpack/packages/[NAME]-[VERSION].tar.xz; pkginst(1) can then be used for installation. pkgmake retains the ownership and permissions of the compiled package contents; if installation in this state is not desirable (for example, if an unprivileged user still owns the package contents when pkgmake is run), pkginst(1) can be run with the --root-own (-r) option to change the ownership of the package contents to root:root before installation.
+The end result is a package in tar.xz format at
+.I /var/yalpack/packages/[NAME]-[VERSION].tar.xz\fR\
+;
+.B pkginst(1)
+can then be used for installation.
+.B pkgmake
+retains the ownership and permissions of the compiled package contents; if installation in this state is not desirable (for example, if an unprivileged user still owns the package contents when
+.B pkgmake
+is run),
+.B pkginst(1)
+can be run with the
+.B --root-own (-r)
+option to change the ownership of the package contents to root:root before installation.
 
-The working directory (/tmp) and package tarball destination (/var/yalpack/packages) can be changed by editing /etc/yalpack.conf. Follow the instructions in the explanatory comments, or see /usr/share/docs/yalpack-0.2.0/Customization.
+The working directory
+.I /tmp
+and package tarball destination
+.I /var/yalpack/packages
+can be changed by editing
+.I /etc/yalpack.conf\fR\
+\&. Follow the instructions in the explanatory comments, or see
+.I /usr/share/docs/yalpack-0.2.0/Customization\fR\
+.
 .SH NO DESTDIR
-As of Linux From Scratch 10.1, some packages using "make install" do not have DESTDIR capabilities. To manage these packages with yalpack, use the following steps during installation:
+As of
+.B Linux From Scratch 11.0\fR\
+, some packages using
+.B make install
+do not have
+.B DESTDIR
+capabilities. To manage these packages with
+.B yalpack\fR\
+, use the following steps during installation:
 
-\t bzip2: Use "make PREFIX=/tmp/bzip2-1.0.8/dest/usr install" at the installation stage.
+\t
+.B bzip2\fR\
+: Use
+.B make PREFIX=/tmp/bzip2-1.0.8/dest/usr install
+at the installation stage.
 
-\t sysvinit: Copy /usr/share/doc/yalpack-0.2.0/sysvinit.dewit into the sysvinit source directory. After making edits to install a version other than 2.98, or to upgrade the package with pkgup, make the script executable and run. The script contains explanatory comments on editing.
+\t
+.B sysvinit\fR\
+: Copy
+.I /usr/share/doc/yalpack-0.2.0/sysvinit.dewit
+into the
+.B sysvinit
+source directory. After making edits to install a version other than
+.B 2.98\fR\
+, or to upgrade the package with
+.B pkgup(1)\fR\
+, make the script executable and run. The script contains explanatory comments on editing.
 
-\t sysklogd: Copy /usr/share/doc/yalpack-0.2.0/sysklogd.dewit into the sysvinit source directory. After making edits to install a version other than 1.5.1, or to upgrade the package with pkgup, make the script executable and run. The script contains explanatory comments on editing. Follow the post-installation instructions in the LFS book, or write them in to an install.sh script, uncommenting the install.sh-related lines in sysklogd.dewit. install.sh should be placed in the source directory at the time of running.
+\t
+.B sysklogd\fR\
+: Copy
+.I /usr/share/doc/yalpack-0.2.0/sysklogd.dewit
+into the
+.B sysklogd
+source directory. After making edits to install a version other than
+.B 1.5.1\fR\
+, or to upgrade the package with
+.B pkgup\fR\
+, make the script executable and run. The script contains explanatory comments on editing. Follow the post-installation instructions in the LFS book, or write them in to an
+.I install.sh
+script, uncommenting the
+.I install.sh\fR\
+-related lines in
+.I sysklogd.dewit\fR\
+\&.
+.I install.sh
+should be placed in the source directory at the time of running.
 .SH OPTIONS
-NAME - The intended name of the package.
+.TQ
+.B NAME
+.br
+The intended name of the package.
 
-VERSION - The package's version number. Unnecessary if the NAME file contains the entire name-version string and it matches the build directory name.
+.TQ
+.B VERSION
+.br
+The package's version number. Unnecessary if the
+.I NAME
+file contains the entire name-version string and it matches the build directory name.
 
--h|--help - Display the help menu.
+.TQ
+.B -h|--help
+.br
+Display the help menu.
 .SH SEE ALSO
-pkginst(1), pkgremove(1), pkgup(1), pkgcheck(1)
+.B pkginst(1)\fR\
+,
+.B pkgremove(1)\fR\
+,
+.B pkgup(1)\fR\
+,
+.B pkgcheck(1)
 .SH BUGS
 No known bugs.
 .SH AUTHOR
-K. Eugene Carlson (kvngncrlsn@gmail.com)
+K. Eugene Carlson
+.MT kvngncrlsn@gmail.com
+.ME

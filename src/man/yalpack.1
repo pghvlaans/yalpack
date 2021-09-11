@@ -1,136 +1,310 @@
 .\" Manpage for yalpack
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "27 August 2021" "0.2.0" "yalpack man page"
+.TH man 1 "10 September 2021" "0.2.0" "yalpack man page"
 .SH NAME
-yalpack \- a basic POSIX-compliant package management solution for LFS/BLFS systems
+.B yalpack
+\(em a basic POSIX-compliant package management solution for LFS/BLFS systems
 .SH DESCRIPTION
-yalpack is a collection of man pages and POSIX-compliant scripts intended to make managing packages more convenient on Linux From Scratch-based systems, particularly with respect to removing and upgrading packages, managing .new files and tracking dynamic library usage.
+.B yalpack
+is a collection of man pages and POSIX-compliant scripts intended to make managing packages more convenient on
+.B Linux From Scratch\fR\
+-based systems, particularly with respect to removing and upgrading packages, managing .new files and tracking dynamic library usage.
 .SH BASIC OPERATIONS
-It is not necessary to know how to operate every script to get started with yalpack. The following basic commands are good to know:
+It is not necessary to know how to operate every script to get started with
+.B yalpack\fR\
+. The following basic commands are good to know:
 
-\t make package
+.B \t make package
+.br
+Run this command in the
+.B yalpack
+source directory to install or upgrade
+.B yalpack
+as a package. For upgrades, the new versions of all scripts will be used. This is the recommended method for all installations and upgrades of
+.B yalpack\fR\
+\&.
 
-Run this command in the yalpack source directory to install or upgrade yalpack as a package. For upgrades, the new versions of all scripts will be used. This is the recommended method for all installations and upgrades of yalpack.
+.B \t pkgmake [NAME]-[VERSION]
+.br
+.B pkgmake(1)
+will take compiled software in
+.I /tmp/[NAME]-[VERSION]/dest
+and turn it into a
+.B yalpack
+package. A
+.I NAME
+file with the package's name should be in the top part of the directory.
 
-\t pkgmake [NAME]-[VERSION]
-
-pkgmake will take compiled software in /tmp/[NAME]-[VERSION]/dest and turn it into a yalpack package. A NAME file with the package's name should be in the top part of the directory.
-
-\t pkginst [NAME]-[VERSION]
-
+.B \t pkginst [NAME]-[VERSION]
+.br
 Install a package over the root directory after evaluating .new files and repairing absolute symlinks. Perform package checks.
 
-\t pkgup [NAME] [NAME]-[NEWVERSION]
-
+.B \t pkgup [NAME] [NAME]-[NEWVERSION]
+.br
 Upgrade a package, removing extraneous files, etc.
 
-\t pkgremove [NAME]
-
+.B \t pkgremove [NAME]
+.br
 Remove a package from the system with any extraneous files.
 
-These commands should be more than enough to get package management with yalpack off the ground. For tips about building software to be managed with yalpack, see /usr/share/doc/yalpack-0.2.0/README.
+These commands should be more than enough to get package management with
+.B yalpack
+off the ground. For tips about building software to be managed with
+.B yalpack\fR\
+, see
+.I /usr/share/doc/yalpack-0.2.0/README\fR\
+\&.
 .SH SCRIPTS
-The following root-use scripts are installed by yalpack:
+The following root-use scripts are installed by
+.B yalpack\fR\
+:
 
-\t /usr/sbin/pkgmake - Turning compiled software into a yalpack package, ready to be installed.
+.B \t /usr/sbin/pkgmake
+.br
+.B \t
+Turning compiled software into a
+.B yalpack
+package, ready to be installed.
 
-\t /usr/sbin/pkginst - Installing yalpack-built packages.
+.B \t /usr/sbin/pkginst
+.br
+.B \t
+Installing
+.B yalpack\fR\
+-built packages.
 
-\t /usr/sbin/pkgremove - Removing yalpack-built packages.
+.B \t /usr/sbin/pkgremove 
+.br
+.B \t
+Removing
+.B yalpack\fR\
+-built packages.
 
-\t /usr/sbin/pkgup - Upgrading yalpack-built packages.
+.B \t /usr/sbin/pkgup 
+.br
+.B \t
+Upgrading
+.B yalpack\fR\
+-built packages.
 
-\t /usr/sbin/pkgcheck - Checking and updating information about yalpack-built packages.
+.B \t /usr/sbin/pkgcheck 
+.br
+.B \t
+Checking and updating information about
+.B yalpack\fR\
+-built packages.
 
-\t /usr/sbin/liblist - Generating dynamic library usage information for dynamic binaries.
+.B \t /usr/sbin/liblist
+.br
+.B \t
+Generating dynamic library usage information for binaries.
 
-\t /usr/share/yalpack/restore-yalpack - Regenerate the yalpack data directory from a good package tree backup.
+.B \t /usr/share/yalpack/restore-yalpack 
+.br
+.B \t
+Regenerate the
+.B yalpack
+data directory from a good package tree backup.
 
-\t /usr/share/yalpack/newfiles - Update, list and manage .new files belonging to yalpack-installed packages.
+.B \t /usr/share/yalpack/newfiles
+.br
+.B \t
+Update, list and manage .new files belonging to
+.B yalpack\fR\
+-installed packages.
 
-\t /usr/share/yalpack/backups - Generate backup package trees in a new location.
+.B \t /usr/share/yalpack/backups
+.br
+.B \t
+Generate backup package trees in a new location.
 
 Another set of utility scripts is available for non-root users:
 
-\t /usr/bin/pkglist - Show a list of installed packages with their version numbers (regex searching available).
+.B \t /usr/bin/pkglist
+.br
+.B \t
+Show a list of installed packages with their version numbers (regex searching available).
 
-\t /usr/bin/libcheck - Return installation and usage information for libraries matching a search term.
+.B \t /usr/bin/libcheck
+.br
+.B \t
+Return installation and usage information for libraries matching a search term.
 
-\t /usr/bin/yalfind - Determine which yalpack-installed package provides a given file, directory or symlink.
+.B \t /usr/bin/yalfind
+.br
+.B \t
+Determine which
+.B yalpack\fR\
+-installed package provides a given file, directory or symlink.
 .SH DIRECTORIES
-The main yalpack data directory can be found at /var/yalpack. It contains the following subdirectories:
+The main
+.B yalpack
+data directory can be found at
+.I /var/yalpack\fR\
+\&. It contains the following subdirectories:
 
-\t BIN-DEPS
-
-\t BIN-DEPS.old
-
-\t packages
-
-\t pkgdata
+.I \t BIN-DEPS
+.br
+.I \t BIN-DEPS.old
+.br
+.I \t packages
+.br
+.I \t pkgdata
 .SH /var/yalpack/BIN-DEPS
-BIN-DEPS contains ldd(1)-derived library usage information for every binary on the system that uses dynamic libraries. It is organized into subdirectories, one for each binary. These subdirectories contain a document entitled NAME.libinfo with the library information (e.g., /var/yalpack/BIN-DEPS/grep/grep.libinfo).
+.I BIN-DEPS
+contains
+.B ldd(1)\fR\
+-derived library usage information for every binary on the system that uses dynamic libraries. It is organized into subdirectories, one for each binary. These subdirectories contain a document entitled
+.I NAME.libinfo
+with the library information (e.g., 
+.I /var/yalpack/BIN-DEPS/grep/grep.libinfo\fR\
+).
 
-Whenever liblist(1) is run, the existing BIN-DEPS directory (if any) is saved under BIN-DEPS.old.
+Whenever
+.B liblist(1)
+is run, the existing
+.I BIN-DEPS
+directory (if any) is saved under
+.I BIN-DEPS.old\fR\
+\&.
 .SH /var/yalpack/packages
 This is the staging area for installing packages packaged by pkgmake(1). Temporary files and subdirectories are made and removed here during the package upgrade and installation process.
 .SH /var/yalpack/pkgdata
-pkgdata is where most of the information about yalpack-installed packages is stored. It has the following subdirectories:
+Where most of the information about
+.B yalpack\fR\
+-installed packages is stored. It has the following subdirectories:
 
-\t NEWFILES
+.I \t NEWFILES
+.br
+.B \t
+Contains documents with \(lq.new\(rq files (if any) installed to the system on a per-package basis. It is regenerated whenever
+.I /usr/share/yalpack/newfiles
+is run.
 
-NEWFILES contains documents with ".new" files (if any) installed to the system on a per-package basis. It is regenerated whenever /usr/share/yalpack/newfiles is run.
+.I \t PKG-BINS
+.br
+.B \t
+Contains a list of installed executable files for each package.
 
-\t PKG-BINS
+.I \t PKG-DEPS
+.br
+.B \t
+Contains a list of dynamic libraries used on a per-package basis.
 
-PKG-BINS contains a list of installed executable files for each package.
+.I \t PKG-LIBS
+.br
+.B \t
+Shows the libraries installed by each package.
 
-\t PKG-DEPS
+.I \t SYMTREES
+.br
+.B \t
+Has per-package lists of files installed under a path containing symlinks. This is mostly relevant for systems beyond
+.B LFS 10.1\fR\
+, which have merged-usr setups.
+.br
+.B \t
+For earlier versions of LFS (i.e., those with genuine
+.I /bin\fR\
+,
+.I /sbin
+and
+.I /lib
+directories), the presence of a
+.I SYMTREE
+file may be an indication that a package was built incorrectly.
 
-PKG-DEPS contains a list of dynamic libraries used on a per-package basis.
+.I \t TREES
+.br
+.B \t
+.I TREES
+contains a package tree document for each package.
 
-\t PKG-LIBS
-
-PKG-LIBS shows the libraries installed by each package.
-
-\t SYMTREES
-
-SYMTREES has per-package lists of files installed under a path containing symlinks. This is mostly relevant for post-LFS 10.1 systems, which have merged-usr setups. For earlier versions of LFS (i.e., those with genuine /bin, /sbin and /lib directories), the presence of a SYMTREE file may be an indication that a package was built incorrectly.
-
-\t TREES
-
-TREES contains a package tree document for each package.
-
-\t VER
-
-Every yalpack-installed package leaves a file with the version number, if any, in VER upon installation.
+.I \t VER
+.br
+.B \t
+Every
+.B yalpack\fR\
+-installed package leaves a file with the version number, if any, in
+.I VER
+upon installation.
 .SH MAN PAGES
-yalpack comes with the following man pages:
+.B yalpack
+comes with the following man pages:
 
-\t pkgmake(1)
-\t pkginst(1)
-\t pkglist(1)
-\t pkgremove(1)
-\t pkgup(1)
-\t pkgcheck(1)
-\t liblist(1)
-\t libcheck(1)
-\t restore-yalpack(8)
-\t newfiles-yalpack(8)
-\t yalfind(1)
+.B \t pkgmake(1)
+.br
+.B \t pkginst(1)
+.br
+.B \t pkglist(1)
+.br
+.B \t pkgremove(1)
+.br
+.B \t pkgup(1)
+.br
+.B \t pkgcheck(1)
+.br
+.B \t liblist(1)
+.br
+.B \t libcheck(1)
+.br
+.B \t restore-yalpack(8)
+.br
+.B \t newfiles-yalpack(8)
+.br
+.B \t yalfind(1)
 
 .SH CAUTIONS
-yalpack-0.2.0 has been tested with LFS 11.0; it has been verified not to remove the /bin, /sbin or /lib symlinks for merged-usr systems. It has not been (and most likely will not be) tested with previous versions of Linux From Scratch.
+.B yalpack-0.2.0
+has been tested with
+.B LFS 11.0\fR\
+; it has been verified not to remove the
+.I /bin\fR\
+,
+.I /sbin
+or
+.I /lib
+symlinks for merged-usr systems. It has not been (and most likely will not be) tested with previous versions of
+.B Linux From Scratch\fR\
+.
 
-Because some yalpack scripts call ldd(1) to check dynamic library usage, yalpack should not be used with glibc-2.26 or earlier versions. See the "Security" section in ldd(1) for a detailed explanation.
+Because some
+.B yalpack
+scripts call
+.B ldd(1)
+to check dynamic library usage,
+.B yalpack
+should not be used with
+.B glibc-2.26
+or earlier versions. See the \(lqSecurity\(rq section in
+.B ldd(1)
+for a detailed explanation.
 
-yalpack can be used at any point once the LFS system is in chroot or independent boot. Never use yalpack on the "host" system.
+.B yalpack
+can be used at any point once the LFS system is in chroot or independent boot. Never use
+.B yalpack
+on the \(lqhost\(rq system.
 .SH SEE ALSO
-The man pages for the scripts listed above; in addition, ldd(1) and the contents of /usr/share/doc/yalpack-0.2.0.
+The man pages for the scripts listed above; in addition,
+.B ldd(1)
+and the contents of
+.I /usr/share/doc/yalpack-0.2.0\fR\
+\&.
 
-For information about the variables in /etc/yalpack.conf, see the explanatory comments in that file or /usr/share/doc/yalpack-0.2.0/Customization.
+For information about the variables in
+.I /etc/yalpack.conf\fR\
+, see the explanatory comments in that file or
+.I /usr/share/doc/yalpack-0.2.0/Customization\fR\
+\&.
 
-Visit yalpack's home on GitHub to see future plans, report bugs or download the latest release: https://github.com/pghvlaans/yalpack. A "dev" branch is intermittently available.
+Visit
+.B yalpack\fR\
+\&'s home on GitHub to see future plans, report bugs or download the latest release:
+.UR https://github.com/pghvlaans/yalpack
+.UE . A \(lqdev\(rq branch is intermittently available.
 .SH BUG REPORTING
 Submit a GitHub issue, or contact the author directly by email.
 .SH AUTHOR
-K. Eugene Carlson (kvngncrlsn@gmail.com)
+K. Eugene Carlson
+.MT kvngncrlsn@gmail.com
+.ME

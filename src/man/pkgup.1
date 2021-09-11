@@ -1,51 +1,162 @@
 .\" Manpage for pkgup
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "27 August 2021" "0.2.0" "pkgup man page"
+.TH man 1 "10 September 2021" "0.2.0" "pkgup man page"
 .SH NAME
-pkgup \- upgrade a pkgmake-made and pkginst-installed package in LFS
+.B pkgup
+\(em upgrade a pkgmake-made and pkginst-installed package in LFS
 .SH SYNOPSIS
-pkgup [-ykr|--yes --keep --root-own] OLDNAME NEWNAME-NEWVERSION
+.B pkgup [-ykr|--yes --keep --root-own] OLDNAME NEWNAME-NEWVERSION
 .SH DESCRIPTION
-pkgup is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to upgrade packages made by pkgmake and installed by pkginst. The TREE and VER (if applicable) files for the old version must be present, along with a package tarball for the new version. In case of damage to the data directories at /var/yalpack, restore-yalpack(8) can be used to regenerate the needed files, provided that a good backup of /var/yalpack/TREES is available.
+.B pkgup
+is a shell program provided by
+.B yalpack
+(Yet Another Lfs PACKage manager) to upgrade packages made by 
+.B pkgmake(1)
+and installed by
+.B pkginst(1)\fR\
+\&. The
+.I TREE
+and
+.I VER
+(if applicable) files for the old version must be present, along with a package tarball for the new version. In case of damage to the data directories at
+.I /var/yalpack\fR\
+,
+.B restore-yalpack(8)
+can be used to regenerate the needed files, provided that a good backup of
+.I /var/yalpack/TREES
+is available.
 
-pkgup begins by installing the new package with pkginst(1); from here, /var/yalpack/pkgdata/TREES is referenced to remove any unneeded files, symlinks or directories installed by the old version of the package. Because the home directory is the responsibility of the user/administrator, pkgup will never remove anything from /home.
+.B pkgup
+begins by installing the new package with
+.B pkginst(1)\fR\
+; from here,
+.I /var/yalpack/pkgdata/TREES
+is referenced to remove any unneeded files, symlinks or directories installed by the old version of the package. Because the home directory is the responsibility of the user/administrator,
+.B pkgup will never remove anything from
+.I /home\fR\
+\&.
 
-The first "NAME" field must include the name of the outgoing package in its entirety, e.g.
+In case of library use changes,
+.B pkgup
+calls
+.B ldconfig(8)
+after removing the old version.
 
-\t pkgup yalpack yalpack-0.2.0 # If upgrading yalpack-* to yalpack-0.2.0
+The first
+.B NAME
+field must include the name of the outgoing package in its entirety, e.g.
+
+.B \t pkgup yalpack yalpack-0.2.0
+.br
+.B \t
+# If upgrading
+.B yalpack-*
+to
+.B yalpack-0.2.0
 
 In cases where versioning information is included in the name,
 
-\t pkgup kernel-5.12.0 kernel-5.12.1
+.B \t pkgup kernel-5.12.0 kernel-5.12.1
 
-would be appropriate. Check "pkglist -n" with a search term to find the exact package name.
+would be appropriate. Check
+.B pkglist -n
+with a search term to find the exact package name.
 .SH GLIBC AND INIT
-If sysvinit, systemd or glibc has been upgraded, init may need to reload in order to reboot or halt safely. If such an upgrade is detected, one of the following commands will be run, as appropriate:
+If
+.B sysvinit\fR\
+,
+.B systemd
+or
+.B glibc
+has been upgraded,
+.B init
+may need to reload in order to reboot or halt properly. If such an upgrade is detected, one of the following commands will be run, as appropriate:
 
-\t telinit U			# SysVInit
+.B \t telinit U
+.br
+.B \t
+# SysVInit
 
-\t systemctl daemon-reexec	# systemd
+.B \t systemctl daemon-reexec
+.br
+.B \t
+# systemd
 
-This will reload init so that the computer can be powered off or rebooted safely afterwards. Although this will fail in a chroot context, the resulting error is harmless and therefore ignored. 
+This will reload
+.B init
+so that the computer can be powered off or rebooted safely afterwards. Although this will fail in a chroot context, the resulting error is harmless and therefore ignored. 
 .SH OPTIONS
-OLDNAME - The name of the outgoing package.
+.TQ
+.B OLDNAME
+.br
+The name of the outgoing package.
 
-NEWNAME - The name of the incoming package (in most cases, this will be the same).
+.TQ
+.B NEWNAME
+.br
+The name of the incoming package (in most cases, this will be the same).
 
-NEWVERSION - The incoming package's version number. Not needed if NEWNAME contains versioning information and matches the name of the package tarball.
+.TQ
+.B NEWVERSION
+.br
+The incoming package's version number. Not needed if
+.B NEWNAME
+contains versioning information and matches the name of the package tarball.
 
--k|--keep - Retain the incoming package tarball after installation.
+.TQ
+.B -k|--keep
+.br
+Retain the incoming package tarball after installation.
 
--y|--yes - Disable the manual confirmation dialog.
+.TQ
+.B -y|--yes
+.br
+Disable the manual confirmation dialog.
 
--r|--root-own - Change the ownership of the incoming package contents to root:root. Useful if the package contents were built and are owned by an unprivileged user.
+.TQ
+.B -r|--root-own
+.br
+Change the ownership of the incoming package contents to root:root. Useful if the package contents were built and are owned by an unprivileged user.
 
--h|--help - Display the help menu.
+.TQ
+.B -h|--help
+.br
+Display the help menu.
 .SH SEE ALSO
-pkgmake(1), pkginst(1), pkgcheck(1), pkgremove(1), restore-yalpack(8)
+.B pkgmake(1)\fR\
+,
+.B pkginst(1)\fR\
+,
+.B pkgcheck(1)\fR\
+,
+.B pkgremove(1)\fR\
+,
+.B restore-yalpack(8)\fR\
+,
+.B ldconfig(8)
 .SH BUGS
-If the value of TMP in /etc/yalpack.conf has been changed since a package was originally made with pkgmake(1), absolute symlinks relative to the compiled software destination will not be fixed automatically. To avoid this issue, run pkginst or pkgup immediately after pkgmake if possible, or refrain from changing TMP until all new software is installed. TMP can also be changed back to its former value temporarily. If all symlinks are relative, or all absolute symlinks are relative to root, the package will be installed correctly regardless.
+If the value of
+.I TMP
+in
+.I /etc/yalpack.conf
+has been changed since a package was originally made with
+.B pkgmake(1)\fR\
+, absolute symlinks relative to the compiled software destination will not be fixed automatically. To avoid this issue, run
+.B pkginst(1)
+or
+.B pkgup
+immediately after
+.B pkgmake(1)
+if possible, or refrain from changing
+.I TMP
+until all new software is installed.
+.I TMP
+can also be changed back to its former value temporarily. If all symlinks are relative, or all absolute symlinks are relative to root, the package will be installed correctly regardless.
 
-Although this might not be a pkgup bug per se, upgrades to versions of glibc older than the glibc used to build the system have been tested to cause system failure.
+Although this might not be a
+.I pkgup 
+bug per se, upgrades to versions of glibc older than the glibc used to build the system have been tested to cause system failure.
 .SH AUTHOR
-K. Eugene Carlson (kvngncrlsn@gmail.com)
+K. Eugene Carlson
+.MT kvngncrlsn@gmail.com
+.ME

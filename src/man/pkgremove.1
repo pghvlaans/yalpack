@@ -1,51 +1,131 @@
 .\" Manpage for pkgremove
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "27 August 2021" "0.2.0" "pkgremove man page"
+.TH man 1 "10 September 2021" "0.2.0" "pkgremove man page"
 .SH NAME
-pkgremove \- remove a pkgmake-made and pkginst-installed package from LFS
+.B pkgremove
+\(em remove a pkgmake-made and pkginst-installed package from LFS
 .SH SYNOPSIS
-pkgremove [-y|--yes] NAME1 [NAME2] ...
+.B pkgremove [-y|--yes] NAME1 [NAME2] ...
 .SH DESCRIPTION
-pkgremove is a shell program provided by yalpack (Yet Another Lfs PACKage manager) to remove packages made by pkgmake and installed by pkginst. The TREE and VER (if applicable) files must be present in /var/yalpack/pkgdata.
+.B pkgremove
+is a shell program provided by
+.B yalpack
+(Yet Another Lfs PACKage manager) to remove packages made by
+.B pkgmake(1)
+and installed by
+.B pkginst(1)\fR\
+\&. The
+.I TREE
+and
+.I VER
+(if applicable) files must be present in
+.I /var/yalpack/pkgdata\fR\
+\&.
 
-pkgremove references /var/yalpack/pkgdata/TREES and /var/yalpack/pkgdata/SYMTREES to remove any unneeded files, symlinks or directories installed by the package. Because the home directory is the responsibility of the user/administrator, pkgremove will never remove anything from /home. All files and directories related to the removed package will be deleted from /var/yalpack/pkgdata.
+.B pkgremove
+references
+.I /var/yalpack/pkgdata/TREES
+and
+.I /var/yalpack/pkgdata/SYMTREES
+to remove any unneeded files, symlinks or directories installed by the package. Because the home directory is the responsibility of the user/administrator,
+.B pkgremove
+will never remove anything from
+.I /home\fR\
+\&. All files and directories related to the removed package will be deleted from
+.I /var/yalpack/pkgdata\fR\
+\&.
 
-In case of library changes, ldconfig will be invoked.
-
-Please note that the SYMTREES directory and all needed SYMTREE files will be created by yalpack's install.sh script upon first-time installation or upgrade from yalpack-0.1.4 or earlier. See pkginst(1) for a more complete discussion.
+In case of library changes,
+.B ldconfig(8)
+will be invoked.
 
 The following data files and directories will be removed:
 
-\t /var/yalpack/pkgdata/TREES/[NAME] (a file with the package directory tree)
+.I \t /var/yalpack/pkgdata/TREES/[NAME]
+.br
+.I \t
+(a file with the package directory tree)
 
-\t /var/yalpack/pkgdata/SYMTREES/[NAME] (a file with items installed under a path with a symlink and their destinations, as well as symlinks pointing to destinations not provided by the package)
+.I \t /var/yalpack/pkgdata/SYMTREES/[NAME]
+.br
+.I \t
+(a file with items installed under a path with a symlink and their destinations, as well as symlinks pointing to destinations not provided by the package)
 
-\t /var/yalpack/pkgdata/.SYMDESTS/[NAME] (the same list, but with destinations only)
+.I \t /var/yalpack/pkgdata/.SYMDESTS/[NAME]
+.br
+.I \t
+(the same list, but with destinations only)
 
-\t /var/yalpack/pkgdata/VER/[NAME] (a file with the package's version number)
+.I \t /var/yalpack/pkgdata/VER/[NAME]
+.br
+.I \t
+(a file with the package's version number)
 
-\t /var/yalpack/pkgdata/PKG-DEPS/[NAME] (any libraries used by installed binaries)
+.I \t /var/yalpack/pkgdata/PKG-DEPS/[NAME]
+.br
+.I \t
+(any libraries used by installed binaries)
 
-\t /var/yalpack/pkgdata/PKG-BINS/[NAME] (any installed programs)
+.I \t /var/yalpack/pkgdata/PKG-BINS/[NAME]
+.br
+.I \t
+(any installed programs)
 
-\t /var/yalpack/pkgdata/PKG-LIBS/[NAME] (any installed libraries)
+.I \t /var/yalpack/pkgdata/PKG-LIBS/[NAME]
+.br
+.I \t
+(any installed libraries)
 
-\t /var/yalpack/pkgdata/NEWFILES/[NAME] (any installed .new files)
+.I \t /var/yalpack/pkgdata/NEWFILES/[NAME]
+.br
+.I \t
+(any installed .new files)
 
-\t /var/log/yalpack/[NAME] (primary package directory tree backup)
+.I \t /var/log/yalpack/[NAME]
+.br
+.I \t
+(primary package directory tree backup)
 
-\t /root/.yalpack-backup/[NAME] (secondary package directory tree backup)
+.I \t /root/.yalpack-backup/[NAME]
+.br
+.I \t
+(secondary package directory tree backup)
 
-To change these default locations, edit /etc/yalpack.conf. See the explanatory instructions or /usr/share/doc/yalpack-0.2.0/Customization for details.
+To change these default locations, edit
+.I /etc/yalpack.conf\fR\
+\&. See the explanatory instructions or
+.I /usr/share/doc/yalpack-0.2.0/Customization
+for details.
 .SH OPTIONS
-NAME - The name of the package to be removed. "pkglist -n" can be checked with a search term to verify exact package names.
+.TQ
+.B NAME
+.br
+The name of the package to be removed.
+.B pkglist -n
+can be checked with a search term to verify exact package names.
 
--y|--yes - Disable the manual confirmation prompt.
+.TQ
+.B -y|--yes
+.br
+Disable the manual confirmation prompt.
 
--h|--help - Display the help menu.
+.TQ
+.B -h|--help
+.br
+Display the help menu.
 .SH SEE ALSO
-pkgmake(1), pkginst(1), pkgcheck(1), pkgup(1)
+.B pkgmake(1)\fR\
+,
+.B pkginst(1)\fR\
+,
+.B pkgcheck(1)\fR\
+,
+.B pkgup(1)\fR\
+,
+.B ldconfig(8)
 .SH BUGS
 None known
 .SH AUTHOR
-K. Eugene Carlson (kvngncrlsn@gmail.com)
+K. Eugene Carlson
+.MT kvngncrlsn@gmail.com
+.ME

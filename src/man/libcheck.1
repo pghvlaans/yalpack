@@ -1,44 +1,103 @@
 .\" Manpage for libcheck
 .\" Contact (kvngncrlsn@gmail.com) to correct errors or typos.
-.TH man 1 "27 August 2021" "0.2.0" "libcheck man page"
+.TH man 1 "10 September 2021" "0.2.0" "libcheck man page"
 .SH NAME
-libcheck \- generate information about which binaries use dynamic libraries conforming to a search term
+.B libcheck
+\(em generate information about which binaries use dynamic libraries conforming to a search term
 .SH SYNOPSIS
-libcheck [-d|--deep] LIBRARY
+.B libcheck [-d|--deep] LIBRARY
 
-libcheck [-p|--precise] LIBRARY
+.B libcheck [-p|--precise] LIBRARY
 
-libcheck ... [-s|--search] LIBRARY
+.B libcheck ... [-s|--search] LIBRARY
 .SH DESCRIPTION
-libcheck is a shell program provided by yalpack (Yet Another Lfs PACKage manager) for collecting information which binaries use dynamic libraries conforming to a search term. Information on individual binaries is based on the most recent run of liblist(1), so the binaries are those in the following locations (unless /usr/sbin/liblist was edited):
+.B libcheck
+is a shell program provided by
+.B yalpack
+(Yet Another Lfs PACKage manager) for collecting information which binaries use dynamic libraries conforming to a search term. Information on individual binaries is based on the most recent run of 
+.B liblist(1)\fR\
+, so the binaries are those in the following locations (unless 
+.I /usr/sbin/liblist
+was edited):
 
-\t /bin
-\t /usr/*
-\t /opt/*
-\t /sbin
+.TQ
+.I \t /bin
+.TQ
+.I \t /usr/*
+.TQ
+.I \t /opt/*
+.TQ
+.I \t /sbin
 
-libcheck will not produce duplicate results on systems where one or more of these locations is a symlink.
+.P
+.B libcheck
+will not produce duplicate results on systems where one or more of these locations is a symlink.
 
-In addition, a list of dynamic libraries conforming to the original search term is provided; for more exact results, the --precise (-p) flag can be used.
+In addition, a list of dynamic libraries conforming to the original search term is provided; for more exact results, the
+.B --precise (-p)
+flag can be used.
 .SH PRECISE MODE
-Precise mode searches for an exact library name among yalpack-installed packages. Extensions are not needed: "libcheck -p libc" will return a single result for libc.so.6, libc.so, etc. while excluding libcrypt*, etc.
+Precise mode searches for an exact library name among 
+.B yalpack\fR\
+-installed packages. Extensions are not needed:
+.B libcheck -p libc
+will return a single result for
+.I libc.so.6\fR\
+,
+.I libc.so\fR\
+, etc. while excluding
+.I libcrypt*\fR\
+, etc.
 
-When searching for multiple libraries, precise mode can be turned off for subsequent terms using the --search (-s) flag:
+When searching for multiple libraries, precise mode can be turned off for subsequent terms using the
+.B --search (-s)
+flag:
 
-\t libcheck -p libcrypt -s libcrypto
+.B \t libcheck -p libcrypt -s libcrypto
 .SH OPTIONS
-LIBRARY - A search term for the desired library.
+.TQ
+.B LIBRARY
+.br
+A search term for the desired library.
 
--d|--deep - Default searches use -maxdepth 0; although this is appropriate in most cases, a (slower) recursive search can be requested. Spurious results, including non-library files, are more likey to be reported with --deep. Incompatible with --precise.
+.TQ
+.B -d|--deep
+.br
+Default searches use
+.B -maxdepth 0\fR\
+; although this is appropriate in most cases, a (slower) recursive search can be requested. Spurious results, including non-library files, are more likey to be reported with
+.B --deep\fR\
+\&. Incompatible with
+.B --precise\fR\
+\&.
 
--p | --precise - Use an exact library name (suffix not included). Faster, but only works with yalpack-installed libraries.
+.TQ
+.B -p | --precise
+.br
+Use an exact library name (suffix not included). Faster, but only works with
+.B yalpack\fR\
+-installed libraries.
 
--s | --search - Return to the default search mode after calling -p. This flag has no effect unless -p is used first.
+.TQ
+.B -s | --search
+.br
+Return to the default search mode after calling
+.B --precise\fR\
+. This flag has no effect unless
+.B --precise
+is used first.
 
--h|--help - Display the help menu.
+.TQ
+.B -h|--help
+.br
+Display the help menu.
 .SH SEE ALSO
-pkgcheck(1), liblist(1)
+.B pkgcheck(1)\fR\
+,
+.B liblist(1)
 .SH BUGS
 No known bugs.
 .SH AUTHOR
-K. Eugene Carlson (kvngncrlsn@gmail.com)
+K. Eugene Carlson
+.MT kvngncrlsn@gmail.com
+.ME
