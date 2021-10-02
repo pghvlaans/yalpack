@@ -32,12 +32,6 @@ unset TMP
 unset SBINDIR
 
 CHOME=/etc/yalpack.conf
-HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
-VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
-ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
-TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
-SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
-
 if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
@@ -49,6 +43,7 @@ if [ ! -f "$CHOME" ]; then
         exit 1
 fi
 
+source "$CHOME"
 COUNT1=0
 for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
         COUNT1=$((COUNT1 + 1))
@@ -76,7 +71,7 @@ echo
 echo '	'Making a package for $(tput smul)"$1"$(tput rmul).
 echo
 set -e
-cd "$BUILDDEST"
+cd "$BUILDDEST" || exit 1
 
 # Changing the permissions of BUILDDEST to 0755 for safety.
 chmod 0755 "$BUILDDEST"
@@ -148,7 +143,7 @@ else
 fi
 
 # Compression and move to the correct place
-cd "$TMP"
+cd "$TMP" || exit 1
 tar -cavf "$1".tar.xz "$1"
 mkdir -p "$STAGING"
 mv "$1".tar.xz "$STAGING"

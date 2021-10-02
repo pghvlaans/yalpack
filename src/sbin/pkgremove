@@ -34,12 +34,6 @@ unset TMP
 unset SBINDIR
 
 CHOME=/etc/yalpack.conf
-HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
-VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
-ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
-TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
-SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
-
 if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
@@ -51,6 +45,7 @@ if [ ! -f "$CHOME" ]; then
         exit 1
 fi
 
+source "$CHOME"
 COUNT1=0
 for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
         COUNT1=$((COUNT1 + 1))
@@ -192,11 +187,11 @@ unset ECHOHERE
 while read -r line;
 do
 	if [ -f "$line" ] && [ ! -h "$line" ]; then
-		# If grep -x turns up nothing, not needed by remaining packages.
 		unset LINK
 		# Using "or true" to avoid errors when examining an already-
 		# deleted file
 		LINK="$(readlink -e "$line")" || true
+		# If grep -x turns up nothing, not needed by remaining packages.
 		if [ -z "$(grep -m 1 -x -e "$line" -e "${line%.new}" "$PKGTREES"/* "$SYMDESTS"/*)" ] && \
 		[ -z "$(grep -m 1 -x -e "$LINK" -e "$LINK.new" -e "${LINK%.new}" "$PKGTREES"/* "$SYMDESTS"/*)" ]; then
 			rm -fv "$line" && ECHOHERE=yes

@@ -34,12 +34,6 @@ unset TMP
 unset SBINDIR
 
 CHOME=/etc/yalpack.conf
-HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
-VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
-ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
-TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
-SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
-
 if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
@@ -51,6 +45,7 @@ if [ ! -f "$CHOME" ]; then
         exit 1
 fi
 
+source "$CHOME"
 COUNT1=0
 for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
         COUNT1=$((COUNT1 + 1))
@@ -96,37 +91,37 @@ echo
 set -e
 mkdir -p "$STAGING"
 mkdir -p "$PKGDATA" "$PKGTREES" "$PKGVER" "$NEWFILES"
-cd "$STAGING"
+cd "$STAGING" || exit 1
 # Sanity checks
 [ -z "$PACK" ] && echo && echo '	'$(tput smul)pkginst$(tput rmul) needs a package as a parameter. && echo && exit 1
 [ -z "$(tar -tf "$PACK".tar.xz | grep -x -m 1 "$PACK"/dest/)" ] && echo '	'$(tput smul)Warning! The "dest" directory$(tput rmul) was not found. Exiting. && echo && exit 1
 tar -xf "$PACK".tar.xz --exclude="$PACK"/dest
-NAME=$(cat "$PACK"/NAME)
-[ ! -f "$PACK"/NAME ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)NAME$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
-[ ! -f "$PACK"/TREE ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)TREE$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
+[ ! -f "$PKGDIR"/NAME ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)NAME$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
+[ ! -f "$PKGDIR"/TREE ] && echo '	'$(tput smul)Warning!$(tput rmul) This package has no $(tput smul)TREE$(tput rmul) file. Exiting now. && rm -rf "$PACK" && echo && exit 1
+NAME=$(cat "$PKGDIR"/NAME)
 
 # If install.sh is not removed here, a previous failed install.sh run could
 # remain and re-run.
 rm -f "$STAGING"/install.sh
-mv "$PACK"/TREE "$PKGTREES"/"$NAME"
-mv "$PACK"/VER "$PKGVER"/"$NAME"
-[ -x "$PACK"/install.sh ] && mv "$PACK"/install.sh "$STAGING"
-rm -rf "$PACK"
+[ -x "$PKGDIR"/install.sh ] && mv "$PKGDIR"/install.sh "$STAGING"
 
 # If --root-own was passed in, change ownership to root:root. Ownership is
 # preserved at the actual install stage.
 if [ "$3" = "CHOWN" ] && [ -n "$(tar -tvf "$PACK".tar.xz | grep -v " root/root ")" ]; then
 	# If a non-root-owned item is found, extracting and repacking can't be
 	# helped.
+	[ -d "$PKGDIR" ] && mv "$PKGDIR" METADATA
 	tar -xf "$PACK".tar.xz
        	chown -R root:root "$PKGDEST"
 	rm -f "$PACK".tar.xz
 	tar -caf "$PACK".tar.xz "$PKGDIR"
+	rm -rf "$PKGDIR"
+	[ -d "METADATA" ] && mv METADATA "$PKGDIR"
 fi
 rm -rf "$TEMPDIR"
 rm -f "$EXCLUDE"
 mkdir -p "$TEMPDIR"
-cd "$TEMPDIR"
+cd "$TEMPDIR" || exit 1
 # Non-directories, non-symlinks and non-binaries in etc and home will be .new;
 # check for identical/unique. Doing nothing means .new installed. (Any other
 # file named .new manually will be checked similarly.)
@@ -190,15 +185,21 @@ rm -f "$TEMPDOC"
 
 # Extract over root. (dereferencing for links; don't change directory mode or
 # ownership)
-cd /
+cd / || exit 1
 echo '	'$(tput smul)Extracting now$(tput rmul)...
 touch "$EXCLUDE"
 tar --dereference --hard-dereference -xf "$STAGING"/"$PACK".tar.xz --wildcards --strip-components 2 "$PACK"/dest/* --no-overwrite-dir --exclude-from="$EXCLUDE"
 # Extract the supplementary tarball as well, if present.
 [ -f "$STAGING"/SUPPLEMENTARY.tar.xz ] && tar --dereference --hard-dereference -xf "$STAGING"/SUPPLEMENTARY.tar.xz --no-overwrite-dir
-cd "$STAGING"
+cd "$STAGING" || exit 1
 echo '	'Done.
 echo
+
+# Now that the package has been installed without the script erroring out, put
+# the TREE and VER files in the main data directory.
+mv "$PKGDIR"/TREE "$PKGTREES"/"$NAME"
+mv "$PKGDIR"/VER "$PKGVER"/"$NAME"
+rm -rf "$PKGDIR"
 
 # Running ldconfig in case of new libraries; in case of an upgrade, it should be
 # run after removal.
@@ -314,10 +315,10 @@ if [ "$SYMTREEFLAG" = "WRITE" ]; then
 fi
 
 # Clean up afterwards (SUPPLEMENTARY.tar.xz is never retained)
-cd "$PKGDATA"
+cd "$PKGDATA" || exit 1
 rm -f "$STAGING"/SUPPLEMENTARY.tar.xz "$TEMPDOC" "$EXCLUDE"
 rm -rf "$TEMPDIR"
-cd "$STAGING"
+cd "$STAGING" || exit 1
 rm -f install.sh
 if [ "$2" != "KEEP" ]; then
 	rm -f $STAGING/"$PACK".tar.xz

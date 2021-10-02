@@ -32,12 +32,6 @@ unset TMP
 unset SBINDIR
 
 CHOME=/etc/yalpack.conf
-HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"
-VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
-ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
-TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
-SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
-
 if [ ! -f "$CHOME" ]; then
         echo
         echo Warning! $(tput smul)"$CHOME"$(tput rmul) was not found!
@@ -49,6 +43,7 @@ if [ ! -f "$CHOME" ]; then
         exit 1
 fi
 
+source "$CHOME"
 COUNT1=0
 for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do
         COUNT1=$((COUNT1 + 1))
@@ -107,7 +102,8 @@ elif [ -x "/sbin/init" ]; then
 fi
 
 set -e
-cd $STAGING
+mkdir -p "$STAGING"
+cd "$STAGING" || exit
 # Sanity checks
 [ -z "$(tar -tf "$2".tar.xz | grep -x -m 1 "$2"/TREE)" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)TREE$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
 [ -z "$(tar -tf "$2".tar.xz | grep -x -m 1 "$2"/NAME)" ] && echo '	'$(tput smul)Warning!$(tput rmul) The $(tput smul)NAME$(tput rmul) file for $(tput smul)"$2"$(tput rmul) could not be found. Try running pkgmake again. Exiting now. && exit
