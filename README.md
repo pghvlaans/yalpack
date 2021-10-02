@@ -1,3 +1,7 @@
+**Notice**
+
+`yalpack` is no longer in development. If anyone wants to use it as a starting point for their own LFS package management system, please see the "dev" branch. It has various improvements over `yalpack-0.1.8`, although it has not been fully tested. Many thanks to everyone who tried `yalpack` over the last several months, and I apologize for any inconvenience.
+
 **yalpack-0.1.8**
 
 This is yalpack (Yet Another Lfs PACKage manager), a basic set of package management tools for LFS/BLFS-based systems. yalpack was inspired by pkgtools from Slackware, although there are differences in functionality and package structure.
