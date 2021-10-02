@@ -15,11 +15,7 @@ if [ -f "$CHOME" ]; then
 	unset TMP
 	unset SBINDIR
 
-	HEAD="$(grep -m 1 HEAD\= "$CHOME" | cut -d'=' -f2-)"	
-	VARBKUP="$(grep -m 1 VARBKUP\= "$CHOME" | cut -d'=' -f2-)"
-	ROOTHOME="$(grep -m 1 ROOTHOME\= "$CHOME" | cut -d'=' -f2-)"
-	TMP="$(grep -m 1 TMP\= "$CHOME" | cut -d'=' -f2-)"
-	SBINDIR="$(grep -m 1 SBINDIR\= "$CHOME" | cut -d'=' -f2-)"
+	source "$CHOME"
 
 	COUNT1=0
 	for v in "$HEAD" "$VARBKUP" "$ROOTHOME" "$TMP" "$SBINDIR"; do

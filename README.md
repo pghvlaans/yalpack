@@ -1,4 +1,4 @@
-*This is the dev branch. Although it will eventually become yalpack-0.2.0, it has not been tested as thoroughly as the most recent release version in `main`. Some of the documentation may require further editing; 100% accuracy is not guaranteed.*
+*This is the dev branch. It has not been tested as thoroughly as the most recent release version in `main`. Some of the documentation may require further editing; 100% accuracy is not guaranteed.*
 
 **yalpack-0.2.0**
 
